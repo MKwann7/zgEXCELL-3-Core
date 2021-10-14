@@ -1,0 +1,44 @@
+{
+  "mobiniti": {
+    "Routes": {
+      "mobiniti": {
+        "Alias:": "mobiniti"
+      }
+    },
+    "ModulePath": "mobiniti",
+    "Main": {
+      "Name": "Mobiniti",
+      "Icon": "mobiniti-main.png"
+    },
+    "Permissions": {
+      "Create": ["admin","webmaster","editor"],
+      "Update": ["admin","webmaster","editor"],
+      "Delete": ["admin","webmaster","editor"]
+    },
+    "PublicRouting": {
+      "page-css": {
+        "models":["Mobiniti"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "page-js": {
+        "models":["Mobiniti"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "page-ajax": {
+        "model":["Mobiniti"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      },
+      "widget-ajax": {
+        "models":["Mobiniti"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      }
+    },
+    "Widgets": {
+      "page_mobiniti": ["admin","webmaster","editor","user","public"]
+    }
+  }
+}

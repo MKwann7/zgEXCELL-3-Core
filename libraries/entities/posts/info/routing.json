@@ -1,0 +1,49 @@
+{
+  "controllers": {
+    "index": {
+      "models":["Post"],
+      "verb":"GET",
+      "returnType":"DEFAULT"
+    },
+    "add_new_post": {
+      "models":["Post"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "create_new_post_dialog": {
+      "models":["Post"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "delete_post": {
+      "models":["Post"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "view_all_posts_ajax": {
+      "models":["Post"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "modify_post": {
+      "models":["Post"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "modify_post_dialog": {
+      "models":["Post"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "post": {
+      "models":["Post"],
+      "verb":"GET",
+      "returnType":"DEFAULT"
+    },
+    "post_ajax": {
+      "models":["Post"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    }
+  }
+}

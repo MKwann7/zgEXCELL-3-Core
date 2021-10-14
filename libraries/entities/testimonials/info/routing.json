@@ -1,0 +1,49 @@
+{
+  "controllers": {
+    "index": {
+      "models":["Testimonial"],
+      "verb":"GET",
+      "returnType":"DEFAULT"
+    },
+    "add_new_testimonial": {
+      "models":["Testimonial"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "create_new_testimonial_dialog": {
+      "models":["Testimonial"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "delete_testimonial": {
+      "models":["Testimonial"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "view_all_testimonials_ajax": {
+      "models":["Testimonial"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "modify_testimonial": {
+      "models":["Testimonial"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "modify_testimonial_dialog": {
+      "models":["Testimonial"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "testimonial": {
+      "models":["Testimonial"],
+      "verb":"GET",
+      "returnType":"DEFAULT"
+    },
+    "testimonial_ajax": {
+      "models":["Testimonial"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    }
+  }
+}

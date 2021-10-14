@@ -1,0 +1,41 @@
+{
+  "pages": {
+    "Url": "content",
+    "Folder": "content",
+    "Permissions": {
+      "Create": ["admin","webmaster","editor"],
+      "Update": ["admin","webmaster","editor"],
+      "Delete": ["admin","webmaster","editor"]
+    },
+    "PublicRouting": {
+      "page-css": {
+        "model":"zgPage",
+        "verb":"GET",
+        "returnType":"AJAX"
+      },
+      "page-js": {
+        "model":"zgPage",
+        "verb":"GET",
+        "returnType":"AJAX"
+      },
+      "page-ajax": {
+        "model":"zgPage",
+        "verb":"GET",
+        "returnType":"AJAX"
+      },
+      "widget-ajax": {
+        "model":"zgPageWidget",
+        "verb":"ALL",
+        "returnType":"AJAX"
+      }
+    },
+    "Models": {
+      "zgPage": "page",
+      "zgPageBlock": "page_block",
+      "zgPageWidget": "page_widget"
+    },
+    "Widgets": {
+      "user_login": ["admin","webmaster","editor","user","public"]
+    }
+  }
+}

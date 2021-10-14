@@ -1,0 +1,44 @@
+{
+  "testimonials": {
+    "Routes": {
+      "testimonials": {
+        "Alias:": "testimonials"
+      }
+    },
+    "ModulePath": "testimonials",
+    "Main": {
+      "Name": "Testimonials",
+      "Icon": "testimonial-main.png"
+    },
+    "Permissions": {
+      "Create": ["admin","webmaster","editor"],
+      "Update": ["admin","webmaster","editor"],
+      "Delete": ["admin","webmaster","editor"]
+    },
+    "PublicRouting": {
+      "testimonial-css": {
+        "models":["Testimonial"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "testimonial-js": {
+        "models":["Testimonial"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "testimonial-ajax": {
+        "model":["Testimonial"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      },
+      "widget-ajax": {
+        "models":["Testimonial"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      }
+    },
+    "Widgets": {
+      "testimonial_testimonial": ["admin","webmaster","editor","user","public"]
+    }
+  }
+}

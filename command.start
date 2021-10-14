@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+const PublicData = __DIR__ . "/../public/";
+const AppCore  = __DIR__ . "/../";
+const AppStart = "Command";
+
+// Load Core Files
+/** @var App\Core\App $app */
+$app = require(AppCore.'engine/system.load.php');
+
+// Load App Engine
+$app->load();
+
+// Execute App
+$app->runCommands();
+

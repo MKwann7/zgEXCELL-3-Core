@@ -1,0 +1,49 @@
+{
+  "controllers": {
+    "index": {
+      "models":["Form"],
+      "verb":"GET",
+      "returnType":"DEFAULT"
+    },
+    "add_new_form": {
+      "models":["Form"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "create_new_form_dialog": {
+      "models":["Form"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "delete_form": {
+      "models":["Form"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "view_all_forms_ajax": {
+      "models":["Form"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "modify_form": {
+      "models":["Form"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "modify_form_dialog": {
+      "models":["Form"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "dashboard": {
+      "models":["Form"],
+      "verb":"GET",
+      "returnType":"DEFAULT"
+    },
+    "dashboard_ajax": {
+      "models":["Form"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    }
+  }
+}

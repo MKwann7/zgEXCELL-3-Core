@@ -1,0 +1,21 @@
+{
+  "Portals": {
+    "Admin": {
+      "LoggedInFolder": "administrator",
+      "LoginFolder": "account-login"
+    },
+    "Member": {
+      "LoggedInFolder": "account",
+      "LoginFolder": "account-login"
+    }
+  },
+  "Process": {
+    "LoginRequest": "login-request",
+    "LogoutFolder": "logout-request"
+  },
+  "Website": {
+    "Theme": {
+      "ThemeId": "custom"
+    }
+  }
+}

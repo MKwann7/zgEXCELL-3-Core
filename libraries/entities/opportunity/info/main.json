@@ -1,0 +1,44 @@
+{
+  "opportunities": {
+    "Routes": {
+      "opportunities": {
+        "Alias:": "opportunities"
+      }
+    },
+    "ModulePath": "opportunities",
+    "Main": {
+      "Name": "Opportunitys",
+      "Icon": "opportunity-main.png"
+    },
+    "Permissions": {
+      "Create": ["admin","webmaster","editor"],
+      "Update": ["admin","webmaster","editor"],
+      "Delete": ["admin","webmaster","editor"]
+    },
+    "PublicRouting": {
+      "page-css": {
+        "models":["Opportunity"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "page-js": {
+        "models":["Opportunity"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "page-ajax": {
+        "model":["Opportunity"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      },
+      "widget-ajax": {
+        "models":["Opportunity"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      }
+    },
+    "Widgets": {
+      "page_opportunity": ["admin","webmaster","editor","user","public"]
+    }
+  }
+}

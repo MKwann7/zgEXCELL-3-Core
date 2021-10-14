@@ -1,0 +1,44 @@
+{
+  "forms": {
+    "Routes": {
+      "forms": {
+        "Alias:": "forms"
+      }
+    },
+    "ModulePath": "forms",
+    "Main": {
+      "Name": "Forms",
+      "Icon": "form-main.png"
+    },
+    "Permissions": {
+      "Create": ["admin","webmaster","editor"],
+      "Update": ["admin","webmaster","editor"],
+      "Delete": ["admin","webmaster","editor"]
+    },
+    "PublicRouting": {
+      "page-css": {
+        "models":["Form"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "page-js": {
+        "models":["Form"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "page-ajax": {
+        "model":["Form"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      },
+      "widget-ajax": {
+        "models":["Form"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      }
+    },
+    "Widgets": {
+      "page_form": ["admin","webmaster","editor","user","public"]
+    }
+  }
+}

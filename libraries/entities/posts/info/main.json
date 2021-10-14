@@ -1,0 +1,44 @@
+{
+  "posts": {
+    "Routes": {
+      "posts": {
+        "Alias:": "posts"
+      }
+    },
+    "ModulePath": "posts",
+    "Main": {
+      "Name": "Posts",
+      "Icon": "post-main.png"
+    },
+    "Permissions": {
+      "Create": ["admin","webmaster","editor"],
+      "Update": ["admin","webmaster","editor"],
+      "Delete": ["admin","webmaster","editor"]
+    },
+    "PublicRouting": {
+      "post-css": {
+        "models":["Post"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "post-js": {
+        "models":["Post"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "post-ajax": {
+        "model":["Post"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      },
+      "widget-ajax": {
+        "models":["Post"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      }
+    },
+    "Widgets": {
+      "post_post": ["admin","webmaster","editor","user","public"]
+    }
+  }
+}

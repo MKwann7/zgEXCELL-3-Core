@@ -1,0 +1,44 @@
+{
+  "divisions": {
+    "Routes": {
+      "divisions": {
+        "Alias:": "divisions"
+      }
+    },
+    "ModulePath": "divisions",
+    "Main": {
+      "Name": "Divisions",
+      "Icon": "division-main.png"
+    },
+    "Permissions": {
+      "Create": ["admin","webmaster","editor"],
+      "Update": ["admin","webmaster","editor"],
+      "Delete": ["admin","webmaster","editor"]
+    },
+    "PublicRouting": {
+      "page-css": {
+        "models":["Division"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "page-js": {
+        "models":["Division"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "page-ajax": {
+        "model":["Division"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      },
+      "widget-ajax": {
+        "models":["Division"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      }
+    },
+    "Widgets": {
+      "page_division": ["admin","webmaster","editor","user","public"]
+    }
+  }
+}

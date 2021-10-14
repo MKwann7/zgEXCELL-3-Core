@@ -1,0 +1,18 @@
+{
+  "vendor": {
+    "froala": {
+      "main\/v2.9.3": ["codemirror.min.css","froala_editor.pkgd.min.css", "froala_style.min.css"]
+    },
+    "slim": {
+      "main\/v4.5.1": ["slim.min.css"]
+    },
+    "jquery": {
+      "ui\/v1.12.1": ["jquery.ui.min.css"],
+      "color-picker\/v1.0": ["jquery.color-picker.min.css"],
+      "input-picker\/v1.0": ["jquery.input-picker.min.css"]
+    },
+    "swiper": {
+      "main\/v6.4.5": ["swiper-bundle.min.css"]
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "Properties": {
+    "page_block_id": {
+      "type": "int",
+      "length": 15
+    },
+    "page_id": {
+      "type": "int",
+      "length": 15
+    },
+    "company_id": {
+      "type": "int",
+      "length": 15
+    },
+    "division_id": {
+      "type": "int",
+      "length": 15
+    },
+    "title": {
+      "type": "varchar",
+      "length": 100
+    },
+    "description": {
+      "type": "varchar",
+      "length": 250
+    },
+    "sort_order": {
+      "type": "int",
+      "length": 5
+    },
+    "visibility": {
+      "type": "boolean"
+    },
+    "created_on": {
+      "type": "datetime",
+      "length": 0
+    },
+    "created_by": {
+      "type": "int",
+      "length": 15
+    },
+    "last_updated": {
+      "type": "datetime",
+      "length": 0
+    },
+    "updated_by": {
+      "type": "int",
+      "length": 15
+    },
+    "block_data": {
+      "type": "json",
+      "length": 0
+    }
+  }
+}

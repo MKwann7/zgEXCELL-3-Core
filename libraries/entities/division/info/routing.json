@@ -1,0 +1,49 @@
+{
+  "controllers": {
+    "index": {
+      "models":["Division"],
+      "verb":"GET",
+      "returnType":"DEFAULT"
+    },
+    "add_new_division": {
+      "models":["Division"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "create_new_division_dialog": {
+      "models":["Division"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "delete_division": {
+      "models":["Division"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "view_all_divisions_ajax": {
+      "models":["Division"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "modify_division": {
+      "models":["Division"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "modify_division_dialog": {
+      "models":["Division"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "division": {
+      "models":["Division"],
+      "verb":"GET",
+      "returnType":"DEFAULT"
+    },
+    "division_ajax": {
+      "models":["Division"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    }
+  }
+}

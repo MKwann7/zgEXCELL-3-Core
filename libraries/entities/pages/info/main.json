@@ -1,0 +1,44 @@
+{
+  "pages": {
+    "Routes": {
+      "pages": {
+        "Alias:": "pages"
+      }
+    },
+    "ModulePath": "pages",
+    "Main": {
+      "Name": "Pages",
+      "Icon": "page-main.png"
+    },
+    "Permissions": {
+      "Create": ["admin","webmaster","editor"],
+      "Update": ["admin","webmaster","editor"],
+      "Delete": ["admin","webmaster","editor"]
+    },
+    "PublicRouting": {
+      "page-css": {
+        "models":["Page"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "page-js": {
+        "models":["Page"],
+        "verbs":["GET"],
+        "returnType":"AJAX"
+      },
+      "page-ajax": {
+        "model":["Page"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      },
+      "widget-ajax": {
+        "models":["Page"],
+        "verbs":["GET","POST","DELETE","CREATE"],
+        "returnType":"AJAX"
+      }
+    },
+    "Widgets": {
+      "page_page": ["admin","webmaster","editor","user","public"]
+    }
+  }
+}

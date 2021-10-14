@@ -1,0 +1,49 @@
+{
+  "controllers": {
+    "index": {
+      "models":["Opportunity"],
+      "verb":"GET",
+      "returnType":"DEFAULT"
+    },
+    "add_new_opportunity": {
+      "models":["Opportunity"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "create_new_opportunity_dialog": {
+      "models":["Opportunity"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "delete_opportunity": {
+      "models":["Opportunity"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "view_all_opportunities_ajax": {
+      "models":["Opportunity"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "modify_opportunity": {
+      "models":["Opportunity"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "modify_opportunity_dialog": {
+      "models":["Opportunity"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "opportunity": {
+      "models":["Opportunity"],
+      "verb":"GET",
+      "returnType":"DEFAULT"
+    },
+    "opportunity_ajax": {
+      "models":["Opportunity"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    }
+  }
+}

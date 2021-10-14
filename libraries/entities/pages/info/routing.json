@@ -1,0 +1,49 @@
+{
+  "controllers": {
+    "index": {
+      "models":["Page"],
+      "verb":"GET",
+      "returnType":"DEFAULT"
+    },
+    "add_new_page": {
+      "models":["Page"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "create_new_page_dialog": {
+      "models":["Page"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "delete_page": {
+      "models":["Page"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "view_all_pages_ajax": {
+      "models":["Page"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "modify_page": {
+      "models":["Page"],
+      "verb":"POST",
+      "returnType":"AJAX"
+    },
+    "modify_page_dialog": {
+      "models":["Page"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    },
+    "page": {
+      "models":["Page"],
+      "verb":"GET",
+      "returnType":"DEFAULT"
+    },
+    "page_ajax": {
+      "models":["Page"],
+      "verb":"GET",
+      "returnType":"AJAX"
+    }
+  }
+}
