@@ -1,1 +1,1 @@
-# zgXCELL-Core
+# zgEXCELL-Core
