@@ -17,16 +17,16 @@ use Vendors\Mobiniti\Main\V100\Classes\MobinitiContactsApiModule;
 
 class MobinitiSyncContactsFromGroupsCommand extends Command
 {
-    public $name = "Mobiniti.SyncContactsFromGroups";
-    public $description = "Syncs all contacts from available mobiniti groups.";
+    public string $name = "Mobiniti.SyncContactsFromGroups";
+    public string $description = "Syncs all contacts from available mobiniti groups.";
 
     /**
      * Executes the command
      */
-    public function Run()
+    public function Run(): void
     {
         $objMobinitiContactGroupRelsModule = new MobinitiContactGroupRels();
-        (new MobinitiGroups())->getAll(10000)->Data->Each(function($currGroup) use ($objMobinitiContactGroupRelsModule)
+        (new MobinitiGroups())->getAll(10000)->getData()->Each(function($currGroup) use ($objMobinitiContactGroupRelsModule)
         {
             $this->processMobinitiGroup($currGroup, $objMobinitiContactGroupRelsModule);
 
@@ -37,9 +37,9 @@ class MobinitiSyncContactsFromGroupsCommand extends Command
     {
         $objContactResult = (new MobinitiContactsApiModule())->GetContactsByGroupId($objGroup->id);
 
-        $this->dump("Contacts for Group: " . $objContactResult->Result->Count . " ID: " . $objGroup->id);
+        $this->dump("Contacts for Group: " . $objContactResult->result->Count . " ID: " . $objGroup->id);
 
-        $objContactResult->Data->Each(function($currContact) use ($objGroup, $objMobinitiContactGroupRelsModule)
+        $objContactResult->getData()->Each(function($currContact) use ($objGroup, $objMobinitiContactGroupRelsModule)
         {
             $objMobinitiContactsModule = new MobinitiContacts();
             $this->processMobinitiContact($currContact, $objGroup, $objMobinitiContactGroupRelsModule, $objMobinitiContactsModule);
@@ -53,9 +53,9 @@ class MobinitiSyncContactsFromGroupsCommand extends Command
     {
         $objContactResult = $objMobinitiContactsModule->getWhere(["id" => $currContact->id]);
 
-        if ($objContactResult->Result->Count >= 1)
+        if ($objContactResult->result->Count >= 1)
         {
-            $this->processExistingContact($objContactResult->Data->First(), $objGroup, $objMobinitiContactGroupRelsModule);
+            $this->processExistingContact($objContactResult->getData()->first(), $objGroup, $objMobinitiContactGroupRelsModule);
         }
         else
         {
@@ -71,22 +71,22 @@ class MobinitiSyncContactsFromGroupsCommand extends Command
         $objContactCardRelResult = $objMobinitiContactGroupRelsModule->getWhere(["mobiniti_contact_id" => $objContact->id, "mobiniti_group_id" => $objGroup->id]);
         $objContactCardRel = new MobinitiContactGroupRelModel();
 
-        if ($objContactCardRelResult->Result->Count > 0)
+        if ($objContactCardRelResult->result->Count > 0)
         {
-            $objContactCardRel = $objContactCardRelResult->Data->First();
+            $objContactCardRel = $objContactCardRelResult->getData()->first();
             $objContactCardRel->card_id = $objGroup->card_id;
 
             $objContactCardRelCreationResult = $objMobinitiContactGroupRelsModule->update($objContactCardRel);
 
-            $objContactCardRel = $objContactCardRelCreationResult->Data->First();
+            $objContactCardRel = $objContactCardRelCreationResult->getData()->first();
 
-            if ($objContactCardRelCreationResult->Result->Success === true)
+            if ($objContactCardRelCreationResult->result->Success === true)
             {
                 $this->dump("> Updated Contact Card Rel: " . $objContactCardRel->mobiniti_contact_group_rel_id);
             }
             else
             {
-                $this->dump("> Updated Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->Result->Message);
+                $this->dump("> Updated Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->result->Message);
             }
         }
         else
@@ -98,15 +98,15 @@ class MobinitiSyncContactsFromGroupsCommand extends Command
 
             $objContactCardRelCreationResult = $objMobinitiContactGroupRelsModule->createNew($objContactCardRel);
 
-            $objContactCardRel = $objContactCardRelCreationResult->Data->First();
+            $objContactCardRel = $objContactCardRelCreationResult->getData()->first();
 
-            if ($objContactCardRelCreationResult->Result->Success === true)
+            if ($objContactCardRelCreationResult->result->Success === true)
             {
                 $this->dump("> Adding Contact Card Rel: " . $objContactCardRel->mobiniti_contact_group_rel_id);
             }
             else
             {
-                $this->dump("> Adding Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->Result->Message);
+                $this->dump("> Adding Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->result->Message);
             }
         }
 
@@ -128,15 +128,15 @@ class MobinitiSyncContactsFromGroupsCommand extends Command
         $objContactModel->country_code = $currContact->country_code;
 
         $objContactCreationResult = $objMobinitiContactsModule->createNew($objContactModel);
-        $objContact = $objContactCreationResult->Data->First();
+        $objContact = $objContactCreationResult->getData()->first();
 
-        if ($objContactCreationResult->Result->Success === true)
+        if ($objContactCreationResult->result->Success === true)
         {
             $this->dump(">> Creating Contact: " . $objContact->id);
         }
         else
         {
-            $this->dump(">> Creating Contact: [ERROR] " . $objContactCreationResult->Result->Message);
+            $this->dump(">> Creating Contact: [ERROR] " . $objContactCreationResult->result->Message);
         }
 
         $this->caller->updateCommandInsance(true, time());
@@ -148,9 +148,9 @@ class MobinitiSyncContactsFromGroupsCommand extends Command
     {
         $objContactCardRelResult = $objMobinitiContactGroupRelsModule->getWhere(["mobiniti_contact_id" => $objContact->id, "mobiniti_group_id" => $objGroup->id]);
 
-        if ($objContactCardRelResult->Result->Count > 0)
+        if ($objContactCardRelResult->result->Count > 0)
         {
-            $this->processExistingContactRel($objContactCardRelResult->Data->First(), $objGroup, $objMobinitiContactGroupRelsModule);
+            $this->processExistingContactRel($objContactCardRelResult->getData()->first(), $objGroup, $objMobinitiContactGroupRelsModule);
         }
         else
         {
@@ -168,15 +168,15 @@ class MobinitiSyncContactsFromGroupsCommand extends Command
 
         $objContactCardRelCreationResult = $objMobinitiContactGroupRelsModule->update($objContactCardRel);
 
-        $objContactCardRel = $objContactCardRelCreationResult->Data->First();
+        $objContactCardRel = $objContactCardRelCreationResult->getData()->first();
 
-        if ($objContactCardRelCreationResult->Result->Success === true)
+        if ($objContactCardRelCreationResult->result->Success === true)
         {
             $this->dump("> Updated Contact Card Rel: " . $objContactCardRel->mobiniti_contact_group_rel_id);
         }
         else
         {
-            $this->dump("> Updated Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->Result->Message);
+            $this->dump("> Updated Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->result->Message);
         }
     }
 
@@ -189,15 +189,15 @@ class MobinitiSyncContactsFromGroupsCommand extends Command
 
         $objContactCardRelCreationResult = $objMobinitiContactGroupRelsModule->createNew($objContactCardRel);
 
-        $objContactCardRel = $objContactCardRelCreationResult->Data->First();
+        $objContactCardRel = $objContactCardRelCreationResult->getData()->first();
 
-        if ($objContactCardRelCreationResult->Result->Success === true)
+        if ($objContactCardRelCreationResult->result->Success === true)
         {
             $this->dump("> Adding Contact Card Rel: " . $objContactCardRel->mobiniti_contact_group_rel_id);
         }
         else
         {
-            $this->dump("> Adding Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->Result->Message);
+            $this->dump("> Adding Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->result->Message);
         }
     }
 
@@ -205,16 +205,16 @@ class MobinitiSyncContactsFromGroupsCommand extends Command
     {
         $objCardResult = (new Cards())->getById($objGroup->card_id);
 
-        if ($objCardResult->Result->Count === 0)
+        if ($objCardResult->result->Count === 0)
         {
             return;
         }
 
-        $objCard = $objCardResult->Data->First();
+        $objCard = $objCardResult->getData()->first();
 
         $objContactUserRelResult = $objMobinitiContactUserRelsModule->getWhere(["mobiniti_contact_id" => $objContact->id, "user_id" => $objCard->owner_id]);
 
-        if ($objContactUserRelResult->Result->Count > 0)
+        if ($objContactUserRelResult->result->Count > 0)
         {
             return;
         }
@@ -230,15 +230,15 @@ class MobinitiSyncContactsFromGroupsCommand extends Command
 
         $objContactUserRelCreationResult = $objMobinitiContactUserRelsModule->createNew($objContactUserRel);
 
-        $objContactUserRel = $objContactUserRelCreationResult->Data->First();
+        $objContactUserRel = $objContactUserRelCreationResult->getData()->first();
 
-        if ($objContactUserRelCreationResult->Result->Success === true)
+        if ($objContactUserRelCreationResult->result->Success === true)
         {
             $this->dump(">> Adding Contact User Rel: " . $objContactUserRel->mobiniti_contact_user_rel_id);
         }
         else
         {
-            $this->dump(">> Adding Contact User Rel: [ERROR] " . $objContactUserRelCreationResult->Result->Message);
+            $this->dump(">> Adding Contact User Rel: [ERROR] " . $objContactUserRelCreationResult->result->Message);
         }
     }
 

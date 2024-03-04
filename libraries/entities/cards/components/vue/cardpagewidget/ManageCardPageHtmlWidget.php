@@ -7,10 +7,10 @@ use App\website\vue\classes\VueComponentHtml;
 
 class ManageCardPageHtmlWidget extends VueComponentHtml
 {
-    protected $id = "1db71dce-e26f-403d-b83f-3e79be9b0b98";
-    protected $name = "compHtml";
-    protected $vueType = "compHtml";
-    protected $modalWidth = 1200;
+    protected string $id = "1db71dce-e26f-403d-b83f-3e79be9b0b98";
+    protected string $name = "compHtml";
+    protected string $vueType = "compHtml";
+    protected string $modalWidth = "1200";
 
     public function __construct(?AppModel $entity = null, $name = "Html Widget", $props = [])
     {
@@ -117,8 +117,6 @@ class ManageCardPageHtmlWidget extends VueComponentHtml
             $(".' . $this->froalaElementId . '").froalaEditor("html.set", "");
             this.htmlActionButton = "Create New '.$this->name.'";
         }
-        
-        console.log(this);
         ';
     }
 }

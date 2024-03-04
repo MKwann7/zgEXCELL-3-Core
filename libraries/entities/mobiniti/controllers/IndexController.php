@@ -23,7 +23,7 @@ class IndexController extends MobinitiController
         $objGroupResult = (new MobinitiGroups())->getAll();
 
         /** @var MobinitiGroupModel $currGroup */
-        foreach($objGroupResult->Data as $currGroup)
+        foreach($objGroupResult->data as $currGroup)
         {
             if (empty($currGroup->card_id))
             {
@@ -44,7 +44,7 @@ class IndexController extends MobinitiController
         $intPageOffset = 1;
         $objMobinitiGroup = (new MobinitiGroups())->getById($strGroupId);
         $objMobinitiGroupApiResult = (new MobinitiGroupsApiModule())->getById($strGroupId);
-        $objMobinitiGroupResult = (new MobinitiGroups())->update($objMobinitiGroupApiResult->Data->First());
+        $objMobinitiGroupResult = (new MobinitiGroups())->update($objMobinitiGroupApiResult->getData()->first());
 
         $this->dump("STARTING WHILE LOOP");
 
@@ -54,7 +54,7 @@ class IndexController extends MobinitiController
             {
                 $objMobinitiApiResult = (new MobinitiGroupsApiModule())->getAll(100,$intPageOffset);
 
-                $this->dump("Batch Start [{$intPageOffset}] Count = " . $objMobinitiApiResult->Data->Count());
+                $this->dump("Batch Start [{$intPageOffset}] Count = " . $objMobinitiApiResult->getData()->Count());
 
                 if (($objMobinitiApiResult->Result->Count + $objMobinitiApiResult->Result->Depth) < $objMobinitiApiResult->Result->Total)
                 {
@@ -67,7 +67,7 @@ class IndexController extends MobinitiController
 
                 $intCount = 0;
 
-                $objMobinitiApiResult->Data->Each(function(MobinitiGroupModel $currGroup, $currIndex) use ($objMobinitiGroup, &$intCount, $strGroupId)
+                $objMobinitiApiResult->getData()->Each(function(MobinitiGroupModel $currGroup, $currIndex) use ($objMobinitiGroup, &$intCount, $strGroupId)
                 {
                     if (trim(strtolower($currGroup->id)) === $strGroupId)
                     {
@@ -105,30 +105,30 @@ class IndexController extends MobinitiController
 
         $objContactResult = (new Contacts())->getAll(1000,1);
 
-        $objContactResult->Data->Each(function($currContact)
+        $objContactResult->getData()->Each(function($currContact)
         {
             $colMobinitiContact = (new MobinitiContactsApiModule())->getById($currContact->mobiniti_id);
 
-            if (empty($colMobinitiContact->Data->First()->groups))
+            if (empty($colMobinitiContact->getData()->first()->groups))
             {
                 return;
             }
 
-            foreach($colMobinitiContact->Data->First()->groups as $currGroup)
+            foreach($colMobinitiContact->getData()->first()->groups as $currGroup)
             {
                 $objMobinitiGroupResult = (new MobinitiGroups())->getById($currGroup->id);
 
-                if ($objMobinitiGroupResult->Result->Count === 0 || empty($objMobinitiGroupResult->Data->First()->card_id))
+                if ($objMobinitiGroupResult->result->Count === 0 || empty($objMobinitiGroupResult->getData()->first()->card_id))
                 {
                     continue;
                 }
 
-                $objContactCardRelResult = (new ContactCardRels())->getWhere(["contact_id" => $currContact->contact_id, "card_id" => $objMobinitiGroupResult->Data->First()->card_id]);
+                $objContactCardRelResult = (new ContactCardRels())->getWhere(["contact_id" => $currContact->contact_id, "card_id" => $objMobinitiGroupResult->getData()->first()->card_id]);
                 $objContactCardRel = new ContactCardRelModel();
 
-                if ($objContactCardRelResult->Result->Count > 0)
+                if ($objContactCardRelResult->result->Count > 0)
                 {
-                    $objContactCardRel = $objContactCardRelResult->Data->First();
+                    $objContactCardRel = $objContactCardRelResult->getData()->first();
                 }
                 else
                 {
@@ -140,7 +140,7 @@ class IndexController extends MobinitiController
 
                     $objContactCardRelCreationResult = (new ContactCardRels())->createNew($objContactCardRel);
 
-                    $objContactCardRel = $objContactCardRelCreationResult->Data->First();
+                    $objContactCardRel = $objContactCardRelCreationResult->getData()->first();
                 }
             }
         });
@@ -160,7 +160,7 @@ class IndexController extends MobinitiController
         {
             $colMobinitiContact = (new MobinitiContactsApiModule())->getAll(100,$intPageOffset);
 
-            if (($colMobinitiContact->Result->Count + $colMobinitiContact->Result->Depth) < $colMobinitiContact->Result->Total)
+            if (($colMobinitiContact->result->Count + $colMobinitiContact->result->Depth) < $colMobinitiContact->result->Total)
             {
                 $intPageOffset++;
             }
@@ -171,14 +171,14 @@ class IndexController extends MobinitiController
 
             flush();
 
-            $colMobinitiContact->Data->Each(function(MobinitiContactModel $currContact) {
+            $colMobinitiContact->getData()->Each(function(MobinitiContactModel $currContact) {
 
                 $objContactResult = (new Contacts())->getWhere(["mobiniti_id" => $currContact->id]);
                 $objContactModel = new ContactModel();
 
-                if ($objContactResult->Result->Count > 0)
+                if ($objContactResult->result->Count > 0)
                 {
-                    $objContact = $objContactResult->Data->First();
+                    $objContact = $objContactResult->getData()->first();
                 }
                 else
                 {
@@ -193,7 +193,7 @@ class IndexController extends MobinitiController
                     $objContactModel->mobiniti_id = $currContact->id;
 
                     $objContactCreationResult = (new Contacts())->createNew($objContactModel);
-                    $objContact = $objContactCreationResult->Data->First();
+                    $objContact = $objContactCreationResult->getData()->first();
                 }
 
                 if(!empty($currContact->groups))
@@ -202,12 +202,12 @@ class IndexController extends MobinitiController
 
                         $objGroupResult = (new MobinitiGroups())->getById($currGroup->id);
 
-                        if ($objGroupResult->Result->Count === 0)
+                        if ($objGroupResult->result->Count === 0)
                         {
                             return;
                         }
 
-                        $objGroup = $objGroupResult->Data->First();
+                        $objGroup = $objGroupResult->getData()->first();
 
                         if (empty($objContact->contact_id))
                         {
@@ -222,9 +222,9 @@ class IndexController extends MobinitiController
                         $objContactCardRelResult = (new ContactCardRels())->getWhere(["mobiniti_group_id" => $objGroup->id, "contact_id" => $objContact->contact_id, "card_id" => $objGroup->card_id]);
                         $objContactCardRel = new ContactCardRelModel();
 
-                        if ($objContactCardRelResult->Result->Count > 0)
+                        if ($objContactCardRelResult->result->Count > 0)
                         {
-                            $objContactCardRel = $objContactCardRelResult->Data->First();
+                            $objContactCardRel = $objContactCardRelResult->getData()->first();
                         }
                         else
                         {
@@ -236,21 +236,21 @@ class IndexController extends MobinitiController
 
                             $objContactCardRelCreationResult = (new ContactCardRels())->createNew($objContactCardRel);
 
-                            $objContactCardRel = $objContactCardRelCreationResult->Data->First();
+                            $objContactCardRel = $objContactCardRelCreationResult->getData()->first();
                         }
 
                         $objCardResult = (new Cards())->getById($objGroup->card_id);
 
-                        if ($objCardResult->Result->Count === 0)
+                        if ($objCardResult->result->Count === 0)
                         {
                             return;
                         }
 
-                        $objCard = $objCardResult->Data->First();
+                        $objCard = $objCardResult->getData()->first();
 
                         $objContactUserRelResult = (new ContactUserRels())->getWhere(["contact_id" => $objContact->contact_id, "user_id" => $objCard->user_id]);
 
-                        if ($objContactUserRelResult->Result->Count > 0)
+                        if ($objContactUserRelResult->result->Count > 0)
                         {
                             return;
                         }
@@ -272,15 +272,15 @@ class IndexController extends MobinitiController
     public function SyncMobinitiGroupsWithCards() : bool
     {
         //$objGroupResult = (new MobinitiGroupsApiModule(MobinitiToken))->getAll();
-        $objGroupResult = (new MobinitiGroups())->getWhere(["card_id" => ExcellNull]);
+        $objGroupResult = (new MobinitiGroups())->getWhere(["card_id" => EXCELL_NULL]);
 
-        if ($objGroupResult->Result->Count === 0)
+        if ($objGroupResult->result->Count === 0)
         {
             dd("No Groups Found.");
         }
 
         /** @var MobinitiGroupModel $currGroup */
-        foreach($objGroupResult->Data as $currGroup)
+        foreach($objGroupResult->data as $currGroup)
         {
             //$objCreationResult = (new MobinitiGroupsModule())->CreateNew($currGroup);
             if (strpos(strtolower($currGroup->join_message),"ezcard.com") !== false)
@@ -292,25 +292,25 @@ class IndexController extends MobinitiController
 
                 $objCardResult = (new Cards())->getWhere(["card_num" => $strCardKeyword]);
 
-                if ($objCardResult->Result->Count === 0)
+                if ($objCardResult->result->Count === 0)
                 {
                     $objCardResult = (new Cards())->getWhere(["card_keyword" => $strCardKeyword]);
                 }
 
-                if ($objCardResult->Result->Success === true)
+                if ($objCardResult->result->Success === true)
                 {
-                    echo "CARD ID: " . $objCardResult->Data->First()->card_id . PHP_EOL;
+                    echo "CARD ID: " . $objCardResult->getData()->first()->card_id . PHP_EOL;
                     echo "> Keyword: " . $strCardKeyword . PHP_EOL;
-                    echo "> QUERY: " . $objCardResult->Result->Query . PHP_EOL;
+                    echo "> QUERY: " . $objCardResult->result->Query . PHP_EOL;
 
-                    $currGroup->card_id = $objCardResult->Data->First()->card_id;
+                    $currGroup->card_id = $objCardResult->getData()->first()->card_id;
                     $objGroupUpdateResult = (new MobinitiGroups())->update($currGroup);
 
-                    if($objGroupUpdateResult->Result->Success !== true)
+                    if($objGroupUpdateResult->result->Success !== true)
                     {
-                        echo $objGroupUpdateResult->Result->Message . PHP_EOL;
-                        echo $objGroupUpdateResult->Result->Query . PHP_EOL;
-                        print_r($objGroupUpdateResult->Result->Errors); echo PHP_EOL;
+                        echo $objGroupUpdateResult->result->Message . PHP_EOL;
+                        echo $objGroupUpdateResult->result->Query . PHP_EOL;
+                        print_r($objGroupUpdateResult->result->Errors); echo PHP_EOL;
                     }
                 }
             }
@@ -321,9 +321,9 @@ class IndexController extends MobinitiController
             {
                 $objCardResult = (new Cards())->getWhere(["card_num" => $strGroupNameId]);
 
-                if ($objCardResult->Result->Success === true)
+                if ($objCardResult->result->Success === true)
                 {
-                    $currGroup->card_id = $objCardResult->Data->First()->card_id;
+                    $currGroup->card_id = $objCardResult->getData()->first()->card_id;
                     $objGroupUpdateResult = (new MobinitiGroups())->update($currGroup);
                 }
             }

@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class ModuleAppWidgetModel extends AppModel
 {
-    protected $EntityName = "Modules";
-    protected $ModelName = "ModuleAppWidget";
+    protected string $EntityName = "Modules";
+    protected string $ModelName = "ModuleAppWidget";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class ModuleAppWidgetModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "module_app_widget_id" =>["type" => "int", "length" => "15"],
@@ -33,7 +33,7 @@ class ModuleAppWidgetModel extends AppModel
         ];
     }
 
-    public function ToPublicArray($arProperties = null, $collectionKeys = false)
+    public function ToPublicArray($arProperties = null, $collectionKeys = false): array
     {
         $this->RemoveField("module_widget_component_id");
         $this->RemoveField("module_app_id");

@@ -7,8 +7,8 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class ManageCardPaymentAccountWidget extends VueComponent
 {
-    protected $id         = "3270ec12-567f-4625-ab79-886e15e5bf69";
-    protected $modalWidth = 750;
+    protected string $id         = "3270ec12-567f-4625-ab79-886e15e5bf69";
+    protected string $modalWidth = "750";
 
     public function __construct (?AppModel $entity = null, $name = "Card Payment Account", $props = [])
     {
@@ -57,7 +57,7 @@ class ManageCardPaymentAccountWidget extends VueComponent
             getPaymentAccounts: function()
             {
                 let self = this;
-                const url = "'.$app->objCustomPlatform->getFullPortalDomain().'/cart/get-user-payment-accounts?id=" + this.cardEntity.user_id;
+                const url = "'.$app->objCustomPlatform->getFullPortalDomainName().'/cart/get-user-payment-accounts?id=" + this.cardEntity.user_id;
                                 
                 ajax.GetExternal(url, true, function(result)
                 {
@@ -116,7 +116,7 @@ class ManageCardPaymentAccountWidget extends VueComponent
 
                 const self = this;
                 modal.EngageFloatShield();
-                const url = "'.$app->objCustomPlatform->getFullPortalDomain().'/cart/register-credit-card-with-user?id=" + this.cardEntity.user_id;
+                const url = "'.$app->objCustomPlatform->getFullPortalDomainName().'/cart/register-credit-card-with-user?id=" + this.cardEntity.user_id;
                 
                 ajax.PostExternal(url, card, true, function(result) 
                 {
@@ -146,7 +146,7 @@ class ManageCardPaymentAccountWidget extends VueComponent
                     account.type = "other";
                 }
                 
-                return "' . $app->objCustomPlatform->getFullPortalDomain() . '/_ez/images/financials/cc_small_" + account.type + ".png";
+                return "' . $app->objCustomPlatform->getFullPortalDomainName() . '/_ez/images/financials/cc_small_" + account.type + ".png";
             },
             clearNewCard: function()
             {
@@ -276,7 +276,7 @@ class ManageCardPaymentAccountWidget extends VueComponent
             processPaymentAccountUpdate: function(currAccount) 
             {
                 let self = this;
-                const url = "'.$app->objCustomPlatform->getFullPortalDomain().'/cart/register-payment-account-with-card?id=" + this.cardEntity.card_id;
+                const url = "'.$app->objCustomPlatform->getFullPortalDomainName().'/cart/register-payment-account-with-card?id=" + this.cardEntity.card_id;
                 const card = {payment_account_id: currAccount.payment_account_id}
                 
                 ajax.PostExternal(url, card, true, function(result) 
@@ -412,7 +412,7 @@ class ManageCardPaymentAccountWidget extends VueComponent
                             </div>
                             <div>
                                 <input v-on:keyup="testCreditCard(newCardForCreate.number)" v-on:blur="testCreditCard(newCardForCreate.number);" v-model="newCardForCreate.number" type="text" class="form-control" placeholder="Card Number" style="width: calc(100% - 50px); display: inline-block;">
-                                <img v-bind:src="\'' . $app->objCustomPlatform->getFullPortalDomain() . '/_ez/images/financials/cc_small_\' + creditCartType + \'.png\'" style="position: relative; top: -3px; right: -5px;"/>
+                                <img v-bind:src="\'' . $app->objCustomPlatform->getFullPortalDomainName() . '/_ez/images/financials/cc_small_\' + creditCartType + \'.png\'" style="position: relative; top: -3px; right: -5px;"/>
                                 <div v-if="checkForErrorTextDisplay(errorText.number)" class="field-validation-error">{{ errorText.number }}</div>
                             </div>
                             <div class="inlineBlock">

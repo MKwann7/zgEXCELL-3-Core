@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class TaskModel extends AppModel
 {
-    protected $EntityName = "Tasks";
-    protected $ModelName = "Task";
+    protected string $EntityName = "Tasks";
+    protected string $ModelName = "Task";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class TaskModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [];
     }

@@ -15,8 +15,8 @@ use DateTime;
  */
 class MobinitiCampaignModel extends MobinitiModel
 {
-    protected $EntityName = "Mobiniti";
-    protected $ModelName = "MobinitiCampaign";
+    protected string $EntityName = "Mobiniti";
+    protected string $ModelName = "MobinitiCampaign";
 
     public function __construct($entityData = null)
     {
@@ -24,7 +24,7 @@ class MobinitiCampaignModel extends MobinitiModel
         parent::__construct($entityData);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "id" =>["type" => "varchar", "length" => "36"],

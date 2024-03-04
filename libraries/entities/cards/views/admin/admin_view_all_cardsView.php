@@ -7,7 +7,7 @@ use App\Website\Website;
 
 $this->CurrentPage->BodyId            = "view-cards-admin-page";
 $this->CurrentPage->BodyClasses       = ["admin-page", "view-cards-admin-page", "no-columns"];
-$this->CurrentPage->Meta->Title       = "Cards New | Admin | " . $this->app->objCustomPlatform->getPortalName();
+$this->CurrentPage->Meta->Title       = "Sites | Admin | " . $this->app->objCustomPlatform->getPortalName();
 $this->CurrentPage->Meta->Description = "Welcome to the NEW AMAZING WORLD of EZ Digital Cards, where you can create and manage your own cards!";
 $this->CurrentPage->Meta->Keywords    = "";
 $this->CurrentPage->SnipIt->Title     = "Cards";

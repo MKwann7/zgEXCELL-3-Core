@@ -3,15 +3,16 @@
 namespace Entities\Modules\Components\Vue\AppsWidget;
 
 use App\Website\Constructs\Breadcrumb;
+use App\Website\Vue\Classes\Base\VueComponent;
 use App\Website\Vue\Classes\VueComponentEntityList;
 use Entities\Cards\Components\Vue\CardWidget\ManageCardWidget;
 use Entities\Modules\Models\AppInstanceRelModel;
 
 class ListModuleAppsAdminWidget extends VueComponentEntityList
 {
-    protected $id = "6cd1b767-8389-4adc-869c-d03b996fe19e";
-    protected $title = "Modules";
-    protected $batchLoadEndpoint = "api/v1/modules/get-app-batches";
+    protected string $id = "6cd1b767-8389-4adc-869c-d03b996fe19e";
+    protected string $title = "Modules";
+    protected string $batchLoadEndpoint = "api/v1/modules/get-app-batches";
 
     public function __construct(array $components = [])
     {
@@ -34,8 +35,6 @@ class ListModuleAppsAdminWidget extends VueComponentEntityList
 
         parent::__construct($defaultEntity, $components);
 
-        $this->addBreadcrumb(new Breadcrumb("Admin","/account/admin/", "link"));
-
         $editorComponent = new ManageCardWidget();
         $editorComponent->addParentId($this->getInstanceId(), ["edit"]);
 
@@ -47,6 +46,12 @@ class ListModuleAppsAdminWidget extends VueComponentEntityList
         $this->modalTitleForDeleteEntity = "View Cards";
         $this->modalTitleForRowEntity = "View Cards";
         $this->setDefaultAction("view");
+    }
+
+    protected function loadBreadCrumbs(): VueComponent
+    {
+        $this->addBreadcrumb(new Breadcrumb("Admin","/account/admin/", "link"));
+        return $this;
     }
 
     protected function renderComponentMethods() : string

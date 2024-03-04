@@ -8,8 +8,8 @@ use Entities\Users\Components\Vue\UserWidget\MyProfileWidget;
 
 class MyProfileApp extends VueApp
 {
-    protected $appNamePlural = "My Profile";
-    protected $appNameSingular = "My Profile";
+    protected string $appNamePlural = "My Profile";
+    protected string $appNameSingular = "My Profile";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {
@@ -17,7 +17,8 @@ class MyProfileApp extends VueApp
         $this->enableSlickSortElementMixin();
         $this->enableSlickSortHandleDirective();
 
-        $this->setDefaultComponentId(MyProfileWidget::getStaticId())->setDefaultComponentAction("view");
+        $this->setDefaultComponentId(MyProfileWidget::getStaticId())
+            ->setDefaultComponentAction("view");
 
         parent::__construct($domId, $modal);
     }

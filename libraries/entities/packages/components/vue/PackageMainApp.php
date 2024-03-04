@@ -8,8 +8,8 @@ use Entities\Packages\Components\Vue\PackageWidget\ListPackageWidget;
 
 class PackageMainApp extends VueApp
 {
-    protected $appNamePlural = "Packages";
-    protected $appNameSingular = "Packages";
+    protected string $appNamePlural = "Packages";
+    protected string $appNameSingular = "Packages";
 
     public function __construct($domId, ?VueModal &$modal = null, $pageRequest = [])
     {

@@ -8,8 +8,8 @@ use Entities\Tickets\Components\Vue\TicketsWidget\ListTicketsAdminWidget;
 
 class TicketsAdminApp extends VueApp
 {
-    protected $appNamePlural = "Tickets";
-    protected $appNameSingular = "Ticket";
+    protected string $appNamePlural = "Tickets";
+    protected string $appNameSingular = "Ticket";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

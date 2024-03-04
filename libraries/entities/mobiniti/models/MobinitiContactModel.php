@@ -21,8 +21,8 @@ use DateTime;
  */
 class MobinitiContactModel extends MobinitiModel
 {
-    protected $EntityName = "Mobiniti";
-    protected $ModelName = "MobinitiContact";
+    protected string $EntityName = "Mobiniti";
+    protected string $ModelName = "MobinitiContact";
 
     public function __construct($entityData = null)
     {
@@ -30,7 +30,7 @@ class MobinitiContactModel extends MobinitiModel
         parent::__construct($entityData);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "id" =>["type" => "varchar", "length" => "36"],

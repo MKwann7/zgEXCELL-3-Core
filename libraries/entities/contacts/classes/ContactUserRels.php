@@ -8,7 +8,7 @@ use Entities\Contacts\Models\ContactUserRelModel;
 
 class ContactUserRels extends AppEntity
 {
-    public $strEntityName       = "Contacts";
+    public string $strEntityName       = "Contacts";
     public $strDatabaseTable    = "contact_user_rel";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = ContactUserRelModel::class;

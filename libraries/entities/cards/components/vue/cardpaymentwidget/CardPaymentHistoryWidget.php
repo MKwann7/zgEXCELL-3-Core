@@ -7,8 +7,8 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class CardPaymentHistoryWidget extends VueComponent
 {
-    protected $id = "6de345df-70a8-4226-903e-9ce54b6a2a71";
-    protected $modalWidth = 750;
+    protected string $id = "6de345df-70a8-4226-903e-9ce54b6a2a71";
+    protected string $modalWidth = "750";
 
     public function __construct(?AppModel $entity = null, $name = "Card Payment History Widget", $props = [])
     {

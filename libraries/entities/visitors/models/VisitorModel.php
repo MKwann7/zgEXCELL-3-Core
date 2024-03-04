@@ -6,15 +6,15 @@ use App\Core\AppModel;
 
 class VisitorModel extends AppModel
 {
-    protected $EntityName = "Visitors";
-    protected $ModelName = "Visitor";
+    protected string $EntityName = "Visitors";
+    protected string $ModelName = "Visitor";
 
     public function __construct($entityData = null, $force = false)
     {
         $this->Definitions = $this->loadDefinitions();
         parent::__construct($entityData, $force);
     }
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "visitor_activity_id" => ["type" => "int","length" => 15],

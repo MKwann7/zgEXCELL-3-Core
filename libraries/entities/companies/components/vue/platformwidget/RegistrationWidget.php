@@ -8,7 +8,7 @@ use Entities\Companies\Models\CompanyModel;
 
 class RegistrationWidget extends VueComponent
 {
-    protected $id = "cb3bae5e-8378-4784-90e1-b6c8a60c5e4c";
+    protected string $id = "cb3bae5e-8378-4784-90e1-b6c8a60c5e4c";
 
     public function __construct(array $components = [])
     {

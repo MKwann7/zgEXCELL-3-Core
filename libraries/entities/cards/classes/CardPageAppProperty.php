@@ -7,7 +7,7 @@ use Entities\Cards\Models\CardPageAppPropertyModel;
 
 class CardPageAppProperty extends AppEntity
 {
-    public $strEntityName       = "Cards";
+    public string $strEntityName       = "Cards";
     public $strDatabaseTable    = "card_tab_app_property";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = CardPageAppPropertyModel::class;

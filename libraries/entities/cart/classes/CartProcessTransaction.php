@@ -5,7 +5,7 @@ namespace Entities\Cart\Classes;
 use App\Utilities\Excell\ExcellCollection;
 use App\Utilities\Transaction\ExcellTransaction;
 use Entities\Cart\Models\PromoCodeModel;
-use Module\Orders\Models\OrderModel;
+use Entities\Orders\Models\OrderModel;
 
 class CartProcessTransaction
 {
@@ -40,7 +40,7 @@ class CartProcessTransaction
     {
         if ($errors->Count() > 0)
         {
-            $this->transaction->Result->Success = false;
+            $this->transaction->result->Success = false;
         }
 
         $this->errors = $errors;
@@ -65,13 +65,13 @@ class CartProcessTransaction
 
     public function setSuccessTrue(): self
     {
-        $this->transaction->Result->Success = true;
+        $this->transaction->result->Success = true;
         return $this;
     }
 
     public function setSuccessFalse(): self
     {
-        $this->transaction->Result->Success = false;
+        $this->transaction->result->Success = false;
         return $this;
     }
 }

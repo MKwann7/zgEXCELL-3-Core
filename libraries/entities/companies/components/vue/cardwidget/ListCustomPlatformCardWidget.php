@@ -7,9 +7,9 @@ use Entities\Cards\Components\Vue\CardWidget\ListCardWidget;
 
 class ListCustomPlatformCardWidget extends ListCardWidget
 {
-    protected $id = "00fcc717-1d00-4481-b962-5ff525b434ac";
-    protected $title = "Custom Platform Cards";
-    protected $batchLoadEndpoint = "cards/card-data/get-custom-platform-card-batches";
+    protected string $id = "00fcc717-1d00-4481-b962-5ff525b434ac";
+    protected string $title = "Custom Platform Cards";
+    protected string $batchLoadEndpoint = "cards/card-data/get-custom-platform-card-batches";
 
     public function __construct(array $components = [])
     {

@@ -10,13 +10,13 @@ use Entities\Activities\Models\UserLogModel;
 
 class UserLogs extends AppEntity
 {
-    public $strEntityName       = "Activities";
+    public string $strEntityName       = "Activities";
     public $strDatabaseName     = "Activity";
     public $strDatabaseTable    = "log_user";
     public $strMainModelName    = UserLogModel::class;
     public $strMainModelPrimary = "log_user_id";
 
-    public function RegisterActivity($intUserId, $strAction = "NA", $strNote, $strEntityName = null, $intEntityID = null) : ExcellTransaction
+    public function RegisterActivity($intUserId, $strAction = "NA", $strNote = "", $strEntityName = null, $intEntityID = null) : ExcellTransaction
     {
         $objLoggedInUser = $this->app->getActiveLoggedInUser();
         $objUserActivity = new UserLogModel();
@@ -38,9 +38,9 @@ class UserLogs extends AppEntity
 
         if ( empty($intUserId) || !isInteger($intUserId))
         {
-            $objConnectionResult->Result->Success = false;
-            $objConnectionResult->Result->Count = 0;
-            $objConnectionResult->Result->Message = "You must supply a valid user id.";
+            $objConnectionResult->result->Success = false;
+            $objConnectionResult->result->Count = 0;
+            $objConnectionResult->result->Message = "You must supply a valid user id.";
             return $objConnectionResult;
         }
 

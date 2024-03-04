@@ -8,7 +8,7 @@ use Entities\Cards\Models\CardPageModel;
 
 class ManageCardPageWidget extends VueComponent
 {
-    protected $id = "f27392d3-b370-423c-865f-8018592a5984";
+    protected string $id = "f27392d3-b370-423c-865f-8018592a5984";
     protected $htmlComponent;
 
     public function __construct(array $components = [])

@@ -27,12 +27,12 @@ if ($strViewTitle === "addCustomer" || $strViewTitle === "editCustomer")
         $intUserId = $this->app->objHttpRequest->Data->PostData->user_id;
         $objUserResult = (new Users())->getById($intUserId);
 
-        if ( $objUserResult->Result->Success === false)
+        if ( $objUserResult->result->Success === false)
         {
             die("Error: No user was found for id: $intUserId.");
         }
 
-        $objUser = $objUserResult->Data->First();
+        $objUser = $objUserResult->getData()->first();
 
         $strButtonText = "Edit Customer";
     }
@@ -151,7 +151,7 @@ if ($strViewTitle === "editProfile" || $strViewTitle === "editCustomerProfile")
     $intUserId = $this->app->objHttpRequest->Data->PostData->user_id;
     $objUserResult = (new Users())->getById($intUserId);
 
-    if ( $objUserResult->Result->Success === false)
+    if ( $objUserResult->result->Success === false)
     {
         die("Error: No user was found for id: $intUserId.");
     }
@@ -159,17 +159,17 @@ if ($strViewTitle === "editProfile" || $strViewTitle === "editCustomerProfile")
     $intUsernameRandId = time();
     $intAffiliateRandId = time();
 
-    $objUser = $objUserResult->Data->First();
+    $objUser = $objUserResult->getData()->first();
 
-    $colUserPhoneConnections = (new Connections())->getFks()->getWhere([["user_id" => $objUser->user_id], "AND", [["connection_type_id" => 1], "OR", ["connection_type_id" => 3]]])->Data;
-    $colUserEmailConnections = (new Connections())->getFks()->getWhere(["user_id" => $objUser->user_id, "connection_type_id" => 6])->Data;
+    $colUserPhoneConnections = (new Connections())->getFks()->getWhere([["user_id" => $objUser->user_id], "AND", [["connection_type_id" => 1], "OR", ["connection_type_id" => 3]]])->getData();
+    $colUserEmailConnections = (new Connections())->getFks()->getWhere(["user_id" => $objUser->user_id, "connection_type_id" => 6])->getData();
     $colConnectionTypeResult = (new Users())->GetUserConnectionTypes();
-    $colConnectionType = $colConnectionTypeResult->Data;
+    $colConnectionType = $colConnectionTypeResult->getData();
 
     $objUserAffiliateResult = (new Users())->GetAffiliateByUserId($objUser->user_id);
-    $intAffiliateId = $objUserAffiliateResult->Result->Count > 0 ? $objUserAffiliateResult->Data->First()->user_id : "";
+    $intAffiliateId = $objUserAffiliateResult->result->Count > 0 ? $objUserAffiliateResult->getData()->first()->user_id : "";
 
-    $strAffiliateName = $objUserAffiliateResult->Result->Count > 0 ? $objUserAffiliateResult->Data->First()->first_name . " " . $objUserAffiliateResult->Data->First()->last_name : "";
+    $strAffiliateName = $objUserAffiliateResult->result->Count > 0 ? $objUserAffiliateResult->getData()->first()->first_name . " " . $objUserAffiliateResult->getData()->first()->last_name : "";
     ?>
     <form id= "<?php echo $strViewTitle; ?>Form" action="/customers/user-data/update-user-data?type=profileAdmin&id=<?php echo $intUserId; ?>" method="post" autocomplete="off">
         <div style="background:#ddd;padding: 0px 8px 0px;border-radius:5px;box-shadow:rgba(0,0,0,.2) 0 0 10px inset;">
@@ -306,12 +306,12 @@ if ($strViewTitle === "editAccount")
     $intUserId = $this->app->objHttpRequest->Data->PostData->user_id;
     $objUserResult = (new Users())->getById($intUserId);
 
-    if ( $objUserResult->Result->Success === false)
+    if ( $objUserResult->result->Success === false)
     {
         die("Error: No user was found for id: $intUserId.");
     }
 
-    $objUser = $objUserResult->Data->First();
+    $objUser = $objUserResult->getData()->first();
     ?>
     <form id= "<?php echo $strViewTitle; ?>Form" action="/customers/user-data/update-user-data?type=account&id=<?php echo $intUserId; ?>" method="post">
         <table class="table no-top-border">
@@ -347,7 +347,7 @@ if ($strViewTitle === "addConnection" || $strViewTitle === "editConnection")
     $strSelectedConnectionName = "";
     $objConnection = null;
     $lstConnectionsResult = (new Users())->GetUserConnectionTypes();
-    $lstConnections = $lstConnectionsResult->Data;
+    $lstConnections = $lstConnectionsResult->getData();
     $strButtonText = "Add Connection";
     $strUserIdField = PHP_EOL;
 
@@ -361,12 +361,12 @@ if ($strViewTitle === "addConnection" || $strViewTitle === "editConnection")
         $intUserConnectionId = $this->app->objHttpRequest->Data->PostData->connection_id;
         $objUserResult = (new Users())->GetConnectionById($intUserConnectionId);
 
-        if ( $objUserResult->Result->Success === false)
+        if ( $objUserResult->result->Success === false)
         {
             die("Error: No connection was found for id: $intUserConnectionId.");
         }
 
-        $objConnection = $objUserResult->Data->First();
+        $objConnection = $objUserResult->getData()->first();
 
         $strSelectedConnection = $lstConnections->FindEntityByValue("connection_type_id", $objConnection->connection_type_id);
 
@@ -430,12 +430,12 @@ if ($strViewTitle === "addAddress" || $strViewTitle === "editAddress" )
         $intAddressId = $this->app->objHttpRequest->Data->PostData->address_id;
         $objAddressResult = (new Users())->GetAddressById($intAddressId);
 
-        if ( $objAddressResult->Result->Success === false)
+        if ( $objAddressResult->result->Success === false)
         {
             die("Error: No address was found for id: $intAddressId.");
         }
 
-        $objAddress = $objAddressResult->Data->First();
+        $objAddress = $objAddressResult->getData()->first();
         $intAddressId = $objAddress->address_id;
         $intUserId = $objAddress->user_id;
 
@@ -502,19 +502,19 @@ if ($strViewTitle === "editProfilePhoto" )
     $objUserResult = (new Users())->getById($intCardId);
     $objImageResult = (new Images())->getWhere(["entity_id" => $intUserId, "image_class" => "user-avatar", "entity_name" => "user"],"image_id.DESC");
 
-    if ($objImageResult->Result->Success === true && $objImageResult->Result->Count > 0)
+    if ($objImageResult->result->Success === true && $objImageResult->result->Count > 0)
     {
-        $strCardMainImage = $objImageResult->Data->First()->url;
+        $strCardMainImage = $objImageResult->getData()->first()->url;
     }
 
     // Fire wall for bad card id.
 
-    $objUser = $objUserResult->Data->First();
+    $objUser = $objUserResult->getData()->first();
 
-    if($objImageResult->Result->Success === true && $objImageResult->Result->Count > 0) { ?>
+    if($objImageResult->result->Success === true && $objImageResult->result->Count > 0) { ?>
         <?php echo $success_message; ?>
         <div class="mainImage">
-            <div class="slim" data-ratio="1:1" data-force-size="650,650" data-service="/process/slim/upload?entity_id=<?php echo $intUserId; ?>&user_id=<?php echo $objLoggedInUser->user_id; ?>&entity_name=user&class=user-avatar" id="my-cropper">
+            <div class="slim" data-ratio="1:1" data-force-size="650,650" data-service="/api/v1/media/upload-image?entity_id=<?php echo $intUserId; ?>&user_id=<?php echo $objLoggedInUser->user_id; ?>&entity_name=user&class=user-avatar" id="my-cropper">
                 <input type="file"/>
                 <img src="<?php echo $strCardMainImage; ?>" alt="">
             </div>
@@ -522,7 +522,7 @@ if ($strViewTitle === "editProfilePhoto" )
     <?php } else { ?>
         <?php echo $success_message; ?>
         <div class="mainImage">
-            <div class="slim" data-ratio="1:1" data-force-size="650,650" data-service="/process/slim/upload?entity_id=<?php echo $intUserId; ?>&user_id=<?php echo $objLoggedInUser->user_id; ?>&entity_name=user&class=user-avatar" id="my-cropper">
+            <div class="slim" data-ratio="1:1" data-force-size="650,650" data-service="/api/v1/media/upload-image?entity_id=<?php echo $intUserId; ?>&user_id=<?php echo $objLoggedInUser->user_id; ?>&entity_name=user&class=user-avatar" id="my-cropper">
                 <input type="file"/>
             </div>
         </div>

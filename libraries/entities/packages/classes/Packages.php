@@ -3,6 +3,8 @@
 namespace Entities\Packages\Classes;
 
 use App\Core\AppEntity;
+use App\entities\packages\classes\PackageVariations;
+use App\entities\packages\models\PackageVariationModel;
 use App\Utilities\Excell\ExcellCollection;
 use App\Utilities\Transaction\ExcellTransaction;
 use Entities\Packages\Models\PackageLineModel;
@@ -11,7 +13,7 @@ use Entities\Products\Classes\Products;
 
 class Packages extends AppEntity
 {
-    public $strEntityName       = "packages";
+    public string $strEntityName       = "packages";
     public $strDatabaseTable    = "package";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = PackageModel::class;
@@ -23,25 +25,34 @@ class Packages extends AppEntity
         return $this->getFks()->getWhere("status","=","Active");
     }
 
-    public static function getFullPackagesByIds(string $field, array $arPackageIds) : ExcellTransaction
+    public static function getFullPackagesByVariationIds(array $arPackageVariationIds) : ExcellTransaction
     {
-        $packageResults = (new static)->getWhereIn($field, $arPackageIds);
-        $packageLineResults = (new PackageLines())->getWhereIn("package_id", $arPackageIds);
-        $packageResults->Data->HydrateChildModelData("lines", ["package_id" => "package_id"], $packageLineResults->Data, false);
+        $packageVariationResults = (new PackageVariations())->getWhereIn("package_variation_id", $arPackageVariationIds);
 
-        $productResult = Products::getProductsByPackageIds($arPackageIds);
+        if ($packageVariationResults->getResult()->Count == 0) {
+            return $packageVariationResults;
+        }
 
-        $packageResults->Data->Foreach(function (PackageModel $currPackage) use ($productResult)
+        $packageIds = $packageVariationResults->getData()->FieldsToArray(["package_id"]);
+        $packageResults = (new static)->getWhereIn("package_id", $packageIds);
+        $packageLineResults = (new PackageLines())->getWhereIn("package_variation_id", $arPackageVariationIds);
+        $packageVariationResults->getData()->HydrateChildModelData("lines", ["package_variation_id" => "package_variation_id"], $packageLineResults->data, false);
+        $packageVariationResults->getData()->HydrateChildModelData("package", ["package_id" => "package_id"], $packageResults->data, true);
+
+        // TODO - Change this to be a dependency so it can be unit tested.
+        $productResult = Products::getProductsByPackageIds($packageIds);
+
+        $packageVariationResults->getData()->Foreach(function (PackageVariationModel $currPackage) use ($productResult)
         {
-            if (empty($currPackage->lines) || !is_a($currPackage->lines, ExcellCollection::class)) { return; }
+            if (empty($currPackage->lines) || !is_a($currPackage->lines, ExcellCollection::class)) { return null; }
 
             $currPackage->lines->Foreach(function (PackageLineModel $currPackageLine) use ($productResult)
             {
-                if ($currPackageLine->product_entity !== "product") { return; }
+                if ($currPackageLine->product_entity !== "product") { return null; }
 
-                $product = $productResult->Data->FindEntityByValue("product_id", $currPackageLine->product_entity_id);
+                $product = $productResult->getData()->FindEntityByValue("product_id", $currPackageLine->product_entity_id);
 
-                if ($product === null) { return; }
+                if ($product === null) { return null; }
 
                 $currPackageLine->AddUnvalidatedValue("product", $product);
 
@@ -51,6 +62,6 @@ class Packages extends AppEntity
             return $currPackage;
         });
 
-        return $packageResults;
+        return $packageVariationResults;
     }
 }

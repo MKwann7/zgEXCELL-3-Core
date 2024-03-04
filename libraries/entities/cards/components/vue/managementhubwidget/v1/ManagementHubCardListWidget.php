@@ -5,13 +5,13 @@ namespace Entities\Cards\Components\Vue\ManagementHubWidget\V1;
 use App\Website\Vue\Classes\Base\VueComponent;
 use Entities\Cards\Models\CardModel;
 
-class ManagementHubCardList extends VueComponent
+class ManagementHubCardListWidget extends VueComponent
 {
-    protected $id = "420fb313-9f83-43bd-a48d-e1d930f2511f";
-    protected $title = "Card Hub List";
-    protected $endpointUriAbstract = "myhub";
+    protected string $id = "420fb313-9f83-43bd-a48d-e1d930f2511f";
+    protected string $title = "Card Hub List";
+    protected string $endpointUriAbstract = "myhub";
     protected $batchCount = 500;
-    protected $batchLoadEndpoint = "cards/card-data/get-card-new-batches";
+    protected string $batchLoadEndpoint = "cards/card-data/get-card-new-batches";
 
     public function __construct($defaultEntity = null, array $components = [])
     {
@@ -30,7 +30,7 @@ class ManagementHubCardList extends VueComponent
     protected function renderComponentDataAssignments() : string
     {
         return '
-            batchLoadingUri: "' . $this->batchLoadEndpoint . '",
+            batchLoadingUri: "' . ($this->batchLoadEndpoint ?? "") . '",
             batchOffset: 0,
             batchStart: false,
             batchEnd: false,
@@ -41,6 +41,7 @@ class ManagementHubCardList extends VueComponent
             loginUsername: "",
             loginPassword: "",
             loggedInAttemptError: "",
+            initialLoad: true,
         ';
     }
 
@@ -56,10 +57,10 @@ class ManagementHubCardList extends VueComponent
             ) { 
                 this.setDashboardTab("cards"); 
             }
-            
             this.setAuth();
             this.batchLoadMainEntitiesAwait();
             this.loadHubData();
+            this.initialLoad = false;
         ';
     }
 
@@ -76,7 +77,7 @@ class ManagementHubCardList extends VueComponent
                 if(!this.$parent.$parent.validateUsername(this.loginUsername)) return;
                 if(!this.$parent.$parent.validatePassword(this.loginPassword)) return;
                 
-                const url = "'.$app->objCustomPlatform->getFullPublicDomain().'/process/login/authenticate-login-request";
+                const url = "'.$app->objCustomPlatform->getFullPublicDomainName().'/process/login/authenticate-login-request";
                                 
                 let self = this;
                 this.$parent.$parent.loginCardUser(
@@ -92,7 +93,7 @@ class ManagementHubCardList extends VueComponent
                             return;
                         }
 
-                        self.$parent.$parent.registerAuth(result.response.data);                        
+                        dispatch.broadcast("register_auth", {user: result.data});
                     }, 
                     function(error) 
                     {
@@ -107,14 +108,15 @@ class ManagementHubCardList extends VueComponent
             },
             loadHubData: function()
             {
+                if (this.initialLoad === false) return;
                 const self = this;
                 const url = "api/v1/cards/load-my-hub-data?user_id=" + this.authUserId;
                 ajax.Get(url, 1, function(result)
                 {             
-                    if (result.success === false) return;
+                    if (result.success === false || typeof result.response.data === "undefined") return;
                     
-                    self.favorites = result.response.data.favorites;
-                    self.history = result.response.data.history;
+                    self.favorites = result.response.data.favorites ?? [];
+                    self.history = result.response.data.history ?? [];
                 });
             },
             setTypeToFavorites: function()
@@ -153,17 +155,17 @@ class ManagementHubCardList extends VueComponent
                     strBatchUrl += "&filterEntity=" + self.authUserId;
                     
                     ajax.Get(strBatchUrl, 1, function(result)
-                    {             
-                        for(let currEntityIndex in result.response.data.list)
-                        {
-                            self.mainEntityList.push(result.response.data.list[currEntityIndex]);
+                    {
+                        if (typeof result.response.data !== "undefined") {
+                            for(let currEntityIndex in result.response.data.list) {
+                                self.mainEntityList.push(result.response.data.list[currEntityIndex]);
+                            }
                         }
                         
                         setTimeout(function() { self.batchStart = true; } , 250);
                         self.mainEntityPageTotal = self.mainEntityList / self.mainEntityPageDisplayCount;
                         
-                        if (result.response.end == "false")
-                        {
+                        if (result.response.end == "false") {
                             self.batchLoadMainEntities();
                             return;
                         }
@@ -353,7 +355,7 @@ class ManagementHubCardList extends VueComponent
                         margin-top: -40%;
                         margin-bottom: -15px;
                     }
-                    .login-block-wrapper .login-block .app-modal-title {
+                    .loginwidget-block-wrapper .loginwidget-block .app-modal-title {
                         margin-top: 0px;
                     }
                     .cp_0 .portalLogo {
@@ -390,7 +392,7 @@ class ManagementHubCardList extends VueComponent
                             <div class="cardBanner" v-bind:style="{background: \'url(\' + currCard.banner +\') no-repeat center center / cover\'}"></div>
                             <div class="cardNumber">
                                 {{ currCard.card_name }}
-                                <div class="cardUrl">'.$app->objCustomPlatform->getPublicDomain().'/{{ renderCardUrl(currCard) }}</div>
+                                <div class="cardUrl">'.$app->objCustomPlatform->getPublicDomainName().'/{{ renderCardUrl(currCard) }}</div>
                                 <div class="cardAccessed">{{ formatDateForDisplay(currCard.last_updated) }}</div>
                             </div>
                         </div>

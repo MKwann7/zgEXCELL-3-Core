@@ -402,8 +402,8 @@ $this->LoadVendorForPageStyles($this->CurrentPage->BodyId, ["jquery"=>"input-pic
                                     <tr v-for="card in orderedCards" v-on:dblclick="gotoCard(card)">
                                         <td class="cards_banner"><img class="main-list-image" v-bind:src="card.main_thumb" width="75" height="75" /></td>
                                         <td>{{ card.card_id }}</td>
-                                        <td class="cards_card_num"><a v-bind:href="'<?php echo $this->app->objCustomPlatform->getFullPublicDomain(); ?>/' + card.card_num" target="_blank">{{ card.card_num }}</a></td>
-                                        <td class="cards_card_vanity_url"><a v-bind:href="'<?php echo $this->app->objCustomPlatform->getFullPublicDomain(); ?>' + ((card.card_vanity_url) ? '/' + card.card_vanity_url : '')" target="_blank">{{ card.card_vanity_url }}</a></td>
+                                        <td class="cards_card_num"><a v-bind:href="'<?php echo $this->app->objCustomPlatform->getFullPublicDomainName(); ?>/' + card.card_num" target="_blank">{{ card.card_num }}</a></td>
+                                        <td class="cards_card_vanity_url"><a v-bind:href="'<?php echo $this->app->objCustomPlatform->getFullPublicDomainName(); ?>' + ((card.card_vanity_url) ? '/' + card.card_vanity_url : '')" target="_blank">{{ card.card_vanity_url }}</a></td>
                                         <td>{{ card.status }}</td>
                                         <td>{{ card.card_name }}</td>
                                         <td>{{ card.card_type_id }}</td>
@@ -1508,7 +1508,7 @@ $this->LoadVendorForPageStyles($this->CurrentPage->BodyId, ["jquery"=>"input-pic
             transIndex: 1,
             activityIndex: 1,
 
-            people: <?php if ($objActiveCustomers->Data !== null) { echo $objActiveCustomers->Data->ConvertToJavaScriptArray([
+            people: <?php if ($objActiveCustomers->Data !== null) { echo $objActiveCustomers->getData()->ConvertToJavaScriptArray([
                     "main_thumb",
                     "user_id",
                     "username",

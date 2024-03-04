@@ -6,8 +6,8 @@ use App\Website\Vue\Classes\VueApp;
 
 class ProductsApp extends VueApp
 {
-    protected $appNamePlural = "Products";
-    protected $appNameSingular = "Product";
+    protected string $appNamePlural = "Products";
+    protected string $appNameSingular = "Product";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

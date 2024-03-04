@@ -6,8 +6,8 @@ use Entities\Products\Components\Vue\MarketplaceWidget\ListMarketplaceProductsWi
 
 class MarketplaceApp
 {
-    protected $appNamePlural = "Marketplace";
-    protected $appNameSingular = "Marketplace";
+    protected string $appNamePlural = "Marketplace";
+    protected string $appNameSingular = "Marketplace";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

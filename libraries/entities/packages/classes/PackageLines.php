@@ -8,7 +8,7 @@ use Entities\Packages\Models\PackageLineModel;
 
 class PackageLines extends AppEntity
 {
-    public $strEntityName       = "packages";
+    public string $strEntityName       = "packages";
     public $strDatabaseTable    = "package_line";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = PackageLineModel::class;

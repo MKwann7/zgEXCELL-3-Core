@@ -8,7 +8,7 @@ use Entities\Users\Models\UserSettingModel;
 
 class UserSettings extends AppEntity
 {
-    public $strEntityName       = "Users";
+    public string $strEntityName       = "Users";
     public $strDatabaseTable    = "user_setting";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = UserSettingModel::class;

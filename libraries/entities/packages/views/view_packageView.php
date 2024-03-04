@@ -11,12 +11,12 @@ if ($strViewTitle === "editProfile")
     $intPackageId  = $this->app->objHttpRequest->Data->PostData->product_id;
     $objPackageResult = (new Products())->getById($intPackageId);
 
-    if ( $objPackageResult->Result->Success === false)
+    if ( $objPackageResult->result->Success === false)
     {
         die("Error: No package was found for id: $intPackageId.");
     }
 
-    $objPackage = $objPackageResult->Data->First();
+    $objPackage = $objPackageResult->getData()->first();
     ?>
     <form id= "<?php echo $strViewTitle; ?>Form" action="/customers/user-data/update-user-data?type=profile&id=<?php echo $intPackageId; ?>" method="post">
         <table class="table no-top-border">

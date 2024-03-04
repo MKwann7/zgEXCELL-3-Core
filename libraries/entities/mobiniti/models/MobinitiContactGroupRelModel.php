@@ -10,8 +10,8 @@ namespace Entities\Mobiniti\Models;
  */
 class MobinitiContactGroupRelModel extends MobinitiModel
 {
-    protected $EntityName = "Mobiniti";
-    protected $ModelName = "MobinitiContactGroupRel";
+    protected string $EntityName = "Mobiniti";
+    protected string $ModelName = "MobinitiContactGroupRel";
 
     public function __construct($entityData = null)
     {
@@ -19,7 +19,7 @@ class MobinitiContactGroupRelModel extends MobinitiModel
         parent::__construct($entityData);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "mobiniti_contact_group_rel_id" =>["type" => "int", "length" => "15"],

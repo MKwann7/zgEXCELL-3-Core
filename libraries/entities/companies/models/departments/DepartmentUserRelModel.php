@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class DepartmentUserRelModel extends AppModel
 {
-    protected $EntityName = "Company";
-    protected $ModelName = "CompanyDepartmentUserRel";
+    protected string $EntityName = "Company";
+    protected string $ModelName = "CompanyDepartmentUserRel";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class DepartmentUserRelModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "department_user_rel_id" => ["type" => "int","length" => 15],

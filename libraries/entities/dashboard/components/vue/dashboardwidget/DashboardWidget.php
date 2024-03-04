@@ -9,8 +9,8 @@ use Entities\Visitors\Classes\Visitors;
 
 class DashboardWidget extends VueComponent
 {
-    protected $id = "61be5055-f507-43f3-943c-528aa9869afa";
-    protected $title = "Dashboard";
+    protected string $id = "61be5055-f507-43f3-943c-528aa9869afa";
+    protected string $title = "Dashboard";
     protected $entityPageDisplayCount = 15;
     protected $customPlatformName;
 
@@ -124,10 +124,10 @@ class DashboardWidget extends VueComponent
     {
         global $app;
         $lstUserCards = (new Cards())->GetByUserId($app->intActiveUserId);
-        $cardsCount = $lstUserCards->Result->Count;
+        $cardsCount = $lstUserCards->result->Count;
 
-        $lstCardsTraffic = (new Visitors())->getWhereIn("card_id", $lstUserCards->Data->FieldsToArray(["card_id"]));
-        $visitorCount = number_format($lstCardsTraffic->Result->Count,0,".",",");
+        $lstCardsTraffic = (new Visitors())->getWhereIn("card_id", $lstUserCards->getData()->FieldsToArray(["card_id"]));
+        $visitorCount = number_format($lstCardsTraffic->result->Count,0,".",",");
 
         return '
             <div class="dashboardWidgetsWrapper">
@@ -284,7 +284,7 @@ class DashboardWidget extends VueComponent
                         padding:15px 25px;
                     }
                     .dashboardWidgetsBox div.widgetBoxInner .widgetBoxTitle {
-                        font-family: \'Montserrat\', sans-serif;
+                        font-family: \'Roboto Condensed\', sans-serif;
                         font-size: 19px;
                     }
                     .swiper-button-next.swiper-button-disabled, .swiper-button-prev.swiper-button-disabled {

@@ -8,8 +8,8 @@ use Entities\Communication\Components\Vue\CommunicationWidget\ShowCommunicationW
 
 class CommunicationMainApp extends VueApp
 {
-    protected $appNamePlural = "Communication";
-    protected $appNameSingular = "Communication";
+    protected string $appNamePlural = "Communication";
+    protected string $appNameSingular = "Communication";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

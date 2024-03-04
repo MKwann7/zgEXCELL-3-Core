@@ -6,8 +6,8 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class ShowCommunicationWidget extends VueComponent
 {
-    protected $id = "188f21e3-8458-41e5-b16e-9eeb57ef4dd1";
-    protected $title = "Communication";
+    protected string $id = "188f21e3-8458-41e5-b16e-9eeb57ef4dd1";
+    protected string $title = "Communication";
 
     protected function renderComponentDataAssignments() : string
     {
@@ -151,7 +151,7 @@ class ShowCommunicationWidget extends VueComponent
                         </tr>
                         </tbody>
                     </table>
-                    <div class="entityTab" data-tab="profile" v-bind:class="{showTab: dashboardTab === \'overview\'}">
+                    <div class="entityTab" data-tab="profilewidget" v-bind:class="{showTab: dashboardTab === \'overview\'}">
                         <div class="width100 entityDetails">
                             <div class="width50">
                                 <div class="card-tile-50">

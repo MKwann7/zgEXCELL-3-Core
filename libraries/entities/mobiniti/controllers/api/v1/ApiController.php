@@ -26,46 +26,46 @@ class ApiController extends MobinitiController
         $objMobinitiGroupModule = new MobinitiGroupsApiModule();
         $objMobinitiGroup = $objMobinitiGroupModule->getAll(10);
 
-        dd($objMobinitiGroup->Data->First());
+        dd($objMobinitiGroup->getData()->first());
     }
 
     public function syncMobinitiContactsFromCardId(ExcellHttpModel $objData) : bool
     {
         $inCardId = $objData->Data->Params["id"];
 
-        (new MobinitiGroups())->getById($inCardId)->Data->Each(function($currGroup)
+        (new MobinitiGroups())->getById($inCardId)->getData()->Each(function($currGroup)
         {
             $objContactResult = (new MobinitiContactsApiModule())->GetContactsByGroupId($currGroup->id);
 
             $this->dump("Contacts for Group: " . $objContactResult->Result->Count . " ID: " . $currGroup->id);
 
-            $objContactResult->Data->Each(function($currContact) use ($currGroup)
+            $objContactResult->getData()->Each(function($currContact) use ($currGroup)
             {
                 $objContactResult = (new MobinitiContacts())->getWhere(["id" => $currContact->id]);
 
-                if ($objContactResult->Result->Count >= 1)
+                if ($objContactResult->result->Count >= 1)
                 {
-                    $objContact = $objContactResult->Data->First();
+                    $objContact = $objContactResult->getData()->first();
 
                     $objContactCardRelResult = (new MobinitiContactGroupRels())->getWhere(["mobiniti_contact_id" => $objContact->id, "mobiniti_group_id" => $currGroup->id]);
                     $objContactCardRel = new MobinitiContactGroupRelModel();
 
-                    if ($objContactCardRelResult->Result->Count > 0)
+                    if ($objContactCardRelResult->result->Count > 0)
                     {
-                        $objContactCardRel = $objContactCardRelResult->Data->First();
+                        $objContactCardRel = $objContactCardRelResult->getData()->first();
                         $objContactCardRel->card_id = $currGroup->card_id;
 
                         $objContactCardRelCreationResult = (new MobinitiContactGroupRels())->update($objContactCardRel);
 
-                        $objContactCardRel = $objContactCardRelCreationResult->Data->First();
+                        $objContactCardRel = $objContactCardRelCreationResult->getData()->first();
 
-                        if ($objContactCardRelCreationResult->Result->Success === true)
+                        if ($objContactCardRelCreationResult->result->Success === true)
                         {
                             $this->dump("> Updated Contact Card Rel: " . $objContactCardRel->mobiniti_contact_group_rel_id);
                         }
                         else
                         {
-                            $this->dump("> Updated Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->Result->Message);
+                            $this->dump("> Updated Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->result->Message);
                         }
                     }
                     else
@@ -77,15 +77,15 @@ class ApiController extends MobinitiController
 
                         $objContactCardRelCreationResult = (new MobinitiContactGroupRels())->createNew($objContactCardRel);
 
-                        $objContactCardRel = $objContactCardRelCreationResult->Data->First();
+                        $objContactCardRel = $objContactCardRelCreationResult->getData()->first();
 
-                        if ($objContactCardRelCreationResult->Result->Success === true)
+                        if ($objContactCardRelCreationResult->result->Success === true)
                         {
                             $this->dump("> Adding Contact Card Rel: " . $objContactCardRel->mobiniti_contact_group_rel_id);
                         }
                         else
                         {
-                            $this->dump("> Adding Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->Result->Message);
+                            $this->dump("> Adding Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->result->Message);
                         }
                     }
                 }
@@ -104,36 +104,36 @@ class ApiController extends MobinitiController
                     $objContactModel->country_code = $currContact->country_code;
 
                     $objContactCreationResult = (new MobinitiContacts())->createNew($objContactModel);
-                    $objContact = $objContactCreationResult->Data->First();
+                    $objContact = $objContactCreationResult->getData()->first();
 
-                    if ($objContactCreationResult->Result->Success === true)
+                    if ($objContactCreationResult->result->Success === true)
                     {
                         $this->dump(">> Creating Contact: " . $objContact->id);
                     }
                     else
                     {
-                        $this->dump(">> Creating Contact: [ERROR] " . $objContactCreationResult->Result->Message);
+                        $this->dump(">> Creating Contact: [ERROR] " . $objContactCreationResult->result->Message);
                     }
 
                     $objContactCardRelResult = (new MobinitiContactGroupRels())->getWhere(["mobiniti_contact_id" => $objContact->id, "mobiniti_group_id" => $currGroup->id]);
                     $objContactCardRel = new MobinitiContactGroupRelModel();
 
-                    if ($objContactCardRelResult->Result->Count > 0)
+                    if ($objContactCardRelResult->result->Count > 0)
                     {
-                        $objContactCardRel = $objContactCardRelResult->Data->First();
+                        $objContactCardRel = $objContactCardRelResult->getData()->first();
                         $objContactCardRel->card_id = $currGroup->card_id;
 
                         $objContactCardRelCreationResult = (new MobinitiContactGroupRels())->update($objContactCardRel);
 
-                        $objContactCardRel = $objContactCardRelCreationResult->Data->First();
+                        $objContactCardRel = $objContactCardRelCreationResult->getData()->first();
 
-                        if ($objContactCardRelCreationResult->Result->Success === true)
+                        if ($objContactCardRelCreationResult->result->Success === true)
                         {
                             $this->dump("> Updated Contact Card Rel: " . $objContactCardRel->mobiniti_contact_group_rel_id);
                         }
                         else
                         {
-                            $this->dump("> Updated Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->Result->Message);
+                            $this->dump("> Updated Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->result->Message);
                         }
                     }
                     else
@@ -144,30 +144,30 @@ class ApiController extends MobinitiController
 
                         $objContactCardRelCreationResult = (new MobinitiContactGroupRels())->createNew($objContactCardRel);
 
-                        $objContactCardRel = $objContactCardRelCreationResult->Data->First();
+                        $objContactCardRel = $objContactCardRelCreationResult->getData()->first();
 
-                        if ($objContactCardRelCreationResult->Result->Success === true)
+                        if ($objContactCardRelCreationResult->result->Success === true)
                         {
                             $this->dump("> Adding Contact Card Rel: " . $objContactCardRel->mobiniti_contact_group_rel_id);
                         }
                         else
                         {
-                            $this->dump("> Adding Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->Result->Message);
+                            $this->dump("> Adding Contact Card Rel: [ERROR] " . $objContactCardRelCreationResult->result->Message);
                         }
                     }
 
                     $objCardResult = (new Cards())->getById($currGroup->card_id);
 
-                    if ($objCardResult->Result->Count === 0)
+                    if ($objCardResult->result->Count === 0)
                     {
                         return;
                     }
 
-                    $objCard = $objCardResult->Data->First();
+                    $objCard = $objCardResult->getData()->first();
 
                     $objContactUserRelResult = (new MobinitiContactUserRels())->getWhere(["mobiniti_contact_id" => $objContact->id, "user_id" => $objCard->owner_id]);
 
-                    if ($objContactUserRelResult->Result->Count > 0)
+                    if ($objContactUserRelResult->result->Count > 0)
                     {
                         return;
                     }
@@ -178,15 +178,15 @@ class ApiController extends MobinitiController
 
                     $objContactUserRelCreationResult = (new MobinitiContactUserRels())->createNew($objContactUserRel);
 
-                    $objContactUserRel = $objContactUserRelCreationResult->Data->First();
+                    $objContactUserRel = $objContactUserRelCreationResult->getData()->first();
 
-                    if ($objContactUserRelCreationResult->Result->Success === true)
+                    if ($objContactUserRelCreationResult->result->Success === true)
                     {
                         $this->dump(">> Adding Contact User Rel: " . $objContactUserRel->mobiniti_contact_user_rel_id);
                     }
                     else
                     {
-                        $this->dump(">> Adding Contact User Rel: [ERROR] " . $objContactUserRelCreationResult->Result->Message);
+                        $this->dump(">> Adding Contact User Rel: [ERROR] " . $objContactUserRelCreationResult->result->Message);
                     }
                 }
             });
@@ -199,7 +199,7 @@ class ApiController extends MobinitiController
         $inCardId = $objData->Data->Params["id"];
 
         $objMobinitiApiResult = (new MobinitiGroupsApiModule())->getById($inCardId);
-        $objMobinitiGroup = (new MobinitiGroups())->getById($objMobinitiApiResult->Data->First()->id)->Data->First();
+        $objMobinitiGroup = (new MobinitiGroups())->getById($objMobinitiApiResult->getData()->first()->id)->getData()->first();
 
         $this->syncMobinitiGroup($objMobinitiGroup, $objMobinitiApiResult);
 
@@ -210,32 +210,32 @@ class ApiController extends MobinitiController
 
     protected function syncMobinitiGroup(MobinitiGroupModel $currGroup, ExcellTransaction $objMobinitiGroup)
     {
-        $objMobinitiGroupModel = $objMobinitiGroup->Data->FindEntityByValue("id", $currGroup->id);
+        $objMobinitiGroupModel = $objMobinitiGroup->getData()->FindEntityByValue("id", $currGroup->id);
 
         /** @var MobinitiGroupModel $objMobinitiGroupModel */
         if ($objMobinitiGroupModel !== null)
         {
             $objMobinitiGroupModel->name = $currGroup->name;
             $objMobinitiGroupModel->join_message = $currGroup->join_message;
-            $objMobinitiGroupModel->one_time_message = $currGroup->one_time_message === true ? ExcellTrue : ExcellFalse;
-            $objMobinitiGroupModel->always_send_join = $currGroup->always_send_join === true ? ExcellTrue : ExcellFalse;
-            $objMobinitiGroupModel->always_send_optin = $currGroup->always_send_optin === true ? ExcellTrue : ExcellFalse;
+            $objMobinitiGroupModel->one_time_message = $currGroup->one_time_message === true ? EXCELL_TRUE : EXCELL_FALSE;
+            $objMobinitiGroupModel->always_send_join = $currGroup->always_send_join === true ? EXCELL_TRUE : EXCELL_FALSE;
+            $objMobinitiGroupModel->always_send_optin = $currGroup->always_send_optin === true ? EXCELL_TRUE : EXCELL_FALSE;
             $objMobinitiGroupModel->social_profiling = $currGroup->social_profiling;
             $objMobinitiGroupModel->email_new_contact = $currGroup->email_new_contact;
             $objMobinitiGroupModel->emails = $currGroup->emails;
             $objMobinitiGroupModel->updated_at = $currGroup->updated_at;
-            $objMobinitiGroupModel->optin = $currGroup->optin === true ? ExcellTrue : ExcellFalse;
+            $objMobinitiGroupModel->optin = $currGroup->optin === true ? EXCELL_TRUE : EXCELL_FALSE;
             $objMobinitiGroupModel->status = $currGroup->status;
 
             $objMobinitiGroupResult = (new MobinitiGroups())->update($objMobinitiGroupModel);
 
-            if ($objMobinitiGroupResult->Result->Success === true)
+            if ($objMobinitiGroupResult->result->Success === true)
             {
-                $this->dump("> Updating Mobiniti Group: " . $objMobinitiGroupResult->Data->First()->id);
+                $this->dump("> Updating Mobiniti Group: " . $objMobinitiGroupResult->getData()->first()->id);
             }
             else
             {
-                $this->dump("> Updating Mobiniti Group: [ERROR] " . $objMobinitiGroupResult->Result->Message);
+                $this->dump("> Updating Mobiniti Group: [ERROR] " . $objMobinitiGroupResult->result->Message);
             }
 
             $this->syncMobinitiGroupWithCards($currGroup);
@@ -247,25 +247,25 @@ class ApiController extends MobinitiController
         $objMobinitiGroupModel->id = $currGroup->id;
         $objMobinitiGroupModel->name = $currGroup->name;
         $objMobinitiGroupModel->join_message = $currGroup->join_message;
-        $objMobinitiGroupModel->one_time_message = $currGroup->one_time_message === true ? ExcellTrue : ExcellFalse;
-        $objMobinitiGroupModel->always_send_join = $currGroup->always_send_join === true ? ExcellTrue : ExcellFalse;
-        $objMobinitiGroupModel->always_send_optin = $currGroup->always_send_optin === true ? ExcellTrue : ExcellFalse;
+        $objMobinitiGroupModel->one_time_message = $currGroup->one_time_message === true ? EXCELL_TRUE : EXCELL_FALSE;
+        $objMobinitiGroupModel->always_send_join = $currGroup->always_send_join === true ? EXCELL_TRUE : EXCELL_FALSE;
+        $objMobinitiGroupModel->always_send_optin = $currGroup->always_send_optin === true ? EXCELL_TRUE : EXCELL_FALSE;
         $objMobinitiGroupModel->social_profiling = $currGroup->social_profiling;
         $objMobinitiGroupModel->email_new_contact = $currGroup->email_new_contact;
         $objMobinitiGroupModel->emails = $currGroup->emails;
         $objMobinitiGroupModel->updated_at = $currGroup->updated_at;
-        $objMobinitiGroupModel->optin = $currGroup->optin === true ? ExcellTrue : ExcellFalse;
+        $objMobinitiGroupModel->optin = $currGroup->optin === true ? EXCELL_TRUE : EXCELL_FALSE;
         $objMobinitiGroupModel->status = $currGroup->status;
 
         $objMobinitiGroupResult = (new MobinitiGroups())->createNew($objMobinitiGroupModel);
 
-        if ($objMobinitiGroupResult->Result->Success === true)
+        if ($objMobinitiGroupResult->result->Success === true)
         {
-            $this->dump("> Adding Mobiniti Group: " . $objMobinitiGroupResult->Data->First()->id);
+            $this->dump("> Adding Mobiniti Group: " . $objMobinitiGroupResult->getData()->first()->id);
         }
         else
         {
-            $this->dump("> Adding Mobiniti Group: [ERROR] " . $objMobinitiGroupResult->Result->Message);
+            $this->dump("> Adding Mobiniti Group: [ERROR] " . $objMobinitiGroupResult->result->Message);
         }
 
         $this->syncMobinitiGroupWithCards($currGroup);
@@ -286,25 +286,25 @@ class ApiController extends MobinitiController
 
                 $objCardResult = (new Cards())->getWhere(["card_num" => $strCardKeyword]);
 
-                if ($objCardResult->Result->Count === 0)
+                if ($objCardResult->result->Count === 0)
                 {
                     $objCardResult = (new Cards())->getWhere(["card_keyword" => $strCardKeyword]);
                 }
 
                 $this->dump($objCardResult);
 
-                if ($objCardResult->Result->Success === true)
+                if ($objCardResult->result->Success === true)
                 {
-                    $this->dump("Linking [{$currGroup->id}] To Card Num: " . $objCardResult->Data->First()->card_id);
+                    $this->dump("Linking [{$currGroup->id}] To Card Num: " . $objCardResult->getData()->first()->card_id);
 
-                    $currGroup->card_id = $objCardResult->Data->First()->card_id;
+                    $currGroup->card_id = $objCardResult->getData()->first()->card_id;
                     $objGroupUpdateResult = (new MobinitiGroups())->update($currGroup);
 
-                    if($objGroupUpdateResult->Result->Success !== true)
+                    if($objGroupUpdateResult->result->Success !== true)
                     {
-                        echo $objGroupUpdateResult->Result->Message . PHP_EOL;
-                        echo $objGroupUpdateResult->Result->Query . PHP_EOL;
-                        print_r($objGroupUpdateResult->Result->Errors); echo PHP_EOL;
+                        echo $objGroupUpdateResult->result->Message . PHP_EOL;
+                        echo $objGroupUpdateResult->result->Query . PHP_EOL;
+                        print_r($objGroupUpdateResult->result->Errors); echo PHP_EOL;
                     }
                 }
             }
@@ -316,11 +316,11 @@ class ApiController extends MobinitiController
                 {
                     $objCardResult = (new Cards())->getWhere(["card_num" => $strGroupNameId]);
 
-                    if ($objCardResult->Result->Success === true)
+                    if ($objCardResult->result->Success === true)
                     {
-                        $this->dump("Linking [{$currGroup->id}] To Card Num: " . $objCardResult->Data->First()->card_id);
+                        $this->dump("Linking [{$currGroup->id}] To Card Num: " . $objCardResult->getData()->first()->card_id);
 
-                        $currGroup->card_id = $objCardResult->Data->First()->card_id;
+                        $currGroup->card_id = $objCardResult->getData()->first()->card_id;
                         $objGroupUpdateResult = (new MobinitiGroups())->update($currGroup);
                     }
                 }

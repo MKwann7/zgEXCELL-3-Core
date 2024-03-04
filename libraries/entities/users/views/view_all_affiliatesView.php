@@ -923,7 +923,7 @@ $this->LoadVendorForPageStyles($this->CurrentPage->BodyId, "slim");
                 pageIndex: 1,
                 cardIndex: 1,
 
-                people: <?php if(!empty($objActiveAffiliates)) { echo $objActiveAffiliates->Data->ConvertToJavaScriptArray([
+                people: <?php if(!empty($objActiveAffiliates)) { echo $objActiveAffiliates->getData()->ConvertToJavaScriptArray([
                         "main_thumb",
                         "user_id",
                         "username",

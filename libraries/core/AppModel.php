@@ -6,21 +6,21 @@ use App\Utilities\Excell\ExcellModel;
 
 class AppModel extends ExcellModel
 {
-    protected $EntityName = "";
-    protected $ModelName = "";
-    protected $PropertyCount = 0;
-    protected $filterColumns = [];
-    protected $displayColumns = [];
-    protected $renderColumns = [];
-    protected $defaultSortColumn = "last_updated";
-    protected $defaultSortOrder = "ASC";
+    protected string $EntityName = "";
+    protected string $ModelName = "";
+    protected int $PropertyCount = 0;
+    protected array $filterColumns = [];
+    protected array $displayColumns = [];
+    protected array $renderColumns = [];
+    protected string $defaultSortColumn = "last_updated";
+    protected string $defaultSortOrder = "ASC";
 
     public function __construct($data = null, $force = false)
     {
         $this->Hydrate($data, $force);
     }
 
-    public function getDefinitions()
+    public function getDefinitions(): array
     {
         return $this->Definitions;
     }
@@ -29,9 +29,10 @@ class AppModel extends ExcellModel
     {
         $arFields = [];
 
-        foreach($this->Definitions as $currDefFieldName => $currDef)
-        {
-            $arFields[$currDefFieldName] = '';
+        if (!empty($this->Definitions)) {
+            foreach ($this->Definitions as $currDefFieldName => $currDef) {
+                $arFields[$currDefFieldName] = '';
+            }
         }
 
         return $arFields;
@@ -54,7 +55,7 @@ class AppModel extends ExcellModel
         return $this->Properties[$primaryKey];
     }
 
-    public function ToPublicArray($arProperties = null, $collectionKeys = false)
+    public function ToPublicArray($arProperties = null, $collectionKeys = false): array
     {
         return $this->ToArray($arProperties, $collectionKeys);
     }

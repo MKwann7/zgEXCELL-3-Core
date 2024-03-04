@@ -75,20 +75,20 @@ class Database
 
         if ( empty($strMySqlQuery))
         {
-            $objReturnTransaction->Result->Success = false;
-            $objReturnTransaction->Result->Count = 0;
-            $objReturnTransaction->Result->Message = 'Empty query string passed in';
-            $objReturnTransaction->Result->Trace = trace();
+            $objReturnTransaction->result->Success = false;
+            $objReturnTransaction->result->Count = 0;
+            $objReturnTransaction->result->Message = 'Empty query string passed in';
+            $objReturnTransaction->result->Trace = trace();
 
             return $objReturnTransaction;
         }
 
         if ( !is_string($strMySqlQuery))
         {
-            $objReturnTransaction->Result->Success = false;
-            $objReturnTransaction->Result->Count = 0;
-            $objReturnTransaction->Result->Message = 'Query passed in must be a string';
-            $objReturnTransaction->Result->Trace = trace();
+            $objReturnTransaction->result->Success = false;
+            $objReturnTransaction->result->Count = 0;
+            $objReturnTransaction->result->Message = 'Query passed in must be a string';
+            $objReturnTransaction->result->Trace = trace();
 
             return $objReturnTransaction;
         }
@@ -99,11 +99,11 @@ class Database
 
             if ( $objZgXlDb->connect_errno > 0 )
             {
-                $objReturnTransaction->Result->Success = false;
-                $objReturnTransaction->Result->Count = 0;
-                $objReturnTransaction->Result->Message = 'There was an error connecting to the database [' . $objZgXlDb->error . ']';
-                $objReturnTransaction->Result->Query = $strMySqlQuery;
-                $objReturnTransaction->Result->Trace = trace();
+                $objReturnTransaction->result->Success = false;
+                $objReturnTransaction->result->Count = 0;
+                $objReturnTransaction->result->Message = 'There was an error connecting to the database [' . $objZgXlDb->error . ']';
+                $objReturnTransaction->result->Query = $strMySqlQuery;
+                $objReturnTransaction->result->Trace = trace();
 
                 logText("Database.Get.Error.log", 'There was an error connecting to the database [' . $objZgXlDb->error . ']');
 
@@ -119,11 +119,11 @@ class Database
 
                 //$objZgXlDb->close();
 
-                $objReturnTransaction->Result->Success = false;
-                $objReturnTransaction->Result->Count = 0;
-                $objReturnTransaction->Result->Message = 'There was an error running the query [' . $strUpdateError . '] '. $strMySqlQuery;
-                $objReturnTransaction->Result->Query = $strMySqlQuery;
-                $objReturnTransaction->Result->Trace = trace();
+                $objReturnTransaction->result->Success = false;
+                $objReturnTransaction->result->Count = 0;
+                $objReturnTransaction->result->Message = 'There was an error running the query [' . $strUpdateError . '] '. $strMySqlQuery;
+                $objReturnTransaction->result->Query = $strMySqlQuery;
+                $objReturnTransaction->result->Trace = trace();
 
                 logText("Database.Update.Error.log", 'There was an error running the query [' . $strUpdateError . '] '. $strMySqlQuery);
 
@@ -138,40 +138,37 @@ class Database
             {
                 //$objZgXlDb->close();
 
-                $objReturnTransaction->Result->Success = true;
-                $objReturnTransaction->Result->Count = 0;
-                $objReturnTransaction->Result->Message = "No rows found.";
-                $objReturnTransaction->Result->Query = $strMySqlQuery;
-                $objReturnTransaction->Result->Trace = trace();
+                $objReturnTransaction->result->Success = true;
+                $objReturnTransaction->result->Count = 0;
+                $objReturnTransaction->result->Message = "No rows found.";
+                $objReturnTransaction->result->Query = $strMySqlQuery;
+                $objReturnTransaction->result->Trace = trace();
 
                 return $objReturnTransaction;
             }
 
             $objQueryTransactionResult = new ExcellTransaction();
 
-            if ( !empty($strColumnSort) )
-            {
-                while ( $objQueryResultDataset = $objQueryResult->fetch_object() )
-                {
-                    $strResultIndex = $objQueryResultDataset->$strColumnSort;
-                    $objQueryTransactionResult->Data->Add($strResultIndex, $objQueryResultDataset);
+            if ( !empty($strColumnSort) ) {
+                while ( $objQueryResultDataset = $objQueryResult->fetch_object() ) {
+                    if (!empty($objQueryResultDataset->$strColumnSort)) {
+                        $strResultIndex = $objQueryResultDataset->$strColumnSort;
+                        $objQueryTransactionResult->getData()->Add($strResultIndex, $objQueryResultDataset);
+                    }
                 }
-            }
-            else
-            {
-                while ( $objQueryResultDataset = $objQueryResult->fetch_object() )
-                {
-                    $objQueryTransactionResult->Data->Add($objQueryResultDataset);
+            } else {
+                while ( $objQueryResultDataset = $objQueryResult->fetch_object() ) {
+                    $objQueryTransactionResult->getData()->Add($objQueryResultDataset);
                 }
             }
 
             //$objZgXlDb->close();
 
-            $intResultCount = $objQueryTransactionResult->Data->Count();
+            $intResultCount = $objQueryTransactionResult->getData()->Count();
 
-            $objQueryTransactionResult->Result->Success = true;
-            $objQueryTransactionResult->Result->Count = $intResultCount;
-            $objQueryTransactionResult->Result->Message = "This query ran successfully";
+            $objQueryTransactionResult->result->Success = true;
+            $objQueryTransactionResult->result->Count = $intResultCount;
+            $objQueryTransactionResult->result->Message = "This query ran successfully";
         }
         catch(\Exception $ex)
         {
@@ -185,11 +182,11 @@ class Database
 
             $strUpdateError2 = $ex->getMessage();
 
-            $objReturnTransaction->Result->Success = false;
-            $objReturnTransaction->Result->Count = 0;
-            $objReturnTransaction->Result->Message = "An error has occurred [". $strUpdateError1 . "]: " . $strUpdateError2;
-            $objReturnTransaction->Result->Query = $strMySqlQuery;
-            $objReturnTransaction->Result->Trace = trace();
+            $objReturnTransaction->result->Success = false;
+            $objReturnTransaction->result->Count = 0;
+            $objReturnTransaction->result->Message = "An error has occurred [". $strUpdateError1 . "]: " . $strUpdateError2;
+            $objReturnTransaction->result->Query = $strMySqlQuery;
+            $objReturnTransaction->result->Trace = trace();
 
             logText("Database.Get.Error.log", "An error has occurred [". $strUpdateError1 . "]: " . $strUpdateError2 . " " . $strMySqlQuery);
 
@@ -205,54 +202,54 @@ class Database
 
         if ( ( is_array($strJsonColumn) && !is_array($strJsonOutput) ) || ( !is_array($strJsonColumn) && is_array($strJsonOutput) ) )
         {
-            $objReturnTransaction->Result->Success = false;
-            $objReturnTransaction->Result->Count = 0;
-            $objReturnTransaction->Result->Message = 'JSON Column or Output should be either both arrays or both strings';
-            $objReturnTransaction->Result->Trace = trace();
+            $objReturnTransaction->result->Success = false;
+            $objReturnTransaction->result->Count = 0;
+            $objReturnTransaction->result->Message = 'JSON Column or Output should be either both arrays or both strings';
+            $objReturnTransaction->result->Trace = trace();
 
             return $objReturnTransaction;
         }
 
         if ( ( is_array($strJsonColumn) && is_array($strJsonOutput) ) && count($strJsonColumn) != count($strJsonOutput)  )
         {
-            $objReturnTransaction->Result->Success = false;
-            $objReturnTransaction->Result->Count = 0;
-            $objReturnTransaction->Result->Message = 'JSON Column or Output need to be equal length arrays or both strings';
-            $objReturnTransaction->Result->Trace = trace();
+            $objReturnTransaction->result->Success = false;
+            $objReturnTransaction->result->Count = 0;
+            $objReturnTransaction->result->Message = 'JSON Column or Output need to be equal length arrays or both strings';
+            $objReturnTransaction->result->Trace = trace();
 
             return $objReturnTransaction;
         }
 
         $objQueryResultArray = self::getSimple($strMySqlQuery, $strColumnSort);
 
-        if ( $objQueryResultArray->Result->Success != true || $objQueryResultArray->Result->Count == 0 )
+        if ( $objQueryResultArray->result->Success != true || $objQueryResultArray->result->Count == 0 )
         {
             return $objQueryResultArray;
         }
 
-        foreach ( $objQueryResultArray->Data as $key => $da )
+        foreach ($objQueryResultArray->data as $key => $da )
         {
             if ( !empty($strJsonOutput) && !is_array($strJsonOutput) )
             {
                 $objJsonDecodedObject = json_decode($da->$strJsonColumn, true);
 
                 $objJsonTransaction = new ExcellTransaction();
-                $objJsonTransaction->Data = $objJsonDecodedObject;
+                $objJsonTransaction->data = $objJsonDecodedObject;
 
                 $objUnBase64Data = self::unBase64Encode($objJsonTransaction);
 
-                if ($objUnBase64Data->Result->Success === true)
+                if ($objUnBase64Data->result->Success === true)
                 {
-                    $objQueryResultArray->Data->$key->$strJsonOutput = $objUnBase64Data->Data;
+                    $objQueryResultArray->getData()->$key->$strJsonOutput = $objUnBase64Data->getData();
                 }
                 else
                 {
-                    $objQueryResultArray->Data->$key->$strJsonOutput = null;
+                    $objQueryResultArray->getData()->$key->$strJsonOutput = null;
                 }
 
                 if ($strJsonColumn != $strJsonOutput)
                 {
-                    unset($objQueryResultArray->Data->$key->$strJsonColumn);
+                    unset($objQueryResultArray->getData()->$key->$strJsonColumn);
                 }
             }
             elseif (!empty($strJsonOutput))
@@ -264,22 +261,22 @@ class Database
                     $objJsonDecodedObject = json_decode($da[$strJsonColumn[$currJsonColumnIndex]], true);
 
                     $objJsonTransaction = new ExcellTransaction();
-                    $objJsonTransaction->Data = $objJsonDecodedObject;
+                    $objJsonTransaction->data = $objJsonDecodedObject;
 
                     $objUnBase64Data = self::unBase64Encode($objJsonTransaction);
 
-                    if ($objUnBase64Data->Result->Success === true)
+                    if ($objUnBase64Data->result->Success === true)
                     {
-                        $objQueryResultArray->Data->$key->$strJsonOutput = $objUnBase64Data->Data;
+                        $objQueryResultArray->getData()->$key->$strJsonOutput = $objUnBase64Data->getData();
                     }
                     else
                     {
-                        $objQueryResultArray->Data->$key->$strJsonOutput = null;
+                        $objQueryResultArray->getData()->$key->$strJsonOutput = null;
                     }
 
                     if ($strJsonColumn != $strJsonOutput)
                     {
-                        unset($objQueryResultArray->Data->$key->$strJsonColumn[$currJsonColumnIndex]);
+                        unset($objQueryResultArray->getData()->$key->$strJsonColumn[$currJsonColumnIndex]);
                     }
                 }
             }
@@ -294,10 +291,10 @@ class Database
 
         if (empty($strMySqlQuery))
         {
-            $objReturnTransaction->Result->Success = false;
-            $objReturnTransaction->Result->Count = 0;
-            $objReturnTransaction->Result->Message = 'Empty query string passed in';
-            $objReturnTransaction->Result->Trace = trace();
+            $objReturnTransaction->result->Success = false;
+            $objReturnTransaction->result->Count = 0;
+            $objReturnTransaction->result->Message = 'Empty query string passed in';
+            $objReturnTransaction->result->Trace = trace();
 
             return $objReturnTransaction;
         }
@@ -314,10 +311,10 @@ class Database
 
                 //$objZgXlDb->close();
 
-                $objReturnTransaction->Result->Success = false;
-                $objReturnTransaction->Result->Count = 0;
-                $objReturnTransaction->Result->Message = 'There was an error connecting to the database [' . $strUpdateError . ']';
-                $objReturnTransaction->Result->Trace = trace();
+                $objReturnTransaction->result->Success = false;
+                $objReturnTransaction->result->Count = 0;
+                $objReturnTransaction->result->Message = 'There was an error connecting to the database [' . $strUpdateError . ']';
+                $objReturnTransaction->result->Trace = trace();
 
                 logText("Database.Update.Error.log", 'There was an error connecting to the database [' . $strUpdateError . ']');
 
@@ -333,11 +330,11 @@ class Database
 
                 //$objZgXlDb->close();
 
-                $objReturnTransaction->Result->Success = false;
-                $objReturnTransaction->Result->Count = 0;
-                $objReturnTransaction->Result->Message = 'There was an error updating the database [' . $strUpdateError . ']';
-                $objReturnTransaction->Result->Query = $strMySqlQuery;
-                $objReturnTransaction->Result->Trace = trace();
+                $objReturnTransaction->result->Success = false;
+                $objReturnTransaction->result->Count = 0;
+                $objReturnTransaction->result->Message = 'There was an error updating the database [' . $strUpdateError . ']';
+                $objReturnTransaction->result->Query = $strMySqlQuery;
+                $objReturnTransaction->result->Trace = trace();
 
                 logText("Database.Update.Error.log", 'There was an error updating the database [' . $strUpdateError . ']: ' . $strMySqlQuery);
 
@@ -350,11 +347,11 @@ class Database
 
             //$objZgXlDb->close();
 
-            $objReturnTransaction->Result->Success = true;
-            $objReturnTransaction->Result->Count = 1;
-            $objReturnTransaction->Result->Message = "This query ran successfully";
-            $objReturnTransaction->Result->Query = $strMySqlQuery;
-            $objReturnTransaction->Result->Trace = trace();
+            $objReturnTransaction->result->Success = true;
+            $objReturnTransaction->result->Count = 1;
+            $objReturnTransaction->result->Message = "This query ran successfully";
+            $objReturnTransaction->result->Query = $strMySqlQuery;
+            $objReturnTransaction->result->Trace = trace();
 
             return $objReturnTransaction;
         }
@@ -370,11 +367,11 @@ class Database
 
             $strUpdateError2 = $ex->getMessage();
 
-            $objReturnTransaction->Result->Success = false;
-            $objReturnTransaction->Result->Count = 0;
-            $objReturnTransaction->Result->Message = "An error has occurred [". $strUpdateError1 . "]: " . $strUpdateError2;
-            $objReturnTransaction->Result->Query = $strMySqlQuery;
-            $objReturnTransaction->Result->Trace = trace();
+            $objReturnTransaction->result->Success = false;
+            $objReturnTransaction->result->Count = 0;
+            $objReturnTransaction->result->Message = "An error has occurred [". $strUpdateError1 . "]: " . $strUpdateError2;
+            $objReturnTransaction->result->Query = $strMySqlQuery;
+            $objReturnTransaction->result->Trace = trace();
 
             logText("Database.Update.Error.log", "An error has occurred [". $strUpdateError1 . "]: " . $strUpdateError2 . " " . $strMySqlQuery);
 
@@ -387,45 +384,50 @@ class Database
         $query = "SELECT `" . $strEntityPrimary . "` FROM `" . $strDatabaseTable . "` ORDER BY `" . $strEntityPrimary . "` DESC LIMIT 1;";
         $objNextId = static::getSimple($query);
 
-        if ( $objNextId->Result->Count === 0)
+        if ( $objNextId->result->Count === 0)
         {
             return 1000;
         }
 
-        return ($objNextId->Data->First()->{$strEntityPrimary} + 1);
+        return ($objNextId->getData()->first()->{$strEntityPrimary} + 1);
     }
 
-    public static function unBase64Encode(ExcellTransaction $ay) : ExcellTransaction
+    public static function unBase64Encode(ExcellTransaction $ay, string $key) : ExcellTransaction
     {
         $objReturnTransaction = new ExcellTransaction();
 
         $temp_array =  new stdClass();
 
-        if ( is_array($ay->Data) || $ay->Data instanceof \stdClass )
+        if ( is_array($ay->getExtraData($key)) || $ay->getExtraData($key) instanceof \stdClass )
         {
-            foreach ($ay->Data as $ky => $dy )
+            foreach ($ay->getExtraData($key) as $ky => $dy )
             {
                 if ( is_array($dy) || $dy instanceof \stdClass )
                 {
                     $objArrayTransaction = new ExcellTransaction();
-                    $objArrayTransaction->Data = $dy;
+                    $objArrayTransaction->setExtraData($key, $dy);
 
-                    $temp_array->{$ky} = self::unBase64Encode($objArrayTransaction)->Data;
+                    $temp_array->{$ky} = self::unBase64Encode($objArrayTransaction, $key)->getExtraData($key);
                 }
                 else
                 {
-                    $temp_array->{$ky} = base64_decode($dy);
+                    if ($dy !== null) {
+                        $temp_array->{$ky} = base64_decode($dy);
+                    } else {
+                        $temp_array->{$ky} = null;
+                    }
+
                 }
             }
 
-            $objReturnTransaction->Data = $temp_array;
+            $objReturnTransaction->setExtraData($key, $temp_array);
         }
         else
         {
-            $objReturnTransaction->Result->Success = false;
-            $objReturnTransaction->Result->Message = 'This Datafield was not an array.';
-            $objReturnTransaction->Result->Count = 0;
-            $objReturnTransaction->Data = null;
+            $objReturnTransaction->result->Success = false;
+            $objReturnTransaction->result->Message = 'This Datafield was not an array.';
+            $objReturnTransaction->result->Count = 0;
+            $objReturnTransaction->clearExtraData();
         }
 
         return $objReturnTransaction;
@@ -437,16 +439,16 @@ class Database
 
         $temp_array =  array();
 
-        if ( is_array($ay->Data) )
+        if ( is_array($ay->data) )
         {
-            foreach ($ay->Data as $ky => $dy )
+            foreach ($ay->data as $ky => $dy )
             {
                 if ( is_array($dy) )
                 {
                     $objArrayTransaction = new ExcellTransaction();
-                    $objArrayTransaction->Data = $dy;
+                    $objArrayTransaction->data = $dy;
 
-                    $temp_array[$ky] = self::base64Encode($objArrayTransaction, $intDepth + 1)->Data;
+                    $temp_array[$ky] = self::base64Encode($objArrayTransaction, $intDepth + 1)->getData();
                 }
                 else
                 {
@@ -454,14 +456,14 @@ class Database
                 }
             }
 
-            $objReturnTransaction->Data = $temp_array;
+            $objReturnTransaction->data = $temp_array;
         }
         else
         {
-            $objReturnTransaction->Result->Success = false;
-            $objReturnTransaction->Result->Message = 'This Datafield was not an array.';
-            $objReturnTransaction->Result->Count = 0;
-            $objReturnTransaction->Data = null;
+            $objReturnTransaction->result->Success = false;
+            $objReturnTransaction->result->Message = 'This Datafield was not an array.';
+            $objReturnTransaction->result->Count = 0;
+            $objReturnTransaction->data = null;
         }
 
         return $objReturnTransaction;

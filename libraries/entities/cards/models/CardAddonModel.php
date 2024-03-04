@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardAddonModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "CardAddon";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "CardAddon";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CardAddonModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "card_addon_id" => ["type" => "int","length" => 15],
@@ -30,6 +30,7 @@ class CardAddonModel extends AppModel
             "module_id" => ["type" => "int","length" => 15],
             "widget_id" => ["type" => "int","length" => 15],
             "status" => ["type" => "varchar","length" => 15],
+            "data" => ["type" => "text"],
             "created_on" => ["type" => "datetime"],
             "last_updated" => ["type" => "datetime"],
             "sys_row_id" => ["type" => "char","length" => 36]

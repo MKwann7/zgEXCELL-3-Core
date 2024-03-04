@@ -7,9 +7,9 @@ use Entities\Companies\Models\CompanyModel;
 
 class ListPlatformWidget extends VueComponentEntityList
 {
-    protected $id = "8c1725bb-5b25-4743-9cb7-d074a49313b4";
-    protected $title = "Custom Platforms";
-    protected $batchLoadEndpoint = "companies/get-platform-batches";
+    protected string $id = "8c1725bb-5b25-4743-9cb7-d074a49313b4";
+    protected string $title = "Custom Platforms";
+    protected string $batchLoadEndpoint = "companies/get-platform-batches";
     protected $uriPath = "root";
 
     public function __construct(array $components = [])
@@ -128,7 +128,7 @@ class ListPlatformWidget extends VueComponentEntityList
                     break;
                 case "card_num":
                 case "card_vanity_url":
-                    $columnList .= '<td><a target="_blank" v-bind:href="\''.$app->objCustomPlatform->getFullPortalDomain().'/\' + mainEntity.' . $currColumn . '">{{ mainEntity.' . $currColumn . ' }}</a></td>';
+                    $columnList .= '<td><a target="_blank" v-bind:href="\''.$app->objCustomPlatform->getFullPortalDomainName().'/\' + mainEntity.' . $currColumn . '">{{ mainEntity.' . $currColumn . ' }}</a></td>';
                     break;
                 case "created_on":
                 case "last_updated":

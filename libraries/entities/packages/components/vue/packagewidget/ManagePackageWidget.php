@@ -8,8 +8,8 @@ use Entities\Packages\Models\PackageModel;
 
 class ManagePackageWidget extends VueComponent
 {
-    protected $id = "e808a5d3-9c6d-4645-8803-b4110e4533cf";
-    protected $title = "Package Dashboard";
+    protected string $id = "e808a5d3-9c6d-4645-8803-b4110e4533cf";
+    protected string $title = "Package Dashboard";
     protected $uriPath = "root/platform-dashboard/{id}";
 
     public function __construct(array $components = [])
@@ -33,7 +33,7 @@ class ManagePackageWidget extends VueComponent
     protected function renderComponentDataAssignments() : string
     {
         return "
-        dashboardTab: 'profile',
+        dashboardTab: 'profilewidget',
         ";
     }
 
@@ -78,7 +78,7 @@ class ManagePackageWidget extends VueComponent
     {
         return '
                 this.dashboardTab = sessionStorage.getItem(\'dashboard-tab\');
-                if (this.dashboardTab === null) this.dashboardTab = "profile"; sessionStorage.setItem(\'dashboard-tab\', "profile");
+                if (this.dashboardTab === null) this.dashboardTab = "profilewidget"; sessionStorage.setItem(\'dashboard-tab\', "profilewidget");
                 
                 if (this.entity && typeof this.entity.card_tab_id !== "undefined") 
                 {
@@ -127,7 +127,7 @@ class ManagePackageWidget extends VueComponent
                                 </h3>
                             </td>
                             <td class="mobile-to-table text-right page-count-display dashboard-tab-display" style="vertical-align: middle;">
-                                <div data-block="profile" v-on:click="setDashbaordTab(\'profile\')" class="dashboard-tab fas fa-user-circle" v-bind:class="{active: dashboardTab === \'profile\'}"><span>Profile</span></div>
+                                <div data-block="profilewidget" v-on:click="setDashbaordTab(\'profilewidget\')" class="dashboard-tab fas fa-user-circle" v-bind:class="{active: dashboardTab === \'profilewidget\'}"><span>Profile</span></div>
                                 <div data-block="users" v-on:click="setDashbaordTab(\'users\')" class="dashboard-tab fas fa-users" v-bind:class="{active: dashboardTab === \'users\'}"><span>Users</span></div>
                                 <div data-block="packages" v-on:click="setDashbaordTab(\'packages\')" class="dashboard-tab fas fa-box-open" v-bind:class="{active: dashboardTab === \'packages\'}"><span>Packages</span></div>
                                 <div data-block="financial" v-on:click="setDashbaordTab(\'financial\')" class="dashboard-tab fas fa-credit-card" v-bind:class="{active: dashboardTab === \'financial\'}"><span>Financial</span></div>
@@ -136,7 +136,7 @@ class ManagePackageWidget extends VueComponent
                         </tr>
                         </tbody>
                     </table>
-                    <div class="entityTab" data-tab="profile" v-bind:class="{showTab: dashboardTab === \'profile\'}">
+                    <div class="entityTab" data-tab="profilewidget" v-bind:class="{showTab: dashboardTab === \'profilewidget\'}">
                         <div class="width100 entityDetails">
                             <div class="width50">
                                 <div class="card-tile-50">

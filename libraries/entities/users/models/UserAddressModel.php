@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class UserAddressModel extends AppModel
 {
-    protected $EntityName = "Users";
-    protected $ModelName = "UserAddress";
+    protected string $EntityName = "Users";
+    protected string $ModelName = "UserAddress";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class UserAddressModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
              "address_id" => ["type" => "int","length" => 15],

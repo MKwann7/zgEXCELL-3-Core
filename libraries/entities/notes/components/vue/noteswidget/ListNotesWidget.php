@@ -7,11 +7,11 @@ use Entities\Notes\Models\NoteModel;
 
 class ListNotesWidget extends VueComponentEntityList
 {
-    protected $id = "297d0665-47aa-44c2-837c-b9f8419a32d2";
-    protected $title = "Notes";
-    protected $modalWidth = 750;
-    protected $noMount = true;
-    protected $batchLoadEndpoint = "api/v1/notes/get-note-batches";
+    protected string $id = "297d0665-47aa-44c2-837c-b9f8419a32d2";
+    protected string $title = "Notes";
+    protected string $modalWidth = "750";
+    protected string $mountType = "no_mount";
+    protected string $batchLoadEndpoint = "api/v1/notes/get-note-batches";
 
     public function __construct($defaultEntity = null, array $components = [])
     {

@@ -11,13 +11,13 @@ use Vendors\Mobiniti\Main\V100\Classes\MobinitiGroupsApiModule;
 
 class MobinitiSyncGroupsCommand extends Command
 {
-    public $name = "Mobiniti.SyncGroups";
-    public $description = "Syncs all groups from available mobiniti groups.";
+    public string $name = "Mobiniti.SyncGroups";
+    public string $description = "Syncs all groups from available mobiniti groups.";
 
     /**
      * Executes the command
      */
-    public function Run()
+    public function Run(): void
     {
         $this->dump($this->name . " [START]");
 
@@ -33,9 +33,9 @@ class MobinitiSyncGroupsCommand extends Command
             {
                 $objMobinitiApiResult = (new MobinitiGroupsApiModule())->getAll(100,$intPageOffset);
 
-                $this->dump("Batch Start [{$intPageOffset}] Count = " . $objMobinitiApiResult->Data->Count());
+                $this->dump("Batch Start [{$intPageOffset}] Count = " . $objMobinitiApiResult->getData()->Count());
 
-                if (($objMobinitiApiResult->Result->Count + $objMobinitiApiResult->Result->Depth) < $objMobinitiApiResult->Result->Total)
+                if (($objMobinitiApiResult->result->Count + $objMobinitiApiResult->result->Depth) < $objMobinitiApiResult->result->Total)
                 {
                     $intPageOffset++;
                 }
@@ -46,7 +46,7 @@ class MobinitiSyncGroupsCommand extends Command
 
                 $intCount = 0;
 
-                $objMobinitiApiResult->Data->Each(function(MobinitiGroupModel $currGroup, $currIndex) use ($objMobinitiGroup, &$intCount)
+                $objMobinitiApiResult->getData()->Each(function(MobinitiGroupModel $currGroup, $currIndex) use ($objMobinitiGroup, &$intCount)
                 {
                     $this->syncMobinitiGroup($currGroup, $objMobinitiGroup);
                     $intCount++;
@@ -66,7 +66,7 @@ class MobinitiSyncGroupsCommand extends Command
 
     protected function syncMobinitiGroup(MobinitiGroupModel $currGroup, ExcellTransaction $objMobinitiGroup)
     {
-        $objMobinitiGroupModel = $objMobinitiGroup->Data->FindEntityByValue("id", $currGroup->id);
+        $objMobinitiGroupModel = $objMobinitiGroup->getData()->FindEntityByValue("id", $currGroup->id);
 
         /** @var MobinitiGroupModel $objMobinitiGroupModel */
         if ($objMobinitiGroupModel !== null)
@@ -79,25 +79,25 @@ class MobinitiSyncGroupsCommand extends Command
             }
 
             $objMobinitiGroupModel->join_message = $currGroup->join_message;
-            $objMobinitiGroupModel->one_time_message = $currGroup->one_time_message === true ? ExcellTrue : ExcellFalse;
-            $objMobinitiGroupModel->always_send_join = $currGroup->always_send_join === true ? ExcellTrue : ExcellFalse;
-            $objMobinitiGroupModel->always_send_optin = $currGroup->always_send_optin === true ? ExcellTrue : ExcellFalse;
+            $objMobinitiGroupModel->one_time_message = $currGroup->one_time_message === true ? EXCELL_TRUE : EXCELL_FALSE;
+            $objMobinitiGroupModel->always_send_join = $currGroup->always_send_join === true ? EXCELL_TRUE : EXCELL_FALSE;
+            $objMobinitiGroupModel->always_send_optin = $currGroup->always_send_optin === true ? EXCELL_TRUE : EXCELL_FALSE;
             $objMobinitiGroupModel->social_profiling = $currGroup->social_profiling;
             $objMobinitiGroupModel->email_new_contact = $currGroup->email_new_contact;
             $objMobinitiGroupModel->emails = $currGroup->emails;
             $objMobinitiGroupModel->updated_at = $currGroup->updated_at;
-            $objMobinitiGroupModel->optin = $currGroup->optin === true ? ExcellTrue : ExcellFalse;
+            $objMobinitiGroupModel->optin = $currGroup->optin === true ? EXCELL_TRUE : EXCELL_FALSE;
             $objMobinitiGroupModel->status = $currGroup->status;
 
             $objMobinitiGroupResult = (new MobinitiGroups())->update($objMobinitiGroupModel);
 
-            if ($objMobinitiGroupResult->Result->Success === true && $objMobinitiGroupResult->Result->Count >= 1)
+            if ($objMobinitiGroupResult->result->Success === true && $objMobinitiGroupResult->result->Count >= 1)
             {
-                $this->dump("> Updating Mobiniti Group: [{$objMobinitiGroupModel->keyword}] " . $objMobinitiGroupResult->Data->First()->id);
+                $this->dump("> Updating Mobiniti Group: [{$objMobinitiGroupModel->keyword}] " . $objMobinitiGroupResult->getData()->first()->id);
             }
             else
             {
-                $this->dump("> Updating Mobiniti Group: [ERROR] " . $objMobinitiGroupResult->Result->Message);
+                $this->dump("> Updating Mobiniti Group: [ERROR] " . $objMobinitiGroupResult->result->Message);
             }
 
             $this->syncMobinitiGroupWithCards($currGroup, $objMobinitiGroupModel);
@@ -117,25 +117,25 @@ class MobinitiSyncGroupsCommand extends Command
         }
 
         $objMobinitiGroupModel->join_message = $currGroup->join_message;
-        $objMobinitiGroupModel->one_time_message = $currGroup->one_time_message === true ? ExcellTrue : ExcellFalse;
-        $objMobinitiGroupModel->always_send_join = $currGroup->always_send_join === true ? ExcellTrue : ExcellFalse;
-        $objMobinitiGroupModel->always_send_optin = $currGroup->always_send_optin === true ? ExcellTrue : ExcellFalse;
+        $objMobinitiGroupModel->one_time_message = $currGroup->one_time_message === true ? EXCELL_TRUE : EXCELL_FALSE;
+        $objMobinitiGroupModel->always_send_join = $currGroup->always_send_join === true ? EXCELL_TRUE : EXCELL_FALSE;
+        $objMobinitiGroupModel->always_send_optin = $currGroup->always_send_optin === true ? EXCELL_TRUE : EXCELL_FALSE;
         $objMobinitiGroupModel->social_profiling = $currGroup->social_profiling;
         $objMobinitiGroupModel->email_new_contact = $currGroup->email_new_contact;
         $objMobinitiGroupModel->emails = $currGroup->emails;
         $objMobinitiGroupModel->updated_at = $currGroup->updated_at;
-        $objMobinitiGroupModel->optin = $currGroup->optin === true ? ExcellTrue : ExcellFalse;
+        $objMobinitiGroupModel->optin = $currGroup->optin === true ? EXCELL_TRUE : EXCELL_FALSE;
         $objMobinitiGroupModel->status = $currGroup->status;
 
         $objMobinitiGroupResult = (new MobinitiGroups())->createNew($objMobinitiGroupModel);
 
-        if ($objMobinitiGroupResult->Result->Success === true)
+        if ($objMobinitiGroupResult->result->Success === true)
         {
-            $this->dump("> Adding Mobiniti Group: [{$objMobinitiGroupModel->keyword}] " . $objMobinitiGroupResult->Data->First()->id);
+            $this->dump("> Adding Mobiniti Group: [{$objMobinitiGroupModel->keyword}] " . $objMobinitiGroupResult->getData()->first()->id);
         }
         else
         {
-            $this->dump("> Adding Mobiniti Group: [ERROR] " . $objMobinitiGroupResult->Result->Message);
+            $this->dump("> Adding Mobiniti Group: [ERROR] " . $objMobinitiGroupResult->result->Message);
         }
 
         $this->caller->updateCommandInsance(true, time());
@@ -155,18 +155,18 @@ class MobinitiSyncGroupsCommand extends Command
 
                 $objCardResult = (new Cards())->getWhere(["card_keyword" => $strCardKeyword]);
 
-                if ($objCardResult->Result->Success === true && $objCardResult->Result->Count >= 1)
+                if ($objCardResult->result->Success === true && $objCardResult->result->Count >= 1)
                 {
-                    $this->dump("Linking [{$currGroup->id}] via Keyword To Card Num: " . $objCardResult->Data->First()->card_id);
+                    $this->dump("Linking [{$currGroup->id}] via Keyword To Card Num: " . $objCardResult->getData()->first()->card_id);
 
-                    $objMobinitiGroupModel->card_id = $objCardResult->Data->First()->card_id;
+                    $objMobinitiGroupModel->card_id = $objCardResult->getData()->first()->card_id;
                     $objGroupUpdateResult = (new MobinitiGroups())->update($objMobinitiGroupModel);
 
-                    if($objGroupUpdateResult->Result->Success !== true)
+                    if($objGroupUpdateResult->result->Success !== true)
                     {
-                        echo $objGroupUpdateResult->Result->Message . PHP_EOL;
-                        echo $objGroupUpdateResult->Result->Query . PHP_EOL;
-                        print_r($objGroupUpdateResult->Result->Errors); echo PHP_EOL;
+                        echo $objGroupUpdateResult->result->Message . PHP_EOL;
+                        echo $objGroupUpdateResult->result->Query . PHP_EOL;
+                        print_r($objGroupUpdateResult->result->Errors); echo PHP_EOL;
                     }
 
                     $this->caller->updateCommandInsance(true, time());
@@ -182,23 +182,23 @@ class MobinitiSyncGroupsCommand extends Command
 
                 $objCardResult = (new Cards)->getWhere(["card_num" => $strCardKeyword]);
 
-                if ($objCardResult->Result->Count === 0)
+                if ($objCardResult->result->Count === 0)
                 {
                     $objCardResult = (new Cards)->getWhere(["card_keyword" => $strCardKeyword]);
                 }
 
-                if ($objCardResult->Result->Success === true&& $objCardResult->Result->Count >= 1)
+                if ($objCardResult->result->Success === true&& $objCardResult->result->Count >= 1)
                 {
-                    $this->dump("Linking [{$currGroup->id}] To Card Num: " . $objCardResult->Data->First()->card_id);
+                    $this->dump("Linking [{$currGroup->id}] To Card Num: " . $objCardResult->getData()->first()->card_id);
 
-                    $objMobinitiGroupModel->card_id = $objCardResult->Data->First()->card_id;
+                    $objMobinitiGroupModel->card_id = $objCardResult->getData()->first()->card_id;
                     $objGroupUpdateResult = (new MobinitiGroups())->update($objMobinitiGroupModel);
 
-                    if($objGroupUpdateResult->Result->Success !== true)
+                    if($objGroupUpdateResult->result->Success !== true)
                     {
-                        echo $objGroupUpdateResult->Result->Message . PHP_EOL;
-                        echo $objGroupUpdateResult->Result->Query . PHP_EOL;
-                        print_r($objGroupUpdateResult->Result->Errors); echo PHP_EOL;
+                        echo $objGroupUpdateResult->result->Message . PHP_EOL;
+                        echo $objGroupUpdateResult->result->Query . PHP_EOL;
+                        print_r($objGroupUpdateResult->result->Errors); echo PHP_EOL;
                     }
 
                     $this->caller->updateCommandInsance(true, time());
@@ -212,11 +212,11 @@ class MobinitiSyncGroupsCommand extends Command
                 {
                     $objCardResult = (new Cards)->getWhere(["card_num" => $strGroupNameId]);
 
-                    if ($objCardResult->Result->Success === true && $objCardResult->Result->Count >= 1)
+                    if ($objCardResult->result->Success === true && $objCardResult->result->Count >= 1)
                     {
-                        $this->dump("Linking [{$currGroup->id}] To Card Num: " . $objCardResult->Data->First()->card_id);
+                        $this->dump("Linking [{$currGroup->id}] To Card Num: " . $objCardResult->getData()->first()->card_id);
 
-                        $objMobinitiGroupModel->card_id = $objCardResult->Data->First()->card_id;
+                        $objMobinitiGroupModel->card_id = $objCardResult->getData()->first()->card_id;
                         $objGroupUpdateResult = (new MobinitiGroups())->update($objMobinitiGroupModel);
                     }
 

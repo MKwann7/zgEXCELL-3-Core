@@ -3,16 +3,16 @@
  * SHELL _site_core Extention for zgWeb.Solutions Web.CMS.App
  */
 
-define("App", true);
-define("Appversion", "2.0.0");
-define("XT", ".php");
+const App = true;
+const Appversion = "2.0.0";
+const XT = ".php";
 
 // Autoload Class
-require AppCore . "engine/core/auto.load" . XT;
+require __DIR__ . "/core/auto.load" . XT;
 
 // Load Custom Functions
-require AppLibraries . "custom.functions" . XT;
+require __DIR__ . "/libraries/custom.functions" . XT;
 
 
 // App Class Instantiation
-return require AppCore . "engine/core/app.service" . XT;
+return require __DIR__ . "/core/app.service" . XT;

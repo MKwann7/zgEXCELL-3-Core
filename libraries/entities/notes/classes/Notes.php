@@ -7,7 +7,7 @@ use Entities\Notes\Models\NoteModel;
 
 class Notes extends AppEntity
 {
-    public $strEntityName       = "Notes";
+    public string $strEntityName       = "Notes";
     public $strDatabaseTable    = "note";
     public $strDatabaseName     = "Crm";
     public $strMainModelName    = NoteModel::class;

@@ -6,16 +6,20 @@ use App\Website\Vue\Classes\VueComponentList;
 use App\Website\Vue\Classes\VueComponentListTable;
 use App\website\vue\classes\VueComponentSortableList;
 use App\Website\Vue\Classes\VueProps;
+use Entities\Cards\Components\Vue\CardPageWidget\ManageCardPageWidget;
 use Entities\Cards\Models\CardPageModel;
 
 class ManageCardPagesWidget extends VueComponentList
 {
-    protected $id = "524811d0-486a-4e7d-b2d8-b81cab8efa51";
-    protected $noMount = true;
+    protected string $id = "524811d0-486a-4e7d-b2d8-b81cab8efa51";
+    protected string $modalWidth = "850";
+    protected string $mountType = "default";
 
     public function __construct ($props = [], ?VueComponentListTable $listTable = null, ?VueComponentSortableList $sortableList = null)
     {
         $manageCardPageListItemWidget = new ManageCardPagesListItemWidget([
+            new VueProps("pageDisplayMultiStyle", "object", "pageDisplayMultiStyle"),
+            new VueProps("parentComponentInstanceId", "object", "parentComponentInstanceId"),
             new VueProps("page", "object", "page"),
             new VueProps("key", "string", "key"),
             new VueProps("card", "object", "card"),
@@ -25,10 +29,20 @@ class ManageCardPagesWidget extends VueComponentList
 
         parent::__construct(new CardPageModel(), $manageCardPageListItemWidget, $manageCardPageSortableWidget, $props);
 
-        $this->modalTitleForAddEntity = "Add Card Page List";
-        $this->modalTitleForEditEntity = "Edit Card Page List";
-        $this->modalTitleForDeleteEntity = "Delete Card Page List";
-        $this->modalTitleForRowEntity = "View Card Page List";
+        $this->modalTitleForAddEntity = "Add Page List";
+        $this->modalTitleForEditEntity = "Edit Page List";
+        $this->modalTitleForDeleteEntity = "Delete Page List";
+        $this->modalTitleForRowEntity = "View Page List";
+    }
+
+    protected function renderComponentHydrationScript(): string
+    {
+        return '
+            if (!this.card && this.entity) {
+                this.card = this.entity
+            }
+            
+        '.parent::renderComponentHydrationScript();
     }
 
     protected function renderComponentMethods() : string
@@ -87,6 +101,13 @@ class ManageCardPagesWidget extends VueComponentList
                     modal.CloseFloatShield();
                 }, 150);
             },
+            createAndAssignNewPage: function() {
+                let cardPages = this.cardPages;
+                let entity = {}
+                let instanceId = this.instanceId
+                '. $this->activateDynamicComponentByIdInModal(ManageCardPageWidget::getStaticId(),"instanceId", "edit", "entity", "cardPages", [], "this", true ).'
+                return;
+            },
         ';
     }
 
@@ -95,6 +116,7 @@ class ManageCardPagesWidget extends VueComponentList
         return 'cardPages: function()
             {
                 if (typeof this.card !== "undefined" && this.card !== null && typeof this.card.Tabs !== "undefined") { return this.card.Tabs; }
+                if (typeof this.entity !== "undefined" && this.entity !== null && typeof this.entity.Tabs !== "undefined") { return this.entity.Tabs; }
                 return [];
             },';
     }
@@ -106,8 +128,9 @@ class ManageCardPagesWidget extends VueComponentList
                 <div v-if="cardPages.length > 0">
                     <button v-show="false" id="myBindReloadManageCardWidget" v-on:click="reBind()"></button>
                     <component :is="dyn' . str_replace("-", "", $this->sortableList->getInstanceId()) . 'Component" lockAxis="y" :useDragHandle="true" @sort-end="onSortEnd($event)">
-                        <component :is="dyn' . str_replace("-", "", $this->entityTable->getInstanceId()) . 'Component" v-for="(cardPage, index) in cardPages" :index="index" :key="index" :page="cardPage"/>
+                        <component :is="dyn' . str_replace("-", "", $this->entityTable->getInstanceId()) . 'Component" v-for="(cardPage, index) in cardPages" :index="index" :key="index" :page="cardPage" :parentComponentInstanceId="instanceId" :pageDisplayMultiStyle="pageDisplayMultiStyle"/>
                     </component>
+                    <button v-on:click="createAndAssignNewPage" class="btn btn-primary w-100">Add New Page</button>
                 </div>
                 <div v-if="cardPages.length === 0">
                     <table class="table table-striped no-top-border table-shadow">

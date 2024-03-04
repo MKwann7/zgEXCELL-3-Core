@@ -630,7 +630,7 @@ $this->CurrentPage->Columns           = 0;
                 pageIndex: 1,
                 cardIndex: 1,
 
-                packages: <?php echo $objActivePackages->Data->ConvertToJavaScriptArray([
+                packages: <?php echo $objActivePackages->getData()->ConvertToJavaScriptArray([
                         "product_id",
                         "package_class_id",
                         "package_type_id",

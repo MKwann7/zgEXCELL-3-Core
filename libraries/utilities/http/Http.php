@@ -14,35 +14,35 @@ class Http
      *
      * @var string
      */
-    protected $requestClass = HttpRequest::class;
+    protected string $requestClass = HttpRequest::class;
 
     /**
      * The response class to use.
      *
      * @var string
      */
-    protected $responseClass = HttpResponse::class;
+    protected string $responseClass = HttpResponse::class;
 
     /**
      * The default headers.
      *
      * @var array
      */
-    protected $defaultHeaders = array();
+    protected array $defaultHeaders = [];
 
     /**
      * The default curl options.
      *
      * @var array
      */
-    protected $defaultOptions = array();
+    protected array $defaultOptions = [];
 
     /**
      * Get allowed methods.
      *
      * @return array
      */
-    public function getAllowedMethods ()
+    public function getAllowedMethods(): array
     {
         return HttpRequest::$methods;
     }
@@ -52,7 +52,7 @@ class Http
      *
      * @param string $class
      */
-    public function setRequestClass ($class)
+    public function setRequestClass(string $class): void
     {
         $this->requestClass = $class;
     }
@@ -62,7 +62,7 @@ class Http
      *
      * @param string $class
      */
-    public function setResponseClass ($class)
+    public function setResponseClass(string $class): void
     {
         $this->responseClass = $class;
     }
@@ -72,7 +72,7 @@ class Http
      *
      * @param array $headers
      */
-    public function setDefaultHeaders (array $headers)
+    public function setDefaultHeaders(array $headers): void
     {
         $this->defaultHeaders = $headers;
     }
@@ -82,7 +82,7 @@ class Http
      *
      * @return array
      */
-    public function getDefaultHeaders ()
+    public function getDefaultHeaders(): array
     {
         return $this->defaultHeaders;
     }
@@ -92,7 +92,7 @@ class Http
      *
      * @param array $options
      */
-    public function setDefaultOptions (array $options)
+    public function setDefaultOptions(array $options): void
     {
         $this->defaultOptions = $options;
     }
@@ -102,7 +102,7 @@ class Http
      *
      * @return array
      */
-    public function getDefaultOptions ()
+    public function getDefaultOptions(): array
     {
         return $this->defaultOptions;
     }
@@ -115,7 +115,7 @@ class Http
      *
      * @return string
      */
-    public function buildUrl ($url, array $query)
+    public function buildUrl(string $url, array $query): string
     {
         if ( empty($query) )
         {
@@ -154,27 +154,53 @@ class Http
     }
 
     /**
+     * Create a new get response object and set its values.
+     *
+     * @param  string $url
+     * @param  mixed $data POST data
+     * @param int $encoding Request::ENCODING_* constant specifying how to process the POST data
+     *
+     * @return HttpRequest
+     */
+    public function get(string $url, int $encoding = HttpRequest::ENCODING_QUERY): HttpRequest
+    {
+        return $this->newRequest("get", $url, [], $encoding);
+    }
+
+    /**
+     * Create a new post response object and set its values.
+     *
+     * @param  string $url
+     * @param  mixed $data POST data
+     * @param int $encoding Request::ENCODING_* constant specifying how to process the POST data
+     *
+     * @return HttpRequest
+     */
+    public function post(string $url, $data = [], int $encoding = HttpRequest::ENCODING_QUERY): HttpRequest
+    {
+        return $this->newRequest("post", $url, $data, $encoding);
+    }
+
+    /**
      * Create a new response object and set its values.
      *
      * @param  string $method get, post, etc
      * @param  string $url
      * @param  mixed $data POST data
-     * @param  int $encoding Request::ENCODING_* constant specifying how to process the POST data
+     * @param int $encoding Request::ENCODING_* constant specifying how to process the POST data
      *
      * @return HttpRequest
      */
-    public function newRequest ($method, $url, $data = [], $encoding = HttpRequest::ENCODING_QUERY)
+    public function newRequest(string $method, string $url, $data = [], int $encoding = HttpRequest::ENCODING_QUERY): HttpRequest
     {
         $class   = $this->requestClass;
         $request = new $class($this);
 
-        if ( $this->defaultHeaders )
-        {
+        if ( $this->defaultHeaders ) {
             $request->setHeaders($this->defaultHeaders);
         }
 
-        if ( $this->defaultOptions )
-        {
+        if ( $this->defaultOptions ) {
             $request->setOptions($this->defaultOptions);
         }
 
@@ -195,7 +221,7 @@ class Http
      *
      * @return HttpRequest
      */
-    public function newJsonRequest ($method, $url, $data = array())
+    public function newJsonRequest($method, $url, $data = array())
     {
         return $this->newRequest($method, $url, $data, HttpRequest::ENCODING_JSON);
     }
@@ -209,7 +235,21 @@ class Http
      *
      * @return HttpRequest
      */
-    public function newRawRequest ($method, $url, $data = '')
+    public function newFormRequest(string $method, string $url, $data = ''): HttpRequest
+    {
+        return $this->newRequest($method, $url, $data, HttpRequest::ENCODING_FORM_DATA);
+    }
+
+    /**
+     * Create a new raw request and set its values.
+     *
+     * @param  string $method get, post etc
+     * @param  string $url
+     * @param  mixed $data request body
+     *
+     * @return HttpRequest
+     */
+    public function newRawRequest(string $method, string $url, $data = ''): HttpRequest
     {
         return $this->newRequest($method, $url, $data, HttpRequest::ENCODING_RAW);
     }
@@ -221,35 +261,34 @@ class Http
      *
      * @return void
      */
-    public function prepareRequest (HttpRequest $request)
+    public function prepareRequest(HttpRequest $request) : void
     {
         $this->ch = \curl_init();
         \curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
         \curl_setopt($this->ch, CURLOPT_HEADER, true);
-        if ( $auth = $request->getUserAndPass() )
-        {
+
+        if ( $auth = $request->getUserAndPass()) {
             \curl_setopt($this->ch, CURLOPT_USERPWD, $auth);
         }
+
         \curl_setopt($this->ch, CURLOPT_URL, $request->getUrl());
 
         $options = $request->getOptions();
-        if ( !empty($options) )
-        {
+
+        if ( !empty($options) ) {
             curl_setopt_array($this->ch, $options);
         }
 
         $method = $request->getMethod();
-        \curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, strtoupper($method));
 
+        \curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, strtoupper($method));
         \curl_setopt($this->ch, CURLOPT_HTTPHEADER, $request->formatHeaders());
 
-        if ( $request->hasData() )
-        {
+        if ( $request->hasData() ) {
             \curl_setopt($this->ch, CURLOPT_POSTFIELDS, $request->encodeData());
         }
 
-        if ( $method === 'head' )
-        {
+        if ( $method === 'head' ) {
             \curl_setopt($this->ch, CURLOPT_NOBODY, true);
         }
     }
@@ -261,17 +300,16 @@ class Http
      *
      * @return HttpResponse
      */
-    public function sendRequest(HttpRequest $request)
+    public function sendRequest(HttpRequest $request) : HttpResponse
     {
         $this->prepareRequest($request);
-
         $result = curl_exec($this->ch);
 
-        if ( $result === false )
-        {
+        if ($result === false) {
             $errno  = curl_errno($this->ch);
             $errmsg = curl_error($this->ch);
             $msg    = "cURL request failed with error [$errno]: $errmsg";
+            logText("Slim.SaveFile.Process.log", "curl::msg - " . $msg);
             curl_close($this->ch);
             throw new HttpException($request, $msg, $errno);
         }
@@ -291,7 +329,7 @@ class Http
      *
      * @return HttpResponse
      */
-    protected function createResponseObject ($response)
+    protected function createResponseObject($response) : HttpResponse
     {
         $info       = curl_getinfo($this->ch);
         $headerSize = curl_getinfo($this->ch, CURLINFO_HEADER_SIZE);

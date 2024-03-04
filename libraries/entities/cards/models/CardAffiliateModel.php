@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardAffiliateModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "CardGroup";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "CardGroup";
     protected $NoDatabase = true;
 
     public function __construct($entityData = null, $force = false)
@@ -16,7 +16,7 @@ class CardAffiliateModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "user_id" => [

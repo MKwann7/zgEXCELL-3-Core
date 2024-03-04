@@ -7,8 +7,8 @@ use Entities\Cards\Models\CardModel;
 
 class ManageCardUserProfileWidget extends VueComponent
 {
-    protected $id = "b2268935-cfd5-405a-86ea-8c362b11d20c";
-    protected $modalWidth = 750;
+    protected string $id = "b2268935-cfd5-405a-86ea-8c362b11d20c";
+    protected string $modalWidth = "750";
 
     public function __construct (array $components = [])
     {
@@ -67,7 +67,7 @@ class ManageCardUserProfileWidget extends VueComponent
             {
                 let self = this;
                 
-                const url = "/api/v1/cards/update-card-user-profile?card_id=" + this.entityClone.card_id;
+                const url = "/api/v1/cards/update-card-user-profilewidget?card_id=" + this.entityClone.card_id;
                 const updateCardUser = {
                     card_user_id: this.entityClone.card_user_id,
                     card_user_title: this.cardUserTitle
@@ -229,7 +229,7 @@ class ManageCardUserProfileWidget extends VueComponent
             loadCustomers: function(callback)
             {
                 const self = this;
-                const url = "' . $app->objCustomPlatform->getFullPortalDomain() . '/cart/get-all-card-users-count";
+                const url = "' . $app->objCustomPlatform->getFullPortalDomainName() . '/cart/get-all-card-users-count";
                 
                 ajax.GetExternal(url, {}, true, function(result) 
                 {
@@ -253,7 +253,7 @@ class ManageCardUserProfileWidget extends VueComponent
                     }
                     
                     self.customerList = [];
-                    const url = "' . $app->objCustomPlatform->getFullPortalDomain() . '/cart/get-all-card-users";
+                    const url = "' . $app->objCustomPlatform->getFullPortalDomainName() . '/cart/get-all-card-users";
                     
                     ajax.GetExternal(url, {}, true, function(result) 
                     {

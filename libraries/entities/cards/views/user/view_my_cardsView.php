@@ -7,10 +7,10 @@ use App\Website\Website;
 
 $this->CurrentPage->BodyId            = "view-my-cards-page";
 $this->CurrentPage->BodyClasses       = ["admin-page", "view-my-cards-page", "two-columns", "left-side-column"];
-$this->CurrentPage->Meta->Title       = "My Cards | " . $this->app->objCustomPlatform->getPortalName();
+$this->CurrentPage->Meta->Title       = "My Sites | " . $this->app->objCustomPlatform->getPortalName();
 $this->CurrentPage->Meta->Description = "Welcome to the NEW AMAZING WORLD of EZ Digital Cards, where you can create and manage your own cards!";
 $this->CurrentPage->Meta->Keywords    = "";
-$this->CurrentPage->SnipIt->Title     = "My Cards";
+$this->CurrentPage->SnipIt->Title     = "My Sites";
 $this->CurrentPage->SnipIt->Excerpt   = "Welcome to the NEW AMAZING WORLD of EZ Digital Cards, where you can create and manage your own cards!";
 $this->CurrentPage->Columns           = 0;
 

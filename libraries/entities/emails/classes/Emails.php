@@ -8,47 +8,64 @@ use Entities\Emails\Models\EmailModel;
 
 class Emails extends AppEntity
 {
-    public $strEntityName       = "Emails";
+    public string $strEntityName       = "Emails";
     public $strDatabaseTable    = "email";
     public $strDatabaseName     = "Communication";
     public $strMainModelName    = EmailModel::class;
     public $strMainModelPrimary = "email_id";
     public $isPrimaryModule = true;
 
-    // TODO - Pull out into ENV
-    protected $strMainGunUrl    = "https://api.mailgun.net/v3/ezcard.com";
+    const MAIL_GUN_URL = "https://api.mailgun.net/v3/";
+
+    protected $strMainGunUrl    = "";
+    protected $strMainGunDomain    = "mg.ezdigital.com";
     protected $strMainGunKey    = "";
 
     public function __construct ()
     {
         parent::__construct();
-        $this->strMainGunKey = $this->app->getEnv("MAIL_GUN_KEY");
+        $this->strMainGunKey = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label","mailgun_key")->value ?? $this->app->getEnv("MAIL_GUN_KEY");
+        $this->strMainGunUrl = self::MAIL_GUN_URL . $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label","mailgun_domain")->value ?? $this->strMainGunDomain;
     }
 
-    public function SendEmail($arFrom, array $arTo, $strTitle, $strMessage, $strEncoding = "text") : void
+    public function SendEmail($arFrom, array $arTo, $strTitle, $strMessage, $attachments = [], $strEncoding = "text") : void
     {
         $objHttp = new Http();
+        $msgArray = [];
+
+        $header = [
+            "from" => $arFrom,
+            "to" => implode(",", $arTo),
+            "subject" => $strTitle,
+            "html" => $strMessage,
+            "attachment" => $msgArray
+        ];
+
+        if (count($attachments) > 0) {
+            foreach($attachments as $currAttachment) {
+                $header["attachment"] = curl_file_create($currAttachment);
+            }
+        }
 
         try {
 
-            $objHttpRequest = $objHttp->newRequest(
+            $objHttpRequest = $objHttp->newRawRequest(
                 "post",
                 $this->strMainGunUrl . "/messages",
-                [
-                    "from" => $arFrom,
-                    "to" => $arTo,
-                    "subject" => $strTitle,
-                    "html" => $strMessage
-                ]
+                $header
             )
-            ->setOption(CURLOPT_USERPWD, 'api:' . $this->strMainGunKey)
-            ->setOption(CURLOPT_SSL_VERIFYPEER, false);
+                ->setOption(CURLOPT_USERPWD, 'api:' . $this->strMainGunKey)
+                ->setOption(CURLOPT_SSL_VERIFYPEER, false);
+
+            if (count($attachments) > 0) {
+                $objHttpRequest->setHeader("Content-Type","multipart/form-data");
+            }
 
             $objHttpResponse = $objHttpRequest->send();
 
         } catch(\Exception $ex)
         {
-
+            dd($ex->getMessage());
         }
     }
 }

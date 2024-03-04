@@ -11,6 +11,9 @@
     "lodash": {
       "main\/v4.17.11": ["lodash.min.js"]
     },
+    "anime": {
+      "main\/v3.2.1": ["anime.min.js"]
+    },
     "modernizr": {
       "main\/v2.6.2": ["modernizer.min.js"]
     },
@@ -29,6 +32,9 @@
     },
     "colorpicker": {
       "main\/v2.11.2": ["vanilla-picker.min.js"]
+    },
+    "grapick": {
+      "main/v0.1.13": ["gradient-tool.min.js"]
     }
   }
 }

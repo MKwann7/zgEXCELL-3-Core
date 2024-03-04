@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class VisitorBrowserModel extends AppModel
 {
-    protected $EntityName = "Visitors";
-    protected $ModelName = "VisitorBrowser";
+    protected string $EntityName = "Visitors";
+    protected string $ModelName = "VisitorBrowser";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class VisitorBrowserModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "visitor_browser_id" => ["type" => "int","length" => 15],

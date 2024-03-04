@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class UserPaymentPropertyModel extends AppModel
 {
-    protected $EntityName = "Payments";
-    protected $ModelName = "UserPaymentProperty";
+    protected string $EntityName = "Payments";
+    protected string $ModelName = "UserPaymentProperty";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class UserPaymentPropertyModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "user_payment_property_id" => ["type" => "int","length" => 15],

@@ -13,9 +13,9 @@ use Entities\Users\Models\UserModel;
 
 class ManageUserWidget extends VueComponent
 {
-    protected $id = "2f4dd5d3-6753-48ce-ac62-b2c584eb0fe9";
-    protected $title = "User Dashboard";
-    protected $endpointUriAbstract = "user-dashboard/{id}";
+    protected string $id = "2f4dd5d3-6753-48ce-ac62-b2c584eb0fe9";
+    protected string $title = "User Dashboard";
+    protected string $endpointUriAbstract = "user-dashboard/{id}";
 
     public function __construct(array $components = [])
     {
@@ -35,7 +35,7 @@ class ManageUserWidget extends VueComponent
     protected function renderComponentDataAssignments() : string
     {
         return "
-        dashboardTab: 'profile',
+        dashboardTab: 'profilewidget',
         entityNotFound: false,
         
         orderKeyCardGroup: 'order_number',
@@ -103,7 +103,7 @@ class ManageUserWidget extends VueComponent
                 },
                 addCardPageItem: function()
                 {
-                    appCart.openPackagesByClass("card page", {id: this.entity.card_id, type: "card"}, this.entity.owner_id)
+                    appCart.openPackagesByClass("card page", {id: this.entity.card_id, type: "card"}, this.entity.owner_id, this.entity.owner_id)
                         .registerEntityListAndManager();
                 },
                 editCardProfile: function(entity)
@@ -193,7 +193,7 @@ class ManageUserWidget extends VueComponent
                 },
                 loadCustomSettings: function()
                 {
-                    console.log(this.entity.__settings);
+                    //console.log(this.entity.__settings);
                 },
                 updateCardData: function(strStyleLabel, objValue, callback)
                 {
@@ -482,7 +482,7 @@ class ManageUserWidget extends VueComponent
                 },
                 showErrorImage: function(entity, label)
                 {
-                    entity[label] = "'.$app->objCustomPlatform->getFullPublicDomain().'/_ez/images/users/no-user.jpg";
+                    entity[label] = "'.$app->objCustomPlatform->getFullPublicDomainName().'/_ez/images/users/no-user.jpg";
                 },
                 ' . VueCustomMethods::renderSortMethods() . '
         ';
@@ -494,12 +494,12 @@ class ManageUserWidget extends VueComponent
             this.dashboardTab = sessionStorage.getItem(\'dashboard-tab\');
             
             if (this.dashboardTab === null || (
-                this.dashboardTab !== "profile" &&
+                this.dashboardTab !== "profilewidget" &&
                 this.dashboardTab !== "cards" &&
                 this.dashboardTab !== "contacts" &&
                 this.dashboardTab !== "billing"
                 )
-            ) { this.dashboardTab = "profile"; sessionStorage.setItem(\'dashboard-tab\', "profile"); }
+            ) { this.dashboardTab = "profilewidget"; sessionStorage.setItem(\'dashboard-tab\', "profilewidget"); }
             
             this.component_title = this.component_title_original;
             let self = this;
@@ -619,7 +619,7 @@ class ManageUserWidget extends VueComponent
                                 </h3>
                             </td>
                             <td class="mobile-to-table text-right page-count-display dashboard-tab-display" style="vertical-align: middle;">
-                                <div data-block="profile" v-on:click="setDashbaordTab(\'profile\')"  class="dashboard-tab fas fa-user-circle" v-bind:class="{active: dashboardTab === \'profile\'}"><span>Profile</span></div>
+                                <div data-block="profilewidget" v-on:click="setDashbaordTab(\'profilewidget\')"  class="dashboard-tab fas fa-user-circle" v-bind:class="{active: dashboardTab === \'profilewidget\'}"><span>Profile</span></div>
                                 <div data-block="cards" v-on:click="setDashbaordTab(\'cards\')"  class="dashboard-tab fas fa-id-card" v-bind:class="{active: dashboardTab === \'cards\'}"><span>Cards</span></div>
                                 <div data-block="contacts" v-on:click="setDashbaordTab(\'contacts\')"  class="dashboard-tab fas fa-users" v-bind:class="{active: dashboardTab === \'contacts\'}"><span>Contacts</span></div>
                                 <div data-block="billing" v-on:click="setDashbaordTab(\'billing\')"  class="dashboard-tab fas fa-credit-card" v-bind:class="{active: dashboardTab === \'billing\'}"><span>Billing</span></div>
@@ -627,7 +627,7 @@ class ManageUserWidget extends VueComponent
                         </tr>
                         </tbody>
                     </table>
-                    <div class="entityTab" data-tab="profile" v-bind:class="{showTab: dashboardTab === \'profile\'}">
+                    <div class="entityTab" data-tab="profilewidget" v-bind:class="{showTab: dashboardTab === \'profilewidget\'}">
                         <div class="width100 entityDetails">
                             <div class="width50">
                                 <div v-if="entity" class="card-tile-50">

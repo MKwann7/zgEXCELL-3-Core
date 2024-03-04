@@ -13,7 +13,7 @@ class CardBrowsingHistories extends AppEntity
         parent::__construct();
     }
 
-    public $strEntityName       = "Cards";
+    public string $strEntityName       = "Cards";
     public $strDatabaseTable    = "card_browsing_history";
     public $strDatabaseName     = "Traffic";
     public $strMainModelName    = CardBrowsingHistoryModel::class;
@@ -21,7 +21,7 @@ class CardBrowsingHistories extends AppEntity
 
     public function upsertHistoryRecord($userId, $cardId) : ExcellTransaction
     {
-        $cardHistory = $this->getWhere(["user_id" => $userId, "card_id" => $cardId])->Data->First();
+        $cardHistory = $this->getWhere(["user_id" => $userId, "card_id" => $cardId])->getData()->first();
 
         if ($cardHistory === null)
         {

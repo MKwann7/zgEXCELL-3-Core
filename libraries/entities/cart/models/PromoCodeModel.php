@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class PromoCodeModel extends AppModel
 {
-    protected $EntityName = "Cart";
-    protected $ModelName = "PromoCodes";
+    protected string $EntityName = "Cart";
+    protected string $ModelName = "PromoCodes";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class PromoCodeModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "promo_code_id" => ["type" => "int", "length" => 15],

@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class SecurityModel extends AppModel
 {
-    protected $EntityName = "Security";
-    protected $ModelName = "Security";
+    protected string $EntityName = "Security";
+    protected string $ModelName = "Security";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class SecurityModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [];
     }

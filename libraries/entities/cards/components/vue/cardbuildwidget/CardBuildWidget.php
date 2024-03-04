@@ -13,9 +13,9 @@ use Entities\Cards\Components\Vue\CardWidget\SwapCardConnectionWidget;
 
 class CardBuildWidget extends VueComponent
 {
-    protected $id = "61631a8c-8f7a-4b11-ab62-d7429bc2a1e0";
-    protected $modalWidth = 750;
-    protected $manageDataWidget = null;
+    protected string $id = "61631a8c-8f7a-4b11-ab62-d7429bc2a1e0";
+    protected string $modalWidth = "750";
+    protected ?VueComponent $manageDataWidget = null;
 
     public function __construct(?AppModel $entity = null, $name = "Card Build Widget", $props = [])
     {
@@ -179,7 +179,7 @@ class CardBuildWidget extends VueComponent
             },
             addCardPageItem: function()
             {
-                appCart.openPackagesByClass("card page", {id: this.entity.card_id, type: "card"}, this.entity.owner_id)
+                appCart.openPackagesByClass("card page", {id: this.entity.card_id, type: "card"}, this.entity.owner_id, this.entity.owner_id)
                     .registerEntityListAndManager("", "' . self::getStaticId() . '");
             },
             editCardImage: function(entity, type, imageClass, field, imageSize)
@@ -190,7 +190,7 @@ class CardBuildWidget extends VueComponent
             },
             showErrorImage: function(entity, label)
             {
-                entity[label] = "'.$app->objCustomPlatform->getFullPortalDomain().'/_ez/images/no-image.jpg";
+                entity[label] = "'.$app->objCustomPlatform->getFullPortalDomainName().'/_ez/images/no-image.jpg";
             },
             goBackToCard: function(page) 
             {
@@ -562,7 +562,7 @@ class CardBuildWidget extends VueComponent
                     <ul v-show="buildPage === 1">
                         <li>
                             <div class="divCell" style="display:block;margin-top: 15px;">
-                                <h3>Let\'s get your card built!</h3><p>Below you\'ll find the basic profile information for your new '.$app->objCustomPlatform->getPortalName().' card. <b>Let\'s get started!</b></p>
+                                <h3>Let\'s get your card built!</h3><p>Below you\'ll find the basic profilewidget information for your new '.$app->objCustomPlatform->getPortalName().' card. <b>Let\'s get started!</b></p>
                                 <p><span style="background:#17a2b8;padding:5px 10px;border-radius: 5px;color:#fff !important;display:inline-block;">IMPORTANT: Also, we\'re going to auto-save this form for you, so you don\'t have to worry about losing any of it.</span></p>
                             </div>
                         </li>
@@ -581,7 +581,7 @@ class CardBuildWidget extends VueComponent
                         </li>
                         <li>
                             <div class="divCell"></div>
-                            <div class="divCell cellInformation"><span class="fas fa-info-circle"></span> (Optional) A custom vanity URL extension. e.g. ' . $app->objCustomPlatform->getFullPublicDomain() . '/your-custom-url </div>
+                            <div class="divCell cellInformation"><span class="fas fa-info-circle"></span> (Optional) A custom vanity URL extension. e.g. ' . $app->objCustomPlatform->getFullPublicDomainName() . '/your-custom-url </div>
                         </li>
                         <li>
                             <div class="divCell">Unique Card Keyword</div>
@@ -605,7 +605,7 @@ class CardBuildWidget extends VueComponent
                             <div class="divCell" style="display:block;margin-top: 15px;">
                                 <p>Alright. <b>Next we will setup your social links!</b> The share buttons on your card let visitors connect with you immediately! From calling your business line to texting your cell number, a quick email to you, or your company website, adding your card\'s share buttons is easy!</p>
                                 <p><span style="background:#17a2b8;padding:5px 10px;border-radius: 5px;color:#fff !important;display:inline-block;">NOTE: Double click on a share button spot to assign an action to it! You can create these actions inside the pop-up modal.</span></p>
-                                <p>Lastly, don\'t forget your social media profile links! They\'re easy to add and offer additional resources for your visitors to connect with you via your new digital card!</p>
+                                <p>Lastly, don\'t forget your social media profilewidget links! They\'re easy to add and offer additional resources for your visitors to connect with you via your new digital card!</p>
                             </div>
                         </li>
                         <li>

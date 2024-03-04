@@ -32,7 +32,7 @@ class ExcellCollection extends ExcellIterator
         }
     }
 
-    public function First()
+    public function  first()
     {
         if ( count($this->Properties) === 0 )
         {
@@ -138,7 +138,7 @@ class ExcellCollection extends ExcellIterator
             {
                 $result = $objEntityCallback($currData, $currKey);
 
-                if (empty($result) || $result === false) { continue; }
+                if (empty($result)) { continue; }
 
                 return $result;
             }
@@ -162,6 +162,40 @@ class ExcellCollection extends ExcellIterator
         {
             if ($currIndex === $index) { return $currData; }
             $currIndex++;
+        }
+
+        return null;
+    }
+
+    public function FindRowByKey(string $key)
+    {
+        $propertyCount = count($this->Properties);
+
+        if ($propertyCount === 0)
+        {
+            return null;
+        }
+
+        foreach($this->Properties as $currKey => $currData)
+        {
+            if ($currKey === $key) { return $currData; }
+        }
+
+        return null;
+    }
+
+    public function AddRowByKey(string $key,  $row)
+    {
+        $propertyCount = count($this->Properties);
+
+        if ($propertyCount === 0)
+        {
+            return null;
+        }
+
+        foreach($this->Properties as $currKey => $currData)
+        {
+            if ($currKey === $key) { $this->Properties[$currKey] = $row; }
         }
 
         return null;
@@ -1143,7 +1177,7 @@ class ExcellCollection extends ExcellIterator
 
         if($arFields === null)
         {
-            return [];
+            return "[]";
         }
 
         $arJavaScriptData = $this->ConvertToJavaScript($arFields);
@@ -1152,7 +1186,7 @@ class ExcellCollection extends ExcellIterator
         return $strJavaScriptArray;
     }
 
-    public function ConvertToJavaScript($arFields)
+    public function ConvertToJavaScript($arFields) : array
     {
         if($arFields === null)
         {
@@ -1176,7 +1210,7 @@ class ExcellCollection extends ExcellIterator
         return $arJavaScriptData;
     }
 
-    public function ConvertToJavaScriptStdClassElement($objValue, $arFields = null)
+    public function ConvertToJavaScriptStdClassElement($objValue, $arFields = null) : string
     {
         $strJavaScriptArray = "";
         $arJavaScriptData = [];
@@ -1188,7 +1222,7 @@ class ExcellCollection extends ExcellIterator
                 continue;
             }
 
-            if(isInteger($strValue))
+            if(isInteger($strValue) || substr($strValue, 0,1) == "'")
             {
                 $arJavaScriptData[] .= $strKey . ":" . $strValue;
             }
@@ -1255,5 +1289,15 @@ class ExcellCollection extends ExcellIterator
         }
 
         return $arToArray;
+    }
+
+    public function getSettings(): \stdClass
+    {
+        $newSettings = [];
+        foreach ($this->ToPublicArray() as $setting) {
+            $newSettings[$setting["label"]] = $setting["value"];
+        }
+
+        return arrayToObject($newSettings);
     }
 }

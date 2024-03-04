@@ -7,7 +7,7 @@ use Entities\Users\Models\UserClassTypeModel;
 
 class UserClassTypes extends AppEntity
 {
-    public $strEntityName       = "Users";
+    public string $strEntityName       = "Users";
     public $strDatabaseTable    = "user_class_type";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = UserClassTypeModel::class;

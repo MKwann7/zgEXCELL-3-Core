@@ -7,7 +7,7 @@ use Entities\Mobiniti\Models\MobinitiMessageModel;
 
 class MobinitiMessages extends AppEntity
 {
-    public $strEntityName       = "Mobiniti";
+    public string $strEntityName       = "Mobiniti";
     public $strDatabaseTable    = "mobiniti_message";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = MobinitiMessageModel::class;

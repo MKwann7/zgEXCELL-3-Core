@@ -7,7 +7,7 @@ use Entities\Mobiniti\Models\MobinitiOptInModel;
 
 class MobinitiOptIns extends AppEntity
 {
-    public $strEntityName       = "Mobiniti";
+    public string $strEntityName       = "Mobiniti";
     public $strDatabaseTable    = "mobiniti_optin";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = MobinitiOptInModel::class;

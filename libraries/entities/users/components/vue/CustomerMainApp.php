@@ -8,8 +8,8 @@ use Entities\Users\Components\Vue\UserWidget\ListCustomerWidget;
 
 class CustomerMainApp extends VueApp
 {
-    protected $appNamePlural = "Customers";
-    protected $appNameSingular = "Customer";
+    protected string $appNamePlural = "Customers";
+    protected string $appNameSingular = "Customer";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {
@@ -17,7 +17,8 @@ class CustomerMainApp extends VueApp
         $this->enableSlickSortElementMixin();
         $this->enableSlickSortHandleDirective();
 
-        $this->setDefaultComponentId(ListCustomerWidget::getStaticId())->setDefaultComponentAction("view");
+        $this->setDefaultComponentId(ListCustomerWidget::getStaticId())
+            ->setDefaultComponentAction("view");
 
         parent::__construct($domId, $modal);
     }

@@ -9,9 +9,9 @@ use Entities\Cards\Models\CardModel;
 
 class ManageCardSocialMediaWidget extends VueComponentList
 {
-    protected $id = "69c9e6f4-89ac-4f02-b71e-a60166c54018";
-    protected $modalWidth = 750;
-    protected $noMount = true;
+    protected string $id = "69c9e6f4-89ac-4f02-b71e-a60166c54018";
+    protected string $modalWidth = "750";
+    protected string $mountType = "no_mount";
 
     public function __construct ($props = [])
     {

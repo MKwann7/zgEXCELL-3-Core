@@ -15,9 +15,9 @@ use Entities\Users\Components\Vue\ConnectionWidget\ManageUserConnectionsWidget;
 
 class ManageCardWidget extends VueComponent
 {
-    protected $id = "fb37ec26-43bb-4753-9c32-1ec7d2069cb5";
-    protected $title = "Card Dashboard";
-    protected $endpointUriAbstract = "card-dashboard/{id}";
+    protected string $id = "fb37ec26-43bb-4753-9c32-1ec7d2069cb5";
+    protected string $title = "Card Dashboard";
+    protected string $endpointUriAbstract = "card-dashboard/{id}";
     protected $appManagementComponent = null;
 
     public function __construct(array $components = [])
@@ -36,7 +36,7 @@ class ManageCardWidget extends VueComponent
     protected function renderComponentDataAssignments() : string
     {
         return "
-        dashboardTab: 'profile',
+        dashboardTab: 'profilewidget',
         entityNotFound: false,
         singleEntity: false,
         
@@ -110,12 +110,12 @@ class ManageCardWidget extends VueComponent
                 },
                 addCardPageItem: function()
                 {
-                    appCart.openPackagesByClass("card page", {id: this.entity.card_id, type: "card"}, this.entity.owner_id)
+                    appCart.openPackagesByClass("card page", {id: this.entity.card_id, type: "card"}, this.entity.owner_id, this.entity.owner_id)
                         .registerEntityListAndManager("", "' . self::getStaticId() . '");
                 },
                 addCardApp: function()
                 {
-                    appCart.openPackagesByClass("card app", {id: this.entity.card_id, type: "card"}, this.entity.owner_id)
+                    appCart.openPackagesByClass("card app", {id: this.entity.card_id, type: "card"}, this.entity.owner_id, this.entity.owner_id)
                         .registerEntityListAndManager();
                 },
                 addCardSocialMedia: function()
@@ -216,7 +216,7 @@ class ManageCardWidget extends VueComponent
                     }
                     
                 },
-                refreshCard: function(callback)
+                refreshCard: function(reloadBuilder, callback)
                 {
                     this.loadCardDataById(this.entity.sys_row_id, function(data) 
                     {
@@ -338,7 +338,7 @@ class ManageCardWidget extends VueComponent
                     });
                 },
                 editTemplateSettings: function(entity) {
-                   ' . $this->activateDynamicComponentByIdInModal(ManageCardTemplateSettingsWidget::getStaticId(), "", "edit", "this.entity", "this.mainEntityList", null, "this", true,"function(component) {
+                   ' . $this->activateDynamicComponentByIdInModal(ManageSiteTemplateSettingsWidget::getStaticId(), "", "edit", "this.entity", "this.mainEntityList", null, "this", true,"function(component) {
                         //console.log(component);
                     }") . '
                 },
@@ -671,11 +671,11 @@ class ManageCardWidget extends VueComponent
                 },
                 showErrorImage: function(entity, label)
                 {
-                    entity[label] = "'.$app->objCustomPlatform->getFullPortalDomain().'/_ez/images/no-image.jpg";
+                    entity[label] = "'.$app->objCustomPlatform->getFullPortalDomainName().'/_ez/images/no-image.jpg";
                 },
                 showErrorUser: function(entity, label)
                 {
-                    entity[label] = "'.$app->objCustomPlatform->getFullPortalDomain().'/_ez//images/users/no-user.jpg";
+                    entity[label] = "'.$app->objCustomPlatform->getFullPortalDomainName().'/_ez//images/users/no-user.jpg";
                 },
                 canUserViewCard: function()
                 {
@@ -822,7 +822,7 @@ class ManageCardWidget extends VueComponent
             this.dashboardTab = sessionStorage.getItem(\'card-dashboard-tab\');
             
             if (this.dashboardTab === null || (
-                this.dashboardTab !== "profile" &&
+                this.dashboardTab !== "profilewidget" &&
                 this.dashboardTab !== "pages" &&
                 this.dashboardTab !== "contacts" &&
                 this.dashboardTab !== "share" &&
@@ -833,7 +833,7 @@ class ManageCardWidget extends VueComponent
                 this.dashboardTab !== "billing"
                 )
             ) { 
-                this.dashboardTab = "profile"; sessionStorage.setItem(\'card-dashboard-tab\', "profile"); 
+                this.dashboardTab = "profilewidget"; sessionStorage.setItem(\'card-dashboard-tab\', "profilewidget"); 
             }
             
             this.component_title = this.component_title_original;
@@ -985,13 +985,13 @@ class ManageCardWidget extends VueComponent
                         <tr>
                             <td class="mobile-to-table">
                                 <h3 class="account-page-title">
-                                <a v-show="hasParent" v-on:click="backToComponent()" id="back-to-entity-list" class="back-to-entity-list pointer"></a> 
+                                <a v-show="hasParent" v-on:click="backToComponent()" id="back-to-entity-list" class="fa back-to-entity-list pointer"></a> 
                                 {{ component_title }}
                                 </h3>
                             </td>
                             <td class="mobile-to-table text-right page-count-display dashboard-tab-display" style="vertical-align: middle;">
-                                <div v-if="!cardIsEditable(entity) && cardIsBuildOut(entity)" data-block="profile" v-on:click="setDashboardTab(\'profile\')"  class="dashboard-tab fas fa-hammer" v-bind:class="{active: dashboardTab === \'profile\'}"><span>Build Out</span></div>
-                                <div v-if="cardIsEditable(entity)" data-block="profile" v-on:click="setDashboardTab(\'profile\')"  class="dashboard-tab fas fa-user-circle" v-bind:class="{active: dashboardTab === \'profile\'}"><span>Profile</span></div>
+                                <div v-if="!cardIsEditable(entity) && cardIsBuildOut(entity)" data-block="profilewidget" v-on:click="setDashboardTab(\'profilewidget\')"  class="dashboard-tab fas fa-hammer" v-bind:class="{active: dashboardTab === \'profilewidget\'}"><span>Build Out</span></div>
+                                <div v-if="cardIsEditable(entity)" data-block="profilewidget" v-on:click="setDashboardTab(\'profilewidget\')"  class="dashboard-tab fas fa-user-circle" v-bind:class="{active: dashboardTab === \'profilewidget\'}"><span>Profile</span></div>
                                 <div v-if="cardIsBuildOutComplete(entity) && !cardIsBuildOut(entity)" data-block="buildoutcomplete" v-on:click="setDashboardTab(\'buildoutcomplete\')"  class="dashboard-tab fas fa-hammer" v-bind:class="{active: dashboardTab === \'buildoutcomplete\'}"><span>Build Out</span></div>
                                 <div v-if="entity && entity.template_id == 1 && cardIsEditable(entity)" data-block="pages" v-on:click="setDashboardTab(\'pages\')"  class="dashboard-tab fas fa-list-ol" v-bind:class="{active: dashboardTab === \'pages\'}"><span>Pages</span></div>
                                 <div v-if="entity && entity.template_id == 1 && cardIsEditable(entity)" data-block="share" v-on:click="setDashboardTab(\'share\')"  class="dashboard-tab fas fa-share-alt" v-bind:class="{active: dashboardTab === \'share\'}"><span>Share</span></div>
@@ -1006,7 +1006,7 @@ class ManageCardWidget extends VueComponent
                     </table>
                     <div class="cardBuildBanner" v-if="entity && entity.status === \'Build\'"><div><span class="fas fa-hammer fas-large desktop-30px"></span>Card Is In Build Stage</div></div>
                     <div class="cardPromoBanner" v-if="entity && entity.product_id === 1100"><div><span class="fas fa-exclamation-triangle fas-large desktop-30px"></span>This Is A Promo Card</div></div>
-                    <div v-show="!cardIsBuildOut(entity) || userAdminRole === true " class="entityTab" data-tab="profile" v-bind:class="{showTab: dashboardTab === \'profile\'}">
+                    <div v-show="!cardIsBuildOut(entity) || userAdminRole === true " class="entityTab" data-tab="profilewidget" v-bind:class="{showTab: dashboardTab === \'profilewidget\'}">
                         <div class="width100 entityDetails">
                             <div class="width50">
                                 <div v-if="entity" class="card-tile-50">
@@ -1185,7 +1185,7 @@ class ManageCardWidget extends VueComponent
                         </div>
                         <div style="clear:both;"></div>
                     </div>
-                    <div v-show="cardIsBuildOut(entity) || ((cardIsBuildOutComplete(entity) && dashboardTab !== \'profile\'))" class="entityTab" data-tab="profile" v-bind:class="{showTab: dashboardTab === \'profile\' || dashboardTab === \'buildoutcomplete\'}">
+                    <div v-show="cardIsBuildOut(entity) || ((cardIsBuildOutComplete(entity) && dashboardTab !== \'profilewidget\'))" class="entityTab" data-tab="profilewidget" v-bind:class="{showTab: dashboardTab === \'profilewidget\' || dashboardTab === \'buildoutcomplete\'}">
                         <div class="width100 entityDetails">
                             <div class="width100">
                                 <div v-if="entity" class="card-tile-100">
@@ -1240,7 +1240,7 @@ class ManageCardWidget extends VueComponent
                                     ' . $this->registerAndRenderDynamicComponent(
                                             new ManageCardSocialMediaWidget(),
                                             "view",
-                                            [new VueProps("card", "object", "entity")]
+                                            [new VueProps("card", "object", "entity"), new VueProps("deleteConnection", "boolean", true)]
                                     ) . '
                                 </div>
                                 <div style="clear:both;"></div>

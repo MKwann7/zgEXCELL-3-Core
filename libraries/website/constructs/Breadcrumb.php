@@ -4,8 +4,9 @@ namespace App\Website\Constructs;
 
 class Breadcrumb
 {
-    protected $label;
-    protected $link;
+    private string $label;
+    private string $link;
+    private $type;
 
     public function __construct ($label, $link, $type = "link")
     {
@@ -14,17 +15,17 @@ class Breadcrumb
         $this->type = $type;
     }
 
-    public function getLabel()
+    public function getLabel() : string
     {
         return $this->label;
     }
 
-    public function getLink()
+    public function getLink() : string
     {
         return $this->link;
     }
 
-    public function getType()
+    public function getType() : string
     {
         return $this->type;
     }

@@ -7,7 +7,7 @@ use Entities\Division\Models\DivisionModel;
 
 class Division extends AppEntity
 {
-    public $strEntityName       = "Division";
+    public string $strEntityName       = "Division";
     public $strDatabaseTable    = "division";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = DivisionModel::class;

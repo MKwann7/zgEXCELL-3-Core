@@ -10,7 +10,7 @@ use Entities\Users\Classes\Users;
 
 class CardRels extends AppEntity
 {
-    public $strEntityName       = "Cards";
+    public string $strEntityName       = "Cards";
     public $strDatabaseTable    = "card_rel";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = CardRelModel::class;
@@ -22,9 +22,9 @@ class CardRels extends AppEntity
 
         if ( empty($intCardId) || !isInteger($intCardId) )
         {
-            $objCardResult->Result->Success = false;
-            $objCardResult->Result->Count   = 0;
-            $objCardResult->Result->Message = "You must supply a valid card id.";
+            $objCardResult->result->Success = false;
+            $objCardResult->result->Count   = 0;
+            $objCardResult->result->Message = "You must supply a valid card id.";
             return $objCardResult;
         }
 
@@ -32,12 +32,12 @@ class CardRels extends AppEntity
         //static::Init();
         $colCardRelResult = $this->getWhere("card_id", "=", $intCardId);
 
-        if ($colCardRelResult->Result->Count === 0)
+        if ($colCardRelResult->result->Count === 0)
         {
             return $colCardRelResult;
         }
 
-        foreach($colCardRelResult->Data as $currCardRelIndex => $currCardRel)
+        foreach($colCardRelResult->data as $currCardRelIndex => $currCardRel)
         {
             $objUserWhereclause[] = ["user_id", "=", $currCardRel->user_id];
             $objUserWhereclause[] = ["OR"];
@@ -47,10 +47,10 @@ class CardRels extends AppEntity
 
         $objUsers = (new Users())->getWhere($objUserWhereclause);
 
-        foreach($colCardRelResult->Data as $currCardRelIndex => $currCardRel)
+        foreach($colCardRelResult->data as $currCardRelIndex => $currCardRel)
         {
-            $objUser = $objUsers->Data->FindEntityByValue("user_id",$currCardRel->user_id);
-            $colCardRelResult->Data->{$currCardRelIndex}->AddUnvalidatedValue("User", $objUser);
+            $objUser = $objUsers->getData()->FindEntityByValue("user_id",$currCardRel->user_id);
+            $colCardRelResult->getData()->{$currCardRelIndex}->AddUnvalidatedValue("User", $objUser);
         }
 
         return $colCardRelResult;

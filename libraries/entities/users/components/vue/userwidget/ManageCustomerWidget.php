@@ -16,7 +16,7 @@ use Entities\Users\Models\UserModel;
 
 class ManageCustomerWidget extends ManageUserWidget
 {
-    protected $id = "e3564b0f-c3bb-446e-ab27-5756a197a5fe";
-    protected $title = "Customer Dashboard";
-    protected $endpointUriAbstract = "customer-dashboard/{id}";
+    protected string $id = "e3564b0f-c3bb-446e-ab27-5756a197a5fe";
+    protected string $title = "Customer Dashboard";
+    protected string $endpointUriAbstract = "customer-dashboard/{id}";
 }

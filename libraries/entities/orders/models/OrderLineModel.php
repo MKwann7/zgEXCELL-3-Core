@@ -1,13 +1,44 @@
 <?php
 
-namespace Module\Orders\Models;
+namespace Entities\Orders\Models;
 
 use App\Core\AppModel;
 
+/**
+ * @property int $order_line_id
+ * @property int $order_id
+ * @property int $company_id
+ * @property int $product_id
+ * @property int $user_id
+ * @property float $promo_price
+ * @property float $promo_fee
+ * @property int $promo_duration
+ * @property float $price
+ * @property float $price_fee
+ * @property int $price_duration
+ * @property int $cycle_type
+ * @property int $payment_account_id
+ * @property int $opportunity_line_id
+ * @property int $quote_line_id
+ * @property string $title
+ * @property string $status
+ * @property string $billing_date
+ * @property string $last_billed
+ * @property string $next_bill_date
+ * @property string $created_on
+ * @property int $created_by
+ * @property string $last_updated
+ * @property int $updated_by
+ * @property string $closed_date
+ * @property int $closed_by
+ * @property string $data
+ * @property string $sys_row_id
+ */
+
 class OrderLineModel extends AppModel
 {
-    protected $EntityName = "Orders";
-    protected $ModelName = "OrderLine";
+    protected string $EntityName = "Orders";
+    protected string $ModelName = "OrderLine";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +46,7 @@ class OrderLineModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "order_line_id" => ["type" => "int","length" => 15],

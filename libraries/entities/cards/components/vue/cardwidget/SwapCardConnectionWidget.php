@@ -7,8 +7,8 @@ use Entities\Cards\Models\CardModel;
 
 class SwapCardConnectionWidget extends VueComponent
 {
-    protected $id = "b02738ce-20b8-4690-9704-8604f4e78251";
-    protected $modalWidth = 750;
+    protected string $id = "b02738ce-20b8-4690-9704-8604f4e78251";
+    protected string $modalWidth = "750";
 
     public function __construct (array $components = [])
     {
@@ -268,7 +268,6 @@ class SwapCardConnectionWidget extends VueComponent
                 {
                     if (currConnectionIndex == index) 
                     { 
-                        console.log(connections[currConnectionIndex]);
                         return connections[currConnectionIndex]; 
                     }
                 }

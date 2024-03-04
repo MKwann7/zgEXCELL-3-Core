@@ -6,12 +6,17 @@ namespace Entities\Media\Classes;
 
 class LocalFile
 {
-    protected $name;
-    protected $path;
-    protected $fullPathAndName;
-    protected $extension;
-    protected $type;
-    protected $data;
+    protected string $name;
+    protected string $path;
+    protected string $fullPathAndName;
+    protected string $pathAndName;
+    protected string $fileame;
+    protected string $extension;
+    protected string $type;
+    protected string $data;
+    protected int $fileSize;
+    protected int $width;
+    protected int $height;
 
     public function __construct ($fullPathAndName = null)
     {
@@ -23,12 +28,16 @@ class LocalFile
         if (count($arFullFileName) >= 1)
         {
             $fullPath = array_reverse($arFullFileName);
-            makeRecursiveDirectories(AppTmp, $fullPath);
+            makeRecursiveDirectories(APP_TMP, $fullPath);
         }
 
-        $this->extension = array_reverse(explode(".", $fullPathAndName))[0];
+        $reversedFileNamePath = array_reverse(explode(".", $fullPathAndName));
 
-        $this->fullPathAndName = AppTmp . $fullPathAndName;
+        $this->extension = $reversedFileNamePath[0];
+
+        $this->fullPathAndName = APP_TMP . $fullPathAndName;
+        $this->pathAndName = $fullPathAndName;
+        $this->fileame = $reversedFileNamePath[1] . "." . $reversedFileNamePath[0];
     }
 
     public function getFullFileName() : string
@@ -41,8 +50,34 @@ class LocalFile
         return $this->extension;
     }
 
-    public function addFileData($data) : void
+    public function addFileData($data) : bool
     {
-        file_put_contents($this->getFullFileName(), $data);
+        $this->fileSize = file_put_contents($this->getFullFileName(), $data);
+
+        $imageSize = getimagesize($this->getFullFileName());
+
+        $this->width = $imageSize[0];
+        $this->height = $imageSize[1];
+
+        if ($this->fileSize === false) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getWidth() : int
+    {
+        return $this->width;
+    }
+
+    public function getHeight() : int
+    {
+        return $this->height;
+    }
+
+    public function getFileName() : string
+    {
+        return $this->fileame;
     }
 }

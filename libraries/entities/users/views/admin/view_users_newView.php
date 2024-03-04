@@ -8,10 +8,10 @@
 
 $this->CurrentPage->BodyId            = "view-all-customers-new-page";
 $this->CurrentPage->BodyClasses       = ["admin-page", "view-all-customers-new-page", "no-columns"];
-$this->CurrentPage->Meta->Title       = "Customers New | Admin | " . $this->app->objCustomPlatform->getPortalName();
+$this->CurrentPage->Meta->Title       = "My Profile | " . $this->app->objCustomPlatform->getPortalName();
 $this->CurrentPage->Meta->Description = "Welcome to the NEW AMAZING WORLD of EZ Digital Cards, where you can create and manage your own cards!";
 $this->CurrentPage->Meta->Keywords    = "";
-$this->CurrentPage->SnipIt->Title     = "Customers";
+$this->CurrentPage->SnipIt->Title     = "My Profile";
 $this->CurrentPage->SnipIt->Excerpt   = "Welcome to the NEW AMAZING WORLD of EZ Digital Cards, where you can create and manage your own cards!";
 $this->CurrentPage->Columns           = 0;
 

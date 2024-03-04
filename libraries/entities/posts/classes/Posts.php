@@ -7,7 +7,7 @@ use Entities\Posts\Models\PostModel;
 
 class Posts extends AppEntity
 {
-    public $strEntityName       = "posts";
+    public string $strEntityName       = "posts";
     public $strDatabaseTable    = "post";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = PostModel::class;

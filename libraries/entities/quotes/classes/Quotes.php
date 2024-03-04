@@ -7,7 +7,7 @@ use Entities\Quotes\Models\QuoteModel;
 
 class Quotes extends AppEntity
 {
-    public $strEntityName       = "posts";
+    public string $strEntityName       = "posts";
     public $strDatabaseTable    = "post";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = QuoteModel::class;

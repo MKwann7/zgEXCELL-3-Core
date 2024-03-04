@@ -8,7 +8,7 @@ use App\website\vue\classes\VueComponentHtml;
 
 class VueManageData extends VueComponent
 {
-    protected $id = "17f7d229-efe2-4392-8803-3a741d0bbf15";
+    protected string $id = "17f7d229-efe2-4392-8803-3a741d0bbf15";
     protected $froalaWidget = "";
 
 

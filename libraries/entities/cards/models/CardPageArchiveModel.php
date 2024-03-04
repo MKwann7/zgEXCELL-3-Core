@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardPageArchiveModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "CardPageArchive";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "CardPageArchive";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CardPageArchiveModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "card_tab_archive_id" =>["type" => "int", "length" => 15],

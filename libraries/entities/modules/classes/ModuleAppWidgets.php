@@ -8,7 +8,7 @@ use Entities\Modules\Models\ModuleAppWidgetModel;
 
 class ModuleAppWidgets extends AppEntity
 {
-    public $strEntityName       = "Modules";
+    public string $strEntityName       = "Modules";
     public $strDatabaseTable    = "module_app_widgets";
     public $strDatabaseName     = "Modules";
     public $strMainModelName    = ModuleAppWidgetModel::class;

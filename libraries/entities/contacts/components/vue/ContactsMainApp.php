@@ -8,8 +8,8 @@ use Entities\Contacts\Components\Vue\ContactWidget\ListContactsWidget;
 
 class ContactsMainApp extends VueApp
 {
-    protected $appNamePlural = "Contacts";
-    protected $appNameSingular = "Contact";
+    protected string $appNamePlural = "Contacts";
+    protected string $appNameSingular = "Contact";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

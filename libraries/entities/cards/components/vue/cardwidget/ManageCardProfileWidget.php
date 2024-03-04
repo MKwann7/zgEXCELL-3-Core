@@ -2,13 +2,23 @@
 
 namespace Entities\Cards\Components\Vue\CardWidget;
 
+use App\Core\App;
 use App\Website\Vue\Classes\Base\VueComponent;
+use App\Website\Vue\Classes\VueProps;
+use Entities\Cards\Components\Vue\HelperWidget\DomainManagementWidget;
 use Entities\Cards\Models\CardModel;
+use Entities\Users\Components\Vue\SearchWidget\SearchUserWidget;
 
 class ManageCardProfileWidget extends VueComponent
 {
-    protected $id = "4c140efb-0aa5-4161-b9dc-9f0c4d4477dd";
-    protected $modalWidth = 750;
+    protected string $id = "4c140efb-0aa5-4161-b9dc-9f0c4d4477dd";
+    protected string $modalWidth = "750";
+    protected string $title = "Manage Card Profile";
+    protected string $modalTitleForAddEntity = "Manage Card Profile";
+    protected string $updateButtonText = "Update";
+
+    protected SearchUserWidget $searchUser;
+    protected DomainManagementWidget $domainManagement;
 
     public function __construct (array $components = [])
     {
@@ -28,6 +38,22 @@ class ManageCardProfileWidget extends VueComponent
 
         parent::__construct($defaultEntity, $components);
 
+        $this->searchUser = new SearchUserWidget();
+        $this->searchUser->setMountType("no_mount");
+        $this->searchUser->setComponentsMountType("no_mount");
+        $this->searchUser->addParentId($this->getInstanceId());
+        $this->addDynamicComponent($this->searchUser,true, false);
+        $this->addComponentsList($this->searchUser->getDynamicComponentsForParent());
+        $this->addComponent($this->searchUser, false);
+
+        $this->domainManagement = new DomainManagementWidget();
+        $this->domainManagement->setMountType("no_mount");
+        $this->domainManagement->setComponentsMountType("no_mount");
+        $this->domainManagement->addParentId($this->getInstanceId());
+        $this->addDynamicComponent($this->domainManagement,true, false);
+        $this->addComponentsList($this->domainManagement->getDynamicComponentsForParent());
+        $this->addComponent($this->domainManagement, false);
+
         $this->modalTitleForAddEntity = "Add Card Profile";
         $this->modalTitleForEditEntity = "Edit Card Profile";
         $this->modalTitleForDeleteEntity = "Delete Card Profile";
@@ -38,251 +64,241 @@ class ManageCardProfileWidget extends VueComponent
     {
         return '
             entityClone: false,
-            dynamicOwnerSearch: false,
-            dynamicCardUserSearch: false,
-            customerList: [],
             templateList: [],
-            ownerSearch: "",
+            profileType: "site",
+            profileImageUploadUrl: "",
+            objMyCropper: null,
+            shareButtons: [1,2,3,4],
         ';
     }
 
     protected function renderComponentHydrationScript () : string
     {
+        return parent::renderComponentHydrationScript() . '
+        ';
+    }
+
+    protected function renderComponentMountedScript(): string
+    {
         return '
-            if (this.entity)
-            {
-                this.entityClone = _.clone(this.entity);
-            }
-            
-            if (this.templateList.length === 0)
-            {
-                this.hydratePlatforms();
-            }
-            
-            this.loadCustomers();
-        '.parent::renderComponentHydrationScript();
+            dispatch.register("rehydrate_site_in_editor", this, "hydrateCard");
+        ';
     }
 
     protected function renderComponentMethods (): string
     {
+        /** @var App $app */
         global $app;
+
         return '
-            updateCardProfile: function()
+            hydrateCard: function(data)
             {
-                let self = this;
+                if (data.card)
+                {
+                    let newCardId = data.card.card_id
+                    let oldCardId = this.entityClone.card_id
+                    this.entity = data.card
+                    this.entityClone = _.clone(data.card)
+                    this.hydrateDynamicComponents(this.entityClone, "entity")
+                    if (newCardId !== oldCardId) {
+                        this.loadMyCropper()
+                        this.loadShareButtons()
+                    }
+
+                    if (this.templateList.length === 0)
+                    {
+                        let templateType = "site"
+                        switch(this.entityClone.card_type_id) {
+                            case 2: templateType = "persona"; break
+                            case 3: templateType = "group"; break
+                        }
+                        this.profileType = templateType
+                        this.hydrateSiteDataType("templates", this.templateList, "?type=" + templateType)
+                    }
+                }
+            },
+            updateSiteProfile: function()
+            {
+                let self = this
                 
-                const elVanity = document.getElementById("vanity_1603190947");
-                const elKeyword = document.getElementById("keyword_1603190947");
+                const elVanity = document.getElementById("vanity_1603190947")
+                const elKeyword = document.getElementById("keyword_1603190947")
                 
-                if (elVanity.classList.contains("error-validation")) { return; }
-                if (elKeyword.classList.contains("error-validation")) { return; }
+                if (elVanity && elVanity.classList.contains("error-validation")) { return }
+                if (elKeyword && elKeyword.classList.contains("error-validation")) { return }
                 
-                const url = "/api/v1/cards/update-card-profile?card_id=" + this.entityClone.card_id;
+                const url = "api/v1/cards/update-site-profile?card_id=" + this.entityClone.card_id
                 
+                let settings = {}
+                for (let settingIndex in this.entityClone.Settings) {
+                    ezLog(settingIndex, "settingIndex")
+                    if (settingIndex !== "avatar") {
+                        settings[settingIndex] = this.entityClone.Settings[settingIndex] ? this.entityClone.Settings[settingIndex] : "___REMOVE___"
+                    }
+                }
+
                 const entityNew = {
                     card_id: this.entityClone.card_id,
                     owner_id: this.entityClone.owner_id,
                     card_user_id: this.entityClone.card_user_id,
                     card_name: this.entityClone.card_name,
+                    card_domain: this.entityClone.card_domain,
                     status: this.entityClone.status,
                     card_vanity_url: this.entityClone.card_vanity_url,
                     card_keyword: this.entityClone.card_keyword,
-                    template_id: this.entityClone.template_id
+                    template_id: this.entityClone.template_id,
+                    settings: settings
                 };
+                
+                modal.EngageFloatShield()
                  
-                ajax.Post(url, entityNew, function(result) 
-                {
-                    if (result.success === false) 
-                    {
-                        return;
+                ajax.Post(url, entityNew, function(result)  {
+                    if (result.success === false) {
+                        return
+                    }
+                    
+                    let templateChange = false
+                    
+                    if (self.entityClone.template_id != self.entity.template_id) {
+                        templateChange = true
                     }
 
-                    self.entity.card_name = self.entityClone.card_name;
-                    self.entity.owner_id = self.entityClone.owner_id;
-					self.entity.card_owner_name = result.response.data.card.card_owner_name;
-                    self.entity.card_keyword = self.entityClone.card_keyword;
-                    self.entity.card_vanity_url = self.entityClone.card_vanity_url;
-                    self.entity.template_id = self.entityClone.template_id;
-                    self.entity.template_name = self.getTemplateNameById(self.entityClone.template_id);
-                    self.entity.status = self.entityClone.status;
-
+                    self.entity.card_name = self.entityClone.card_name
+                    self.entity.owner_id = self.entityClone.owner_id
+					self.entity.card_owner_name = result.response.data.card.card_owner_name
+                    self.entity.card_keyword = self.entityClone.card_keyword
+                    self.entity.card_vanity_url = self.entityClone.card_vanity_url
+                    self.entity.card_domain = self.entityClone.card_domain
+                    self.entity.template_id = self.entityClone.template_id
+                    self.entity.template_name = self.getTemplateNameById(self.entityClone.template_id)
+                    self.entity.status = self.entityClone.status
+                    self.entity.Settings = self.entityClone.Settings
                     
-                    let vue = self.findApp(self);
-                    vue.$forceUpdate();
-                                 
-                    let objModal = self.findModal(self);                 
-                    objModal.close(); 
+                    Slim.save(self.objMyCropper, function() {
+                    })
+                    
+                    dispatch.broadcast("rehydrate_site_in_editor", {card: self.entity})
+                    dispatch.broadcast("reload_site_profile_in_editor", {card: self.entity, templateChange: templateChange})
+
+                    let vue = self.findApp(self)
+                    vue.$forceUpdate()
+                    
+                    setTimeout(function() {
+                        modal.CloseFloatShield()
+                    },500);
                 });
             },
             getTemplateNameById: function(templateId)
             {
                 for (currTemplate of this.templateList)
                 {
-                    if (currTemplate.card_template_id == templateId) { return currTemplate.name; }
+                    if (currTemplate.card_template_id == templateId) { return currTemplate.name }
                 }
             },
-            hydratePlatforms: function()
+            hydrateSiteDataType: function(type, list, query)
             {
                 let self = this;
-                ajax.GetExternal("'.$app->objCustomPlatform->getFullPortalDomain().'/api/v1/cards/get-card-templates", {}, true, function(result) 
+                if (!query) query = ""
+                let templateQuery = "/api/v1/cards/get-site-" + type + query
+                ajax.Get(templateQuery, null, function(result) 
                 {
                     if (result.success === false)
                     {
-                        return;
+                        return
                     }
 
-                    const templates = Object.entries(result.response.data.list);
+                    const templates = Object.entries(result.response.data.list)
                     
                     templates.forEach(function([id, currTemplate])
                     {
-                        self.templateList.push(currTemplate);
-                    });
-                    
-                    self.$forceUpdate();
+                        list.push(currTemplate)
+                    });                    
+                    self.$forceUpdate()
                 });
             },
-            checkForDuplicateVanityUrl: function(entity)
+            loadShareButtons: function()
             {
-                const el = document.getElementById("vanity_1603190947");
-                
-                if (entity.card_vanity_url === "") 
-                {    
-                    el.classList.add("pass-validation");
-                    el.classList.remove("error-validation");
+                if (typeof this.entityClone.Settings === "undefined") return
+                for(let currIndex of this.shareButtons) {
+                    const indexLabel = \'shareButton_\' + currIndex + \'_label\'
+                    if (!this.entityClone.Settings[indexLabel]) {
+                        this.entityClone.Settings[indexLabel] = ""
+                    }
+                }
+            },
+            loadMyCropper: function()
+            {
+                const self = this;
+                self.objMyCropper = document.getElementById("my-cropper-avatar")
+                if (self.objMyCropper === null) {
+                    setTimeout(function() {
+                        self.loadMyCropper()
+                    },10)
                     return
                 }
-                
-                const url = "/api/v1/cards/check-vanity-url?vanity_url=" + entity.card_vanity_url + "&card_id=" + entity.card_id;
-
-                ajax.Get(url, null, function(result) 
-                {
-                    if (result.match === true) 
-                    {
-                        el.classList.remove("pass-validation");
-                        el.classList.add("error-validation");
-                        return;
-                    }
-                    
-                    el.classList.add("pass-validation");
-                    el.classList.remove("error-validation");
-                });
+    
+                Slim.destroy(self.objMyCropper)
+                this.loadMyCropperData(self.entityClone, self.objMyCropper)
             },
-            checkForDuplicateKeyword: function(entity)
+            loadMyCropperData: function(entity, objMyCropper)
             {
-                const el = document.getElementById("keyword_1603190947");
-                
-                if (entity.card_keyword === "") 
-                {    
-                    el.classList.add("pass-validation");
-                    el.classList.remove("error-validation");
-                    return
+                const self = this
+                let cropperChildren = objMyCropper.getElementsByTagName("img")
+                if (typeof entity.Settings.avatar === "string" && entity.Settings.avatar !== "") {
+                    const mediaArray = entity.Settings.avatar.split("|");
+                    cropperChildren[0].src = imageServerUrl() + mediaArray[1]
+                } else {
+                    cropperChildren[0].removeAttribute("src")
                 }
                 
-                const url = "api/v1/cards/check-keyword?keyword=" + entity.card_keyword + "&card_id=" + entity.card_id;
+                self.setProfileImageUploadUrl()
+    
+                Slim.create(
+                    objMyCropper,
+                    Slim.getOptionsFromAttributes(objMyCropper, {browseButton: false, uploadButton: false, }),
+                    {app: self, method: "updateEntityAvatar"},
+                    {app: self, method: "removeEntityAvatar"}
+                )
                 
-                ajax.Get(url, null, function(result) 
-                {
-                    if (result.match === true) 
-                    {
-                        el.classList.remove("pass-validation");
-                        el.classList.add("error-validation");
-                        return;
-                    }
-                    
-                    el.classList.add("pass-validation");
-                    el.classList.remove("error-validation");
-                });
+                Slim.setUploadUrl(objMyCropper, self.profileImageUploadUrl)
             },
-            engageDynamicOwnerSearch: function(user)
+            updateEntityAvatar: function(imageData)
             {
-                this.dynamicOwnerSearch = true;
-            },
-            hideDynamicOwnerSearch: function()
-            {
-                const self = this;
-                setTimeout(function() {
-                    self.dynamicOwnerSearch = false;
-                }, 100);
-            },
-            keyMonitorCustomerList: function(event)
-            {
-                this.customerList = this.customerList;
-                this.$forceUpdate();
-            },
-            parseUsersBySearch(usersList, text)
-            {
-                const self = this;
-                let newUserList = [];
-                
-                if (typeof usersList.length !== "number" || usersList.length === 0)
-                {
-                    return newUserList;
-                }
-                
-                let intTotalCount = 0;
-                
-                for (let currUser of usersList)
-                {
-                    if (intTotalCount > 25) { break; }
-                    if (
-                        currUser.first_name.toLowerCase().includes(text) || 
-                        currUser.last_name.toLowerCase().includes(text) ||
-                        (currUser.first_name.toLowerCase() + " " + currUser.last_name.toLowerCase()).includes(text) ||
-                        currUser.user_id.toString().toLowerCase().includes(text)
-                    )
-                    {
-                        newUserList.push(currUser);
-                        intTotalCount++;
-                    }
-                }
-                
-                return newUserList;
-            },
-            assignCustomerToCardOwner: function(user)
-            {
-                this.ownerSearch = user.first_name + " " + user.last_name;
-                this.entityClone.owner_id = user.user_id;
-                this.dynamicOwnerSearch = false;
-            },
-            loadCustomers: function(callback)
-            {
-                const self = this;
-                this.customerList = [];
-                
-                ajax.GetExternal("'.$app->objCustomPlatform->getFullPortalDomain().'/cart/get-all-users", {}, true, function(result) 
-                {
-                    if (result.success === false)
-                    {
-                        return;
-                    }
-
-                    const users = Object.entries(result.response.data.list);
-                    users.forEach(function([user_id, currUser])
-                    {
-                        if (user_id == self.entityClone.owner_id) { self.ownerSearch = currUser.first_name + " " + currUser.last_name; }
-                        self.customerList.push(currUser);
+                let cropperChildren = this.objMyCropper.getElementsByTagName("img");
+                const url = imageData.path
+                if (cropperChildren[0]) {
+                    cropperChildren[0].src = imageServerUrl() + url
+                    this.entityClone.Settings.avatar = url
+                    const postUrl = "/api/v1/cards/save-persona-avatar-url?persona=" + this.entityClone.card_id
+                    const postData = {avatar_url: url}
+                    ajax.PostExternal(postUrl, postData, true, function(result) {
+                        ezLog(result, "updateEntityAvatar")
                     });
-                    
-                    self.$forceUpdate();
-                });
+                }
             },
-        ';
-    }
-
-    protected function renderComponentComputedValues() : string
-    {
-        return '
-            cartCustomerSearchList: function()
+            setProfileImageUploadUrl: function()
             {
-                return this.parseUsersBySearch(this.customerList, this.ownerSearch.toLowerCase());
+                this.profileImageUploadUrl = \'/api/v1/media/upload-image?entity_id=\' + this.entityClone.card_id + \'&user_id=\' + this.entityClone.owner_id + \'&uuid=\' + this.userId + \'&entity_name=persona&class=persona-avatar\';
+            },
+            removeEntityAvatar: function()
+            {
+                this.entityClone.Settings.avatar = "__remove__";
             },
         ';
     }
 
     protected function renderTemplate() : string
     {
+        switch ($this->applicationType) {
+            case "maxtech":
+                $this->updateButtonText = "Update Site Profile";
+                break;
+            default:
+                $this->updateButtonText = "Update Card Info";
+        }
+
         return '
-        <div v-if="entity" class="editEntityProfile">
+        <div class="editEntityProfile">
             <v-style type="text/css">
             
                 .editEntityProfile .dynamic-search-list {
@@ -309,78 +325,135 @@ class ManageCardProfileWidget extends VueComponent
                     background-color:#d5e9ff !important;
                 }
             </v-style>
-            <table class="table no-top-border">
-                <tbody>
-                    <tr>
-                        <td style="width:125px;vertical-align: middle;">Card Name</td>
-                        <td><input v-model="entityClone.card_name" class="form-control" type="text" placeholder="Enter Card Name..."></td>
-                    </tr>
-                </tbody>
-            </table>
-            <div v-if="userAdminRole" class="augmented-form-items">
-                <table class="table" style="margin-bottom:2px;">
-                    <tr>
-                        <td style="width:117px;vertical-align: middle;">Owner</td>
-                        <td style="position:relative;">
-                            <div class="dynamic-search">
-                                <span class="inputpicker-arrow" style="top: 20px;right: 21px;">
-                                    <b></b>
-                                </span>
-                                <input v-on:focus="engageDynamicOwnerSearch" v-on:blur="hideDynamicOwnerSearch" v-model="ownerSearch" v-on:keyup="keyMonitorCustomerList" autocomplete="off" value="" placeholder="Start Typing..." class="form-control ui-autocomplete-input">
-                                <div class="dynamic-search-list" style="position:absolute;" v-if="dynamicOwnerSearch === true && ownerSearch !== \'\'">
-                                    <table>
-                                        <thead>
-                                            <th>User Id</th>
-                                            <th>Name</th>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="currUser in cartCustomerSearchList">
-                                                <td @click="assignCustomerToCardOwner(currUser)">{{currUser.user_id}}</td>
-                                                <td @click="assignCustomerToCardOwner(currUser)">{{currUser.first_name}} {{currUser.last_name}}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                <div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+            <div v-if="entity">
+                <div v-if="userAdminRole" class="augmented-form-items mb-3">
+                    '. $this->registerAndRenderDynamicComponent(
+                    $this->searchUser,
+                    "view",
+                    [
+                        new VueProps("entityData", "object", "entity"),
+                    ]
+                ) .'
+                </div>
+                <div v-if="entityClone.Settings && entityClone.card_type_id == 2" class="augmented-form-items" style="margin-bottom: 15px;">
+                    <table class="table" style="margin-bottom:2px;">
+                        <tr>
+                            <td style="width:300px;">
+                                <div class="width300px">
+                                    <div class="memberAvatarImage">
+                                        <div class="slim" data-ratio="1:1" data-force-size="650,650" v-bind:data-service="profileImageUploadUrl" id="my-cropper-avatar" style="background-image: url(/_ez/images/users/defaultAvatar.jpg); background-size: cover;background-position: center;">
+                                            <input type="file"/>
+                                            <img width="300" height="300" alt="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="pop-up-dialog-sub-title-text ml-2 pl-1 mt-2">Persona Profile</span>
+                                <table class="table" style="margin-bottom:2px;">
+                                    <tr>
+                                        <td style="width:117px;vertical-align: middle;">Name</td>
+                                        <td style="position:relative;" colspan="3">
+                                            <input v-model="entityClone.Settings.display_name" class="form-control">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width:117px;vertical-align: middle;">Title</td>
+                                        <td style="position:relative;">
+                                            <input v-model="entityClone.Settings.title" class="form-control">
+                                        </td>
+                                        <td style="width:117px;vertical-align: middle;">Company</td>
+                                        <td style="position:relative;">
+                                            <input v-model="entityClone.Settings.company" class="form-control">
+                                        </td>
+                                    </tr>
+                                </table>
+                                <span class="pop-up-dialog-sub-title-text ml-2 pl-1 mt-4">Persona Contact Information</span>
+                                <table class="table" style="margin-bottom:2px;">
+                                    <tr>
+                                        <td style="width:117px;vertical-align: middle;">Email</td>
+                                        <td style="position:relative;">
+                                            <input v-model="entityClone.Settings.contact_email" class="form-control">
+                                        </td>
+                                        <td style="width:117px;vertical-align: middle;">Phone</td>
+                                        <td style="position:relative;">
+                                            <input v-model="entityClone.Settings.contact_phone" class="form-control">
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <table class="table" style="margin-bottom:2px;">
+                        <tr v-for="currIndex in shareButtons">
+                            <td style="width:25%;">
+                                <select v-model="entityClone.Settings[\'shareButton_\' + currIndex + \'_label\']" class="form-control">
+                                    <option disabled value="">--Select Share Type--</option>
+                                    <option value="phone">Phone</option>
+                                    <option value="sms">SMS</option>
+                                    <option value="email">Email</option>
+                                    <option value="website">Website</option>
+                                    <option value="facebook">Facebook</option>
+                                    <option value="twitter">Twitter</option>
+                                    <option value="instagram">Instagram</option>
+                                    <option value="linkedin">LinkedIn</option>
+                                    <option value="youtube">YouTube</option>
+                                    <option value="tiktok">Tik Tok</option>
+                                </select>
+                            </td>
+                            <td><input v-model="entityClone.Settings[\'shareButton_\' + currIndex + \'_value\']"  class="form-control"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div v-if="entityClone.Settings && entityClone.card_type_id == 1">
+                    <table class="table no-top-border">
+                        <tbody>
+                            <tr>
+                                <td style="width:125px;vertical-align: middle;">Name</td>
+                                <td><input v-model="entityClone.card_name" class="form-control" type="text" placeholder="Enter Name..."></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <span v-if="entityClone.Settings && entityClone.card_type_id == 2 && entityClone.template_id != 6" class="pop-up-dialog-main-title-text mb-2">Domain Information</span>
+                <div v-if="entityClone.template_id != 6">
+                    '. $this->registerAndRenderDynamicComponent(
+                        $this->domainManagement,
+                        "view",
+                        [
+                            new VueProps("entityData", "object", "entity"),
+                        ]
+                    ) .'
+                </div>
+                <span class="pop-up-dialog-main-title-text mb-2">Status</span>
+                <div>
+                    <table class="table no-top-border">
+                        <tr v-if="userAdminRole">
+                                    <td style="width:125px;vertical-align: middle;">Template</td>
+                                    <td>
+                                        <select v-model="entityClone.template_id" class="form-control">
+                                            <option value="">--Select Template--</option>
+                                            <option v-for="currTemplate in templateList" v-bind:value="currTemplate.card_template_id" selected="">{{ currTemplate.name }}</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr v-if="userAdminRole">
+                                    <td style="width:125px;vertical-align: middle;">Status</td>
+                                    <td>
+                                        <select v-model="entityClone.status" class="form-control">
+                                            <option value="Pending">Pending</option>
+                                            <option value="Active">Active</option>
+                                            <option value="Build">Build</option>
+                                            <option value="Inactive">Inactive</option>
+                                            <option value="Cancelled">Cancelled</option>
+                                            <option value="Disabled">Disabled</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                <button v-on:click="updateSiteProfile" class="buttonID9234597e456 btn btn-primary w-100">' . $this->updateButtonText .'</button>
             </div>
-            <table class="table no-top-border">
-                <tbody>
-                    <tr v-if="userAdminRole">
-                        <td style="width:125px;vertical-align: middle;">Vanity URL</td>
-                        <td><input v-on:blur="checkForDuplicateVanityUrl(entityClone)" v-model="entityClone.card_vanity_url" id="vanity_1603190947" class="form-control pass-validation" type="text" placeholder="Enter Vanity URL..."></td>
-                    </tr>
-                    <tr v-if="userAdminRole">
-                        <td style="width:125px;vertical-align: middle;">Keyword</td>
-                        <td><input v-on:blur="checkForDuplicateKeyword(entityClone)" v-model="entityClone.card_keyword" id="keyword_1603190947" class="form-control pass-validation" type="text" placeholder="Enter Keyword..."></td>
-                    </tr>
-                    <tr>
-                        <td style="width:125px;vertical-align: middle;">Card Theme</td>
-                        <td>
-                            <select v-model="entityClone.template_id" class="form-control">
-                                <option value="">--Select Theme--</option>
-                                <option v-for="currTemplate in templateList" v-bind:value="currTemplate.card_template_id" selected="">{{ currTemplate.name }}</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr v-if="userAdminRole">
-                        <td style="width:125px;vertical-align: middle;">Status</td>
-                        <td>
-                            <select v-model="entityClone.status" class="form-control">
-                                <option value="Pending">Pending</option>
-                                <option value="Active">Active</option>
-                                <option value="Build">Build</option>
-                                <option value="Inactive">Inactive</option>
-                                <option value="Cancelled">Cancelled</option>
-                                <option value="Disabled">Disabled</option>
-                            </select>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <button v-on:click="updateCardProfile" class="buttonID9234597e456 btn btn-primary w-100">Update Card Info</button>
         </div>';
     }
 }

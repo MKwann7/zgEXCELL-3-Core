@@ -10,7 +10,7 @@ use Entities\Users\Models\ConnectionModel;
 
 class Connections extends AppEntity
 {
-    public $strEntityName       = "Users";
+    public string $strEntityName       = "Users";
     public $strDatabaseTable    = "connection";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = ConnectionModel::class;
@@ -35,7 +35,7 @@ class Connections extends AppEntity
             WHERE cn.connection_id = {$connectionId} ORDER BY cn.connection_id ASC;";
 
         $colCardConnectionsResult = Database::getSimple($strCardConnectionsQuery);
-        $colCardConnectionsResult->Data->HydrateModelData(ConnectionModel::class, true);
+        $colCardConnectionsResult->getData()->HydrateModelData(ConnectionModel::class, true);
 
         return $colCardConnectionsResult;
     }
@@ -62,7 +62,7 @@ class Connections extends AppEntity
             WHERE cnr1.card_id = {$cardId} ORDER BY cnr1.display_order ASC;";
 
         $colCardConnectionsResult = Database::getSimple($strCardConnectionsQuery);
-        $colCardConnectionsResult->Data->HydrateModelData(ConnectionModel::class, true);
+        $colCardConnectionsResult->getData()->HydrateModelData(ConnectionModel::class, true);
 
         return $colCardConnectionsResult;
     }
@@ -92,7 +92,7 @@ class Connections extends AppEntity
             ORDER BY cnr1.display_order ASC;";
 
         $colCardConnectionsResult = Database::getSimple($strCardConnectionsQuery);
-        $colCardConnectionsResult->Data->HydrateModelData(ConnectionModel::class, true);
+        $colCardConnectionsResult->getData()->HydrateModelData(ConnectionModel::class, true);
 
         return $colCardConnectionsResult;
     }
@@ -122,7 +122,7 @@ class Connections extends AppEntity
             ORDER BY cnr1.display_order ASC;";
 
         $colCardConnectionsResult = Database::getSimple($strCardConnectionsQuery);
-        $colCardConnectionsResult->Data->HydrateModelData(ConnectionModel::class, true);
+        $colCardConnectionsResult->getData()->HydrateModelData(ConnectionModel::class, true);
 
         return $colCardConnectionsResult;
     }
@@ -156,7 +156,7 @@ class Connections extends AppEntity
         $strCardConnectionsQuery .= " ORDER BY cn.connection_id DESC;";
 
         $colCardConnectionsResult = Database::getSimple($strCardConnectionsQuery);
-        $colCardConnectionsResult->Data->HydrateModelData(ConnectionModel::class, true);
+        $colCardConnectionsResult->getData()->HydrateModelData(ConnectionModel::class, true);
 
         return $colCardConnectionsResult;
     }
@@ -191,7 +191,7 @@ class Connections extends AppEntity
             $strCardConnectionsQuery .= "ORDER BY cn.connection_id DESC;";
 
         $colCardConnectionsResult = Database::getSimple($strCardConnectionsQuery);
-        $colCardConnectionsResult->Data->HydrateModelData(ConnectionModel::class, true);
+        $colCardConnectionsResult->getData()->HydrateModelData(ConnectionModel::class, true);
 
         return $colCardConnectionsResult;
     }
@@ -221,7 +221,7 @@ class Connections extends AppEntity
             ORDER BY cn.connection_id DESC;";
 
         $colCardConnectionsResult = Database::getSimple($strCardConnectionsQuery);
-        $colCardConnectionsResult->Data->HydrateModelData(ConnectionModel::class, true);
+        $colCardConnectionsResult->getData()->HydrateModelData(ConnectionModel::class, true);
 
         return $colCardConnectionsResult;
     }

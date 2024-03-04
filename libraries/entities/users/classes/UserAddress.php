@@ -8,7 +8,7 @@ use Entities\Users\Models\UserAddressModel;
 
 class UserAddress extends AppEntity
 {
-    public $strEntityName       = "Users";
+    public string $strEntityName       = "Users";
     public $strDatabaseTable    = "user_address";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = UserAddressModel::class;

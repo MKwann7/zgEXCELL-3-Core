@@ -8,8 +8,8 @@ use Entities\Companies\Components\Vue\PlatformWidget\ListPlatformWidget;
 
 class PlatformMainApp extends VueApp
 {
-    protected $appNamePlural = "Custom Platforms";
-    protected $appNameSingular = "Custom Platform";
+    protected string $appNamePlural = "Custom Platforms";
+    protected string $appNameSingular = "Custom Platform";
 
     public function __construct($domId, ?VueModal &$modal = null, $pageRequest = [])
     {

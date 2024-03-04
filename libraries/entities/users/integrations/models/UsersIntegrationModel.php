@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class UsersIntegrationModel extends AppModel
 {
-    protected $EntityName = "Users";
-    protected $ModelName = "UsersIntegrations";
+    protected string $EntityName = "Users";
+    protected string $ModelName = "UsersIntegrations";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class UsersIntegrationModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "integrations_user_id" => ["type" => "int","length" => 15],

@@ -9,9 +9,9 @@ class VueComponentList extends VueComponent
 {
     protected $entityTable;
     protected $sortableList;
-    protected $vueType = "compList";
-    protected $noMount = true;
-    protected $noEntitiesWarning = "There are no entities in this module.";
+    protected string $vueType = "compList";
+    protected string $mountType = "no_mount";
+    protected string $noEntitiesWarning = "There are no entities in this module.";
 
     public function __construct(?AppModel $entity = null, ?VueComponentListTable $entityTable = null, ?VueComponentSortableList $sortableList = null, $props = [])
     {

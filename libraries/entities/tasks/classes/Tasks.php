@@ -7,7 +7,7 @@ use Entities\Tasks\Models\TaskModel;
 
 class Tasks extends AppEntity
 {
-    public $strEntityName       = "Tasks";
+    public string $strEntityName       = "Tasks";
     public $strDatabaseTable    = "task";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = TaskModel::class;

@@ -7,7 +7,7 @@ use Entities\Security\Models\SecurityModel;
 
 class Security extends AppEntity
 {
-    public $strEntityName       = "security";
+    public string $strEntityName       = "security";
     public $strDatabaseTable    = "security";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = SecurityModel::class;

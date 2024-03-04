@@ -19,7 +19,7 @@ use Entities\Visitors\Models\VisitorBrowserModel;
 
 class Users extends AppEntity
 {
-    public $strEntityName       = "Users";
+    public string $strEntityName       = "Users";
     public $strAliasName        = "users";
     public $strDatabaseTable    = "user";
     public $strDatabaseName     = "Main";
@@ -41,9 +41,9 @@ class Users extends AppEntity
         {
             if ($log) { (new UserLogs())->RegisterActivity(0, "logged_in", "Login Failed: Username: " . $objRequest->username . " Password: " . $objRequest->password, "process"); }
 
-            $objAuthenticationResult->Result->Success = false;
-            $objAuthenticationResult->Result->Count   = 0;
-            $objAuthenticationResult->Result->Message = "You must include both a username and a password. {$objRequest->username} & {$objRequest->password}";
+            $objAuthenticationResult->result->Success = false;
+            $objAuthenticationResult->result->Count   = 0;
+            $objAuthenticationResult->result->Message = "You must include both a username and a password. {$objRequest->username} & {$objRequest->password}";
 
             return $objAuthenticationResult;
         }
@@ -59,40 +59,40 @@ class Users extends AppEntity
             WHERE (ur.username = '{$strUsername}' AND ur.company_id = '{$companyId}') OR (ur.username = '{$strUsername}' AND (uc.user_class_type_id >= 0 AND uc.user_class_type_id <= 3))";
 
         $userResult = Database::getSimple($objWhereClause, "user_id");
-        $userResult->Data->HydrateModelData(UserModel::class, true);
+        $userResult->getData()->HydrateModelData(UserModel::class, true);
 
-        if ($userResult->Result->Success === false || $userResult->Result->Count === 0)
+        if ($userResult->result->Success === false || $userResult->result->Count === 0)
         {
             if ($log) { (new UserLogs())->RegisterActivity(0, "logged_in", "Login Failed: Username not found: " . $objRequest->username, "process"); }
 
-            $objAuthenticationResult->Result->Success = false;
-            $objAuthenticationResult->Result->Count = 0;
-            $objAuthenticationResult->Result->Message = "Your credentials were incorrect: " . $userResult->Result->Message;
-            $objAuthenticationResult->Result->Query = $objWhereClause;
+            $objAuthenticationResult->result->Success = false;
+            $objAuthenticationResult->result->Count = 0;
+            $objAuthenticationResult->result->Message = "Your credentials were incorrect: " . $userResult->result->Message;
+            $objAuthenticationResult->result->Query = $objWhereClause;
 
             return $objAuthenticationResult;
         }
 
-        $objUser = $userResult->Data->First();
+        $objUser = $userResult->getData()->first();
 
         if (passwordCheck($strPassword, $objUser->password) !== true)
         {
             if ($log) { (new UserLogs())->RegisterActivity(0, "logged_in", "Login Failed: Password for {$objRequest->username} not correct: " . $objRequest->password, "process"); }
 
-            $objAuthenticationResult->Result->Success = false;
-            $objAuthenticationResult->Result->Count = 0;
-            $objAuthenticationResult->Result->Message = "Your credentials were incorrect.";
+            $objAuthenticationResult->result->Success = false;
+            $objAuthenticationResult->result->Count = 0;
+            $objAuthenticationResult->result->Message = "Your credentials were incorrect.";
 
             return $objAuthenticationResult;
         }
 
         $objUserResult = $this->getFks()->getById($objUser->user_id);
-        $objUser = $objUserResult->Data->First();
+        $objUser = $objUserResult->getData()->first();
 
-        $objAuthenticationResult->Result->Success = true;
-        $objAuthenticationResult->Result->Count = 1;
-        $objAuthenticationResult->Result->Message = "We found a matching user!";
-        $objAuthenticationResult->Data->Add($objUser);
+        $objAuthenticationResult->result->Success = true;
+        $objAuthenticationResult->result->Count = 1;
+        $objAuthenticationResult->result->Message = "We found a matching user!";
+        $objAuthenticationResult->getData()->Add($objUser);
 
         return $objAuthenticationResult;
     }
@@ -105,6 +105,8 @@ class Users extends AppEntity
         }
 
         setcookie('username', $objUser->username, strtotime('+1 years'), '/', $app->rootDomain, $app->objSslSecure, false) or die("unable to create cookie 3");
+        setcookie('userNum', $objUser->user_id, strtotime('+1 years'), '/', $app->rootDomain, $app->objSslSecure, false) or die("unable to create cookie 3");
+        setcookie('userId', $objUser->sys_row_id, strtotime('+1 years'), '/', $app->rootDomain, $app->objSslSecure, false) or die("unable to create cookie 3");
     }
 
     public function setUserActiveCookies($intRandomId, &$app = null) : void
@@ -131,19 +133,17 @@ class Users extends AppEntity
         $objNewBrowserCookie = new VisitorBrowserModel();
         $objBrowserCookieResult = (new VisitorBrowser())->getWhere(["browser_cookie" => $strBrowserCookie]);
 
-        if ($objBrowserCookieResult->Result->Count === 0)
+        if ($objBrowserCookieResult->result->Count === 0)
         {
             logText("BrowserCookieLoginAttempt.log", $strBrowserCookie);
             $objNewBrowserCookie->browser_cookie = $strBrowserCookie;
             $objNewBrowserCookie->contact_id = 1337;
             $objNewBrowserCookie->created_on = date("Y-m-d H:i:s");
             $result = (new VisitorBrowser())->createNew($objNewBrowserCookie);
-
-            dd($result);
         }
         else
         {
-            $objNewBrowserCookie = $objBrowserCookieResult->Data->First();
+            $objNewBrowserCookie = $objBrowserCookieResult->getData()->first();
         }
 
         $objNewBrowserCookie->user_id = $objUser->user_id;
@@ -172,6 +172,9 @@ class Users extends AppEntity
 
         $objUpdatedUserResult = $this->update($objUser);
 
+        $objUser->loadRoles();
+        $objUser->loadDepartments();
+
         (new UserLogs())->RegisterActivity($objUser->user_id, "logged_in", "Login Successful", "process");
 
         return $intRandomId;
@@ -184,12 +187,12 @@ class Users extends AppEntity
 
         $objNewUserResult = parent::createNew($objEntityData);
 
-        if ( $objNewUserResult->Result->Success === false)
+        if ( $objNewUserResult->result->Success === false)
         {
             return $objNewUserResult;
         }
 
-        $objNewUser = $objNewUserResult->Data->First();
+        $objNewUser = $objNewUserResult->getData()->first();
 
         $objNewUser->password = encryptPassword($objNewUser->password);
 
@@ -198,7 +201,7 @@ class Users extends AppEntity
         if (!empty($arUserClassType) && is_array($arUserClassType) && count($arUserClassType) > 0)
         {
             $objUserClassTypeResult = $this->GetUserClassTypes();
-            $objUserClassTypes = $objUserClassTypeResult->Data;
+            $objUserClassTypes = $objUserClassTypeResult->getData();
 
             foreach($objUserClassTypes as $currRowId => $currUserClass)
             {
@@ -217,15 +220,45 @@ class Users extends AppEntity
         return $objNewUserResult;
     }
 
+    public function getByEmailOrUserName(string $email, string $username) : ExcellTransaction
+    {
+        $objWhereClause = "
+            SELECT ur.* FROM user ur
+            LEFT JOIN connection cs ON cs.connection_id = ur.user_email
+            LEFT JOIN user_class urc ON urc.user_id = ur.user_id
+            WHERE ((cs.connection_value = '{$email}' OR ur.username = '{$username}') AND urc.user_class_type_id >= 5 AND ur.company_id = {$this->app->objCustomPlatform->getCompanyId()})
+                OR ((cs.connection_value = '{$email}' OR ur.username = '{$username}') AND urc.user_class_type_id <= 4) LIMIT 1";
+
+        $userResult = Database::getSimple($objWhereClause, "user_id");
+        $userResult->getData()->HydrateModelData(UserModel::class, true);
+
+        return $userResult;
+    }
+
     public function getByEmail($email) : ExcellTransaction
     {
         $objWhereClause = "
             SELECT ur.* FROM user ur
             LEFT JOIN connection cs ON cs.connection_id = ur.user_email
-            WHERE cs.connection_value = '{$email}' && ur.company_id = {$this->app->objCustomPlatform->getCompanyId()} LIMIT 1";
+            LEFT JOIN user_class urc ON urc.user_id = ur.user_id
+            WHERE (cs.connection_value = '{$email}' AND urc.user_class_type_id >= 5 AND ur.company_id = {$this->app->objCustomPlatform->getCompanyId()}) 
+                OR (cs.connection_value = '{$email}' AND urc.user_class_type_id <= 4) LIMIT 1";
 
         $userResult = Database::getSimple($objWhereClause, "user_id");
-        $userResult->Data->HydrateModelData(UserModel::class, true);
+        $userResult->getData()->HydrateModelData(UserModel::class, true);
+
+        return $userResult;
+    }
+
+    public function getByPhone($phone) : ExcellTransaction
+    {
+        $objWhereClause = "
+            SELECT ur.* FROM user ur
+            LEFT JOIN connection cs ON cs.connection_id = ur.user_phone
+            WHERE cs.connection_value = '{$phone}' && ur.company_id = {$this->app->objCustomPlatform->getCompanyId()} LIMIT 1";
+
+        $userResult = Database::getSimple($objWhereClause, "user_id");
+        $userResult->getData()->HydrateModelData(UserModel::class, true);
 
         return $userResult;
     }
@@ -246,10 +279,10 @@ class Users extends AppEntity
 
         if (!isInteger($intUserId))
         {
-            $objClassResult->Result->Success = false;
-            $objClassResult->Result->Count = 0;
-            $objClassResult->Result->Message = "The " . $this->strEntityName . " id passed into this class request method must be an integer.";
-            $objClassResult->Result->Trace = trace();
+            $objClassResult->result->Success = false;
+            $objClassResult->result->Count = 0;
+            $objClassResult->result->Message = "The " . $this->strEntityName . " id passed into this class request method must be an integer.";
+            $objClassResult->result->Trace = trace();
             return $objClassResult;
         }
 
@@ -262,10 +295,10 @@ class Users extends AppEntity
 
         if (!isInteger($intGroupId))
         {
-            $objClassResult->Result->Success = false;
-            $objClassResult->Result->Count = 0;
-            $objClassResult->Result->Message = "The " . $this->strEntityName . " id passed into this class request method must be an integer.";
-            $objClassResult->Result->Trace = trace();
+            $objClassResult->result->Success = false;
+            $objClassResult->result->Count = 0;
+            $objClassResult->result->Message = "The " . $this->strEntityName . " id passed into this class request method must be an integer.";
+            $objClassResult->result->Trace = trace();
             return $objClassResult;
         }
 
@@ -275,7 +308,7 @@ class Users extends AppEntity
 
         $objUserWhereclause = array();
 
-        foreach($objCardRel->Data as $currCardRelId => $objCardRel)
+        foreach($objCardRel->data as $currCardRelId => $objCardRel)
         {
             $objUserWhereclause[] = ["user_id", "=", $objCardRel->user_id];
             $objUserWhereclause[] = ["OR"];
@@ -290,12 +323,12 @@ class Users extends AppEntity
 
     public function update($objEntityData) : ExcellTransaction
     {
-        if (!empty($objEntityData->password) && $objEntityData->password !== ExcellEmptyString && $objEntityData->password !== ExcellNull && strlen($objEntityData->password) < 55)
+        if (!empty($objEntityData->password) && $objEntityData->password !== EXCELL_EMPTY_STRING && $objEntityData->password !== EXCELL_NULL && strlen($objEntityData->password) < 55)
         {
             $objEntityData->password = encryptPassword($objEntityData->password);
         }
 
-        if ($objEntityData->password === "" || $objEntityData->password === ExcellEmptyString || $objEntityData->password === ExcellNull)
+        if ($objEntityData->password === "" || $objEntityData->password === EXCELL_EMPTY_STRING || $objEntityData->password === EXCELL_NULL)
         {
             $objEntityData->password = null;
         }
@@ -318,15 +351,15 @@ class Users extends AppEntity
         $objWhereClause .= " LIMIT 1";
 
         $cardResult = Database::getSimple($objWhereClause, "user_id");
-        $cardResult->Data->HydrateModelData(UserModel::class, true);
+        $cardResult->getData()->HydrateModelData(UserModel::class, true);
 
-        if ($cardResult->Result->Count !== 1)
+        if ($cardResult->result->Count !== 1)
         {
-            return new ExcellTransaction(false, $cardResult->Result->Message, ["errors" => [$cardResult->Result->Message]]);
+            return new ExcellTransaction(false, $cardResult->result->Message, ["errors" => [$cardResult->result->Message]]);
         }
 
-        $userSettings = (new UserSettings())->getByUserId($cardResult->Data->First()->user_id)->Data;
-        $cardResult->Data->HydrateChildModelData("__settings", ["user_id" => "user_id"], $userSettings, false, ["label" => "value"]);
+        $userSettings = (new UserSettings())->getByUserId($cardResult->getData()->first()->user_id)->getData();
+        $cardResult->getData()->HydrateChildModelData("__settings", ["user_id" => "user_id"], $userSettings, false, ["label" => "value"]);
 
         return $cardResult;
     }
@@ -337,10 +370,10 @@ class Users extends AppEntity
 
         if (!isInteger($intEntityId))
         {
-            $objDeletionResult->Result->Success = false;
-            $objDeletionResult->Result->Count = 0;
-            $objDeletionResult->Result->Message = "The id passed into this deletion method must be an integer.";
-            $objDeletionResult->Result->Trace = trace();
+            $objDeletionResult->result->Success = false;
+            $objDeletionResult->result->Count = 0;
+            $objDeletionResult->result->Message = "The id passed into this deletion method must be an integer.";
+            $objDeletionResult->result->Trace = trace();
             return $objDeletionResult;
         }
 
@@ -398,7 +431,7 @@ class Users extends AppEntity
         $objWhereClause .= " ORDER BY u.user_id DESC";
 
         $objUsers = Database::getSimple($objWhereClause,"user_id");
-        $objUsers->Data->HydrateModelData(UserModel::class);
+        $objUsers->getData()->HydrateModelData(UserModel::class);
 
         return $objUsers;
     }
@@ -407,21 +440,21 @@ class Users extends AppEntity
     {
         $objUserResult = $this->getById($intUserId);
 
-        if ($objUserResult->Result->Count === 0)
+        if ($objUserResult->result->Count === 0)
         {
             return $objUserResult;
         }
 
-        if (empty($objUserResult->Data->First()->sponsor_id))
+        if (empty($objUserResult->getData()->first()->sponsor_id))
         {
             $objTransaction = new ExcellTransaction();
-            $objTransaction->Result->Success = false;
-            $objTransaction->Result->Count = 0;
-            $objTransaction->Result->Message = "No affiliate associated with user.";
+            $objTransaction->result->Success = false;
+            $objTransaction->result->Count = 0;
+            $objTransaction->result->Message = "No affiliate associated with user.";
             return $objTransaction;
         }
 
-        return $this->getById($objUserResult->Data->First()->sponsor_id);
+        return $this->getById($objUserResult->getData()->first()->sponsor_id);
     }
 
     public function GetSponsorById($intSponsorId, $connection)
@@ -546,15 +579,15 @@ class Users extends AppEntity
 
             $objBrandPartners = $this->getWhere(["user_id", "=", $intSid],1);
 
-            if( $objBrandPartners->Data->Count() > 0 )
+            if( $objBrandPartners->getData()->Count() > 0 )
             {
                 // Get Customers BP ID
-                $this->app->objAppSession["Public"]["BrandPartner"]["brandpartner_id"] = $objBrandPartners->Data->First()["bpId"];
+                $this->app->objAppSession["Public"]["BrandPartner"]["brandpartner_id"] = $objBrandPartners->getData()->first()["bpId"];
                 $this->app->objAppSession["Public"]["BrandPartner"]["user_id"] = $intSid;
 
                 $objBrandPartner = $this->GetSponsorById($intSid, $connection);
 
-                $this->app->objAppSession["Public"]["BrandPartner"]["user_data"] = $objBrandPartners->Data->First();
+                $this->app->objAppSession["Public"]["BrandPartner"]["user_data"] = $objBrandPartners->getData()->first();
                 $this->app->objAppSession["Public"]["BrandPartner"]["type"] = "brand-partner";
             }
         }
@@ -586,37 +619,37 @@ class Users extends AppEntity
 
         if (!isInteger($intCardId))
         {
-            $objUserResult->Result->Success = false;
-            $objUserResult->Result->Count = 0;
-            $objUserResult->Result->Message = "The card_id value passed into this user request method must be an integer.";
-            $objUserResult->Result->Trace = trace();
+            $objUserResult->result->Success = false;
+            $objUserResult->result->Count = 0;
+            $objUserResult->result->Message = "The card_id value passed into this user request method must be an integer.";
+            $objUserResult->result->Trace = trace();
             return $objUserResult;
         }
 
         $lstCardResult = (new Cards())->getById($intCardId);
 
-        if ($lstCardResult->Result->Success === false || $lstCardResult->Result->Count === 0)
+        if ($lstCardResult->result->Success === false || $lstCardResult->result->Count === 0)
         {
-            $objUserResult->Result->Success = false;
-            $objUserResult->Result->Count = 0;
-            $objUserResult->Result->Message = "No card was found with ID of {$intCardId}.";
-            $objUserResult->Result->Trace = trace();
+            $objUserResult->result->Success = false;
+            $objUserResult->result->Count = 0;
+            $objUserResult->result->Message = "No card was found with ID of {$intCardId}.";
+            $objUserResult->result->Trace = trace();
             return $objUserResult;
         }
 
         $lstCardRelTypeResult = (new Cards())->GetCardRelTypes();
         $objCardRel = (new CardRels())->getWhere(["card_id" => $intCardId]);
         $objCardOwner = (new Users())->GetCardOwnerByCardId($intCardId);
-        $arCardUserId = $objCardRel->Data->FieldsToArray(["user_id"]);
-        $arCardUserId[] = $objCardOwner->Data->First()->user_id;
+        $arCardUserId = $objCardRel->getData()->FieldsToArray(["user_id"]);
+        $arCardUserId[] = $objCardOwner->getData()->first()->user_id;
 
         $objUsers = $this->getWhereIn("user_id", $arCardUserId);
 
-        $objUsers->Data->MergeFields($objCardRel->Data,["card_rel_type_id","card_rel_id","status"],["user_id"]);
-        $objUsers->Data->MergeFields($lstCardRelTypeResult->Data,["name" => "role","card_rel_permissions"],["card_rel_type_id"]);
-        $objCardOwner->Data->First()->AddUnvalidatedValue("card_rel_type_id", 1);
-        $objCardOwner->Data->First()->AddUnvalidatedValue("card_rel_id", "X");
-        $objUsers->Data->{$objCardOwner->Data->First()->user_id} = $objCardOwner->Data->First();
+        $objUsers->getData()->MergeFields($objCardRel->data,["card_rel_type_id","card_rel_id","status"],["user_id"]);
+        $objUsers->getData()->MergeFields($lstCardRelTypeResult->data,["name" => "role","card_rel_permissions"],["card_rel_type_id"]);
+        $objCardOwner->getData()->first()->AddUnvalidatedValue("card_rel_type_id", 1);
+        $objCardOwner->getData()->first()->AddUnvalidatedValue("card_rel_id", "X");
+        $objUsers->getData()->{$objCardOwner->getData()->first()->user_id} = $objCardOwner->getData()->first();
 
         return $objUsers;
     }
@@ -627,33 +660,33 @@ class Users extends AppEntity
 
         if (!isInteger($intCardId))
         {
-            $objUserResult->Result->Success = false;
-            $objUserResult->Result->Count = 0;
-            $objUserResult->Result->Message = "The card_id value passed into this user request method must be an integer.";
-            $objUserResult->Result->Trace = trace();
+            $objUserResult->result->Success = false;
+            $objUserResult->result->Count = 0;
+            $objUserResult->result->Message = "The card_id value passed into this user request method must be an integer.";
+            $objUserResult->result->Trace = trace();
             return $objUserResult;
         }
 
         $objCardResult = (new Cards())->getById($intCardId);
 
-        if ($objCardResult->Result->Success === false)
+        if ($objCardResult->result->Success === false)
         {
-            $objUserResult->Result->Success = false;
-            $objUserResult->Result->Count = 0;
-            $objUserResult->Result->Message = "This card does not have an owner attached to it.";
-            $objUserResult->Result->Trace = trace();
+            $objUserResult->result->Success = false;
+            $objUserResult->result->Count = 0;
+            $objUserResult->result->Message = "This card does not have an owner attached to it.";
+            $objUserResult->result->Trace = trace();
             return $objUserResult;
         }
 
-        $objUsers = $this->getWhere(["user_id" => $objCardResult->Data->First()->owner_id], 1);
+        $objUsers = $this->getWhere(["user_id" => $objCardResult->getData()->first()->owner_id], 1);
 
-        if ($objUsers->Result->Success === false || $objUsers->Result->Count === 0)
+        if ($objUsers->result->Success === false || $objUsers->result->Count === 0)
         {
             return $objUsers;
         }
 
-        $objUsers->Data->First()->AddUnvalidatedValue("role", "Card Owner");
-        $objUsers->Data->First()->AddUnvalidatedValue("card_rel_type_id", 1);
+        $objUsers->getData()->first()->AddUnvalidatedValue("role", "Card Owner");
+        $objUsers->getData()->first()->AddUnvalidatedValue("card_rel_type_id", 1);
 
         return $objUsers;
     }
@@ -664,10 +697,10 @@ class Users extends AppEntity
 
         if (!isInteger($intCardId))
         {
-            $objUserResult->Result->Success = false;
-            $objUserResult->Result->Count = 0;
-            $objUserResult->Result->Message = "The card_id value passed into this user request method must be an integer.";
-            $objUserResult->Result->Trace = trace();
+            $objUserResult->result->Success = false;
+            $objUserResult->result->Count = 0;
+            $objUserResult->result->Message = "The card_id value passed into this user request method must be an integer.";
+            $objUserResult->result->Trace = trace();
             return $objUserResult;
         }
 
@@ -676,16 +709,16 @@ class Users extends AppEntity
 
         $objCardRelResult = $this->Db->getSimple($strCardRelQuery, "card_rel_id");
 
-        if ($objCardRelResult->Result->Success === false)
+        if ($objCardRelResult->result->Success === false)
         {
-            $objUserResult->Result->Success = false;
-            $objUserResult->Result->Count = 0;
-            $objUserResult->Result->Message = "This card does not have an owner attached to it.";
-            $objUserResult->Result->Trace = trace();
+            $objUserResult->result->Success = false;
+            $objUserResult->result->Count = 0;
+            $objUserResult->result->Message = "This card does not have an owner attached to it.";
+            $objUserResult->result->Trace = trace();
             return $objUserResult;
         }
 
-        $objUsers = $this->getWhere(["user_id" =>$objCardRelResult->Data->First()->user_id]);
+        $objUsers = $this->getWhere(["user_id" =>$objCardRelResult->getData()->first()->user_id]);
 
         return $objUsers;
     }
@@ -696,10 +729,10 @@ class Users extends AppEntity
 
         if (!isInteger($intUserAddressId))
         {
-            $objAddressResult->Result->Success = false;
-            $objAddressResult->Result->Count = 0;
-            $objAddressResult->Result->Message = "The address_id value passed into this address request method must be an integer.";
-            $objAddressResult->Result->Trace = trace();
+            $objAddressResult->result->Success = false;
+            $objAddressResult->result->Count = 0;
+            $objAddressResult->result->Message = "The address_id value passed into this address request method must be an integer.";
+            $objAddressResult->result->Trace = trace();
             return $objAddressResult;
         }
 
@@ -716,10 +749,10 @@ class Users extends AppEntity
 
         if (!isInteger($intUserId))
         {
-            $objAddressResult->Result->Success = false;
-            $objAddressResult->Result->Count = 0;
-            $objAddressResult->Result->Message = "The " . $this->strEntityName . " id passed into this address request method must be an integer.";
-            $objAddressResult->Result->Trace = trace();
+            $objAddressResult->result->Success = false;
+            $objAddressResult->result->Count = 0;
+            $objAddressResult->result->Message = "The " . $this->strEntityName . " id passed into this address request method must be an integer.";
+            $objAddressResult->result->Trace = trace();
             return $objAddressResult;
         }
 
@@ -757,10 +790,10 @@ class Users extends AppEntity
 
         if (!isInteger($intUserConnectionId))
         {
-            $objConnectionResult->Result->Success = false;
-            $objConnectionResult->Result->Count = 0;
-            $objConnectionResult->Result->Message = "The connection_id value passed into this connection request method must be an integer.";
-            $objConnectionResult->Result->Trace = trace();
+            $objConnectionResult->result->Success = false;
+            $objConnectionResult->result->Count = 0;
+            $objConnectionResult->result->Message = "The connection_id value passed into this connection request method must be an integer.";
+            $objConnectionResult->result->Trace = trace();
             return $objConnectionResult;
         }
 
@@ -791,10 +824,10 @@ class Users extends AppEntity
 
         if (!isInteger($intUserId))
         {
-            $objConnectionResult->Result->Success = false;
-            $objConnectionResult->Result->Count = 0;
-            $objConnectionResult->Result->Message = "The " . $this->strEntityName . " id passed into this connection request method must be an integer.";
-            $objConnectionResult->Result->Trace = trace();
+            $objConnectionResult->result->Success = false;
+            $objConnectionResult->result->Count = 0;
+            $objConnectionResult->result->Message = "The " . $this->strEntityName . " id passed into this connection request method must be an integer.";
+            $objConnectionResult->result->Trace = trace();
             return $objConnectionResult;
         }
 
@@ -826,10 +859,10 @@ class Users extends AppEntity
 
         if (!isInteger($intUserId))
         {
-            $objBusinessResult->Result->Success = false;
-            $objBusinessResult->Result->Count = 0;
-            $objBusinessResult->Result->Message = "The " . $this->strEntityName . " id passed into this business request method must be an integer.";
-            $objBusinessResult->Result->Trace = trace();
+            $objBusinessResult->result->Success = false;
+            $objBusinessResult->result->Count = 0;
+            $objBusinessResult->result->Message = "The " . $this->strEntityName . " id passed into this business request method must be an integer.";
+            $objBusinessResult->result->Trace = trace();
             return $objBusinessResult;
         }
 
@@ -844,7 +877,7 @@ class Users extends AppEntity
     {
         $userResult = $this->getFks()->getById($userId);
 
-        if ($userResult->Result->Count !== 1)
+        if ($userResult->result->Count !== 1)
         {
             return $userResult;
         }
@@ -852,8 +885,8 @@ class Users extends AppEntity
         $connections = $this->GetConnectionsByUserId($userId);
         $addresses = $this->GetAddressesByUserId($userId);
 
-        $userResult->Data->First()->AddUnvalidatedValue("connections", $connections->Data);
-        $userResult->Data->First()->AddUnvalidatedValue("addresses", $addresses->Data);
+        $userResult->getData()->first()->AddUnvalidatedValue("connections", $connections->data);
+        $userResult->getData()->first()->AddUnvalidatedValue("addresses", $addresses->data);
 
         return $userResult;
     }
@@ -877,14 +910,14 @@ class Users extends AppEntity
 
         $userResult = Database::getSimple($whereClause,"user_id");
 
-        if ($userResult->Result->Count === 0)
+        if ($userResult->result->Count === 0)
         {
             return new ExcellTransaction(true, "No match found.", ["match" => false]);
         }
 
-        $userResult->Data->HydrateModelData(ConnectionModel::class, true);
+        $userResult->getData()->HydrateModelData(ConnectionModel::class, true);
 
-        return new ExcellTransaction(true, "Match found.", ["match" => true, "entity" => $userResult->Data->First()]);
+        return new ExcellTransaction(true, "Match found.", ["match" => true, "entity" => $userResult->getData()->first()]);
     }
 
     public function findMatchingPrimaryPhone($phone, $companyId, $userId = null) : ExcellTransaction
@@ -907,14 +940,14 @@ class Users extends AppEntity
 
         $userResult = Database::getSimple($whereClause,"user_id");
 
-        if ($userResult->Result->Count === 0)
+        if ($userResult->result->Count === 0)
         {
             return new ExcellTransaction(true, "No match found.", ["match" => false, "query" => $whereClause]);
         }
 
-        $userResult->Data->HydrateModelData(ConnectionModel::class, true);
+        $userResult->getData()->HydrateModelData(ConnectionModel::class, true);
 
-        return new ExcellTransaction(true, "Match found.", ["match" => true, "entity" => $userResult->Data->First(), "query" => $whereClause]);
+        return new ExcellTransaction(true, "Match found.", ["match" => true, "entity" => $userResult->getData()->first(), "query" => $whereClause]);
     }
 
     public function findMatchingUserEmail($email, $userId = null) : ExcellTransaction
@@ -932,12 +965,12 @@ class Users extends AppEntity
             $connectionResult = (new Connections())->getWhere(["connection_value" => $email, "user_id" => $userId]);
         }
 
-        if ($connectionResult->Result->Count === 0)
+        if ($connectionResult->result->Count === 0)
         {
             return new ExcellTransaction(true, "No match found.", ["match" => false]);
         }
 
-        return new ExcellTransaction(true, "Match found.", ["match" => true, "entity" => $connectionResult->Data->First()]);
+        return new ExcellTransaction(true, "Match found.", ["match" => true, "entity" => $connectionResult->getData()->first()]);
     }
 
     public function findMatchingUserPhone($phone, $userId = null) : ExcellTransaction
@@ -956,12 +989,12 @@ class Users extends AppEntity
             $connectionResult = (new Connections())->getWhere(["connection_value" => $phone, "user_id" => $userId]);
         }
 
-        if ($connectionResult->Result->Count === 0)
+        if ($connectionResult->result->Count === 0)
         {
             return new ExcellTransaction(true, "No match found.", ["match" => false]);
         }
 
-        return new ExcellTransaction(true, "Match found.", ["match" => true, "entity" => $connectionResult->Data->First()]);
+        return new ExcellTransaction(true, "Match found.", ["match" => true, "entity" => $connectionResult->getData()->first()]);
     }
 
     public function generatePasswordResetToken() : string

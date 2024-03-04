@@ -1,3 +1,3 @@
 <?php
 
-require AppVendors . "slim/main/v4.5.1/process/sync" . XT;
+require APP_VENDORS . "slim/main/v4.5.1/process/sync" . XT;

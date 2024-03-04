@@ -23,7 +23,7 @@ if ( $app->blnLoggedIn === false)
         $app->objAppSession["Core"]["Session"]["IpInfo"]->guid = getGuid();
 
         $strBrowserCookie = $_COOKIE['instance'];
-        $objBrowserCookie = (new VisitorBrowser())->getWhere(["browser_cookie" => $strBrowserCookie])->Data->First();
+        $objBrowserCookie = (new VisitorBrowser())->getWhere(["browser_cookie" => $strBrowserCookie])->getData()->first();
 
         if (!empty($objBrowserCookie))
         {
@@ -80,7 +80,7 @@ if ( $app->blnLoggedIn === false)
             $app->objAppSession["Core"]["Session"]["IpInfo"]->guid = getGuid();
 
             $strBrowserCookie = $_COOKIE['instance'];
-            $objBrowserCookie = (new VisitorBrowser())->getWhere(["browser_cookie" => $strBrowserCookie])->Data->First();
+            $objBrowserCookie = (new VisitorBrowser())->getWhere(["browser_cookie" => $strBrowserCookie])->getData()->first();
 
             if (!empty($objBrowserCookie))
             {

@@ -7,8 +7,8 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class CardPaymentAccountWidget extends VueComponent
 {
-    protected $id = "21270983-4a6e-49db-ad3c-91263e6cba1f";
-    protected $modalWidth = 750;
+    protected string $id = "21270983-4a6e-49db-ad3c-91263e6cba1f";
+    protected string $modalWidth = "750";
 
     public function __construct(?AppModel $entity = null, $name = "Card Payment Account Widget", $props = [])
     {
@@ -41,7 +41,7 @@ class CardPaymentAccountWidget extends VueComponent
                 if (this.cardPaymentAccount.payment_account_id === null || this.cardPaymentAccount.type === "") { this.creditCartType = "other"; }
                 else { this.creditCartType = this.cardPaymentAccount.type; }
                 
-                return "' . $app->objCustomPlatform->getFullPortalDomain() . '/_ez/images/financials/cc_small_" + this.creditCartType + ".png";
+                return "' . $app->objCustomPlatform->getFullPortalDomainName() . '/_ez/images/financials/cc_small_" + this.creditCartType + ".png";
             },
             modifyCardPaymentAccount: function()
             {

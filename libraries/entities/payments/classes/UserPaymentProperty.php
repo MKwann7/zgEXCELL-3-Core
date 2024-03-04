@@ -8,7 +8,7 @@ use Entities\Payments\Models\UserPaymentPropertyModel;
 
 class UserPaymentProperty extends AppEntity
 {
-    public $strEntityName       = "payments";
+    public string $strEntityName       = "payments";
     public $strDatabaseTable    = "user_payment_property";
     public $strDatabaseName     = "Financial";
     public $strMainModelName    = UserPaymentPropertyModel::class;

@@ -12,7 +12,7 @@ use Entities\Cards\Models\CardPageRelModel;
 
 class CardPageArchives extends AppEntity
 {
-    public $strEntityName       = "Cards";
+    public string $strEntityName       = "Cards";
     public $strDatabaseTable    = "card_tab_archive";
     public $strDatabaseName     = "Archive";
     public $strMainModelName    = CardPageArchiveModel::class;
@@ -50,30 +50,30 @@ class CardPageArchives extends AppEntity
         $objCardPageRels = new CardPageRels();
         $cardPageRelResult = $objCardPageRels->getWhere(["card_id" => $objCard->card_id]);
 
-        if ($cardPageRelResult->Result->Count === 0)
+        if ($cardPageRelResult->result->Count === 0)
         {
-            return new ExcellTransaction(false, $cardPageRelResult->Result->Message);
+            return new ExcellTransaction(false, $cardPageRelResult->result->Message);
         }
 
         $objCardPage = new CardPage();
-        $cardPageResult = $objCardPage->getWhereIn("card_tab_id", $cardPageRelResult->Data->FieldsToArray("card_tab_id"));
+        $cardPageResult = $objCardPage->getWhereIn("card_tab_id", $cardPageRelResult->getData()->FieldsToArray("card_tab_id"));
 
         $arCardPageArchiveIds = [];
 
-        foreach($cardPageResult->Data as $currTabsIndex => $currCardPage)
+        foreach($cardPageResult->data as $currTabsIndex => $currCardPage)
         {
             $objCardPageArchiveResult = $this->CreateNewFromCardPage($currCardPage);
 
-            if ($objCardPageArchiveResult->Result->Success === false)
+            if ($objCardPageArchiveResult->result->Success === false)
             {
                 $result = $this->UndoCardPageArchive($arCardPageArchiveIds, $objCardPageArchiveResult);
-                if ($result->Result->Success === false)
+                if ($result->result->Success === false)
                 {
                     return $result;
                 }
             }
 
-            $arCardPageArchiveIds[] = $objCardPageArchiveResult->Data->First()->card_tab_archive_id;
+            $arCardPageArchiveIds[] = $objCardPageArchiveResult->getData()->first()->card_tab_archive_id;
         }
 
         return new ExcellTransaction(true, "Card {$objCard->card_id} tabs were all backed up.", $arCardPageArchiveIds);
@@ -86,15 +86,15 @@ class CardPageArchives extends AppEntity
         $objCardModule = new Cards();
         $objCardResult = $objCardModule->getById($intCardId);
 
-        if ($objCardResult->Result->Success === false)
+        if ($objCardResult->result->Success === false)
         {
-            $objTransactionResult->Result->Success = false;
-            $objTransactionResult->Result->Message = "Card {$intCardId} not found in database.";
+            $objTransactionResult->result->Success = false;
+            $objTransactionResult->result->Message = "Card {$intCardId} not found in database.";
 
             return $objTransactionResult;
         }
 
-        $objCard = $objCardResult->Data->First();
+        $objCard = $objCardResult->getData()->first();
 
         return $this->backupExistingCardPagesFromCard($objCard);
     }
@@ -106,15 +106,15 @@ class CardPageArchives extends AppEntity
         $objCardModule = new Cards();
         $objCardResult = $objCardModule->getWhere(["card_num" => $intCardNum]);
 
-        if ($objCardResult->Result->Success === false)
+        if ($objCardResult->result->Success === false)
         {
-            $objTransactionResult->Result->Success = false;
-            $objTransactionResult->Result->Message = "Card with card_num {$intCardNum} not found in database.";
+            $objTransactionResult->result->Success = false;
+            $objTransactionResult->result->Message = "Card with card_num {$intCardNum} not found in database.";
 
             return $objTransactionResult;
         }
 
-        $objCard = $objCardResult->Data->First();
+        $objCard = $objCardResult->getData()->first();
 
         return $this->backupExistingCardPagesFromCard($objCard);
     }
@@ -125,10 +125,10 @@ class CardPageArchives extends AppEntity
 
         $this->deleteWhere(["card_tab_archive_id", "IN", $arCardPageArchiveIds]);
 
-        $objTransactionResult->Result->Success = false;
-        $objTransactionResult->Result->Count = count($arCardPageArchiveIds);
-        $objTransactionResult->Result->Message = $objCardPageArchiveResult->Result->Message;
-        $objTransactionResult->Result->Query = $objCardPageArchiveResult->Result->Query;
+        $objTransactionResult->result->Success = false;
+        $objTransactionResult->result->Count = count($arCardPageArchiveIds);
+        $objTransactionResult->result->Message = $objCardPageArchiveResult->Result->Message;
+        $objTransactionResult->result->Query = $objCardPageArchiveResult->Result->Query;
 
         return $objTransactionResult;
     }

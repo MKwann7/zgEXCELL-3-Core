@@ -8,8 +8,8 @@ use Entities\Dashboard\Components\Vue\DashboardWidget\DashboardWidget;
 
 class DashboardMainApp extends VueApp
 {
-    protected $appNamePlural = "Dashboard";
-    protected $appNameSingular = "Dashboard";
+    protected string $appNamePlural = "Dashboard";
+    protected string $appNameSingular = "Dashboard";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

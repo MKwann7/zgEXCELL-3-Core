@@ -5,13 +5,13 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-const PublicData = __DIR__ . "/../public/";
-const AppCore  = __DIR__ . "/../";
-const AppStart = "Command";
+const PUBLIC_DATA = __DIR__ . "/../public/";
+const APP_CORE  = __DIR__ . "/../";
+const APP_START = "Command";
 
 // Load Core Files
 /** @var App\Core\App $app */
-$app = require(AppCore.'engine/system.load.php');
+$app = require(APP_CORE.'engine/system.load.php');
 
 // Load App Engine
 $app->load();

@@ -7,10 +7,10 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class DigitalCardMainWidget extends VueComponent
 {
-    protected $id = "4185dd32-d268-40cd-886d-47fe9f80075f";
-    protected $title = "Digital Card";
-    protected $endpointUriAbstract = "{card_num}";
-    protected $noMount = false;
+    protected string $id = "4185dd32-d268-40cd-886d-47fe9f80075f";
+    protected string $title = "Digital Card";
+    protected string $endpointUriAbstract = "{card_num}";
+    protected string $mountType = "no_mount";
 
     public function __construct (?AppModel $entity = null)
     {
@@ -141,6 +141,8 @@ class DigitalCardMainWidget extends VueComponent
             {
                 let self = this;
                 const url = "modules/widget/card-widget?id=" + self.entity.card_id + "&modules=" + this.buildModuleIds();
+                
+                return;
             
                 ajax.Get(url, null, function(result) 
                 {
@@ -160,7 +162,6 @@ class DigitalCardMainWidget extends VueComponent
                 
                 ajax.Post(url, postData, function(result) 
                 {
-                    console.log(result);
                 });
                 
             },
@@ -240,11 +241,11 @@ class DigitalCardMainWidget extends VueComponent
             },
             loadCardIntoContacts: function()
             {
-                window.open("'.$app->objCustomPlatform->getFullPublicDomain().'/api/v1/cards/download-vcard?card_id=" + this.entity.card_num, "_blank");
+                window.open("'.$app->objCustomPlatform->getFullPublicDomainName().'/api/v1/cards/download-vcard?card_id=" + this.entity.card_num, "_blank");
             },
             sendSms: function()
             {
-                window.location = "sms:?body='.$app->objCustomPlatform->getFullPublicDomain().'/" + this.entity.card_num + "%20Let\'s%20connect%20with%20" + this.entity.card_owner_name + "!";
+                window.location = "sms:?body='.$app->objCustomPlatform->getFullPublicDomainName().'/" + this.entity.card_num + "%20Let\'s%20connect%20with%20" + this.entity.card_owner_name + "!";
             },
             sendShare: function()
             {
@@ -335,8 +336,7 @@ class DigitalCardMainWidget extends VueComponent
                 if(!this.validateUsername(this.loginUsername)) return;
                 if(!this.validatePassword(this.loginPassword)) return;
                 
-                const url = "'.$app->objCustomPlatform->getFullPortalDomain().'/process/login/authenticate-login-request";
-                console.log(url);
+                const url = "'.$app->objCustomPlatform->getFullPortalDomainName().'/process/loginwidget/authenticate-loginwidget-request";
                 
                 let self = this;
                 this.loginCardUser(
@@ -366,11 +366,11 @@ class DigitalCardMainWidget extends VueComponent
                         
                         if (self.loggedInUser.id === self.entity.card_user_uuid || self.loggedInUser.id === self.entity.card_owner_uuid)
                         {
-                            urlRedirect = "'.$app->objCustomPlatform->getFullPortalDomain().'/account/cards/card-dashboard/" + self.entity.sys_row_id;
+                            urlRedirect = "'.$app->objCustomPlatform->getFullPortalDomainName().'/account/cards/card-dashboard/" + self.entity.sys_row_id;
                         }
                         else
                         {
-                            urlRedirect = "'.$app->objCustomPlatform->getFullPortalDomain().'/account/";
+                            urlRedirect = "'.$app->objCustomPlatform->getFullPortalDomainName().'/account/";
                         }
                         
                         console.log(urlRedirect); return;
@@ -390,7 +390,7 @@ class DigitalCardMainWidget extends VueComponent
                 
                 let self = this;
                 this.loginCardUser(
-                    "'.$app->objCustomPlatform->getFullPortalDomain().'/api/v1/users/validate-existing-user-credentials",
+                    "'.$app->objCustomPlatform->getFullPortalDomainName().'/api/v1/users/validate-existing-user-credentials",
                     this.loginUsername, 
                     this.loginPassword, 
                     function(result) 
@@ -484,7 +484,7 @@ class DigitalCardMainWidget extends VueComponent
             {
                 if (typeof this.entity.user_avatar === "undefined")
                 {
-                    return "'.$app->objCustomPlatform->getFullPortalDomain().'/_ez/images/users/no-user.jpg";
+                    return "'.$app->objCustomPlatform->getFullPortalDomainName().'/_ez/images/users/no-user.jpg";
                 }
                 return this.entity.user_avatar;
             },
@@ -573,25 +573,25 @@ class DigitalCardMainWidget extends VueComponent
         return '
             <div v-if="entityFound == true" class="app-section app-template-2">
                 <v-style type="text/css">
-                    .login-field-table {
+                    .loginwidget-field-table {
                         display:flex;
                         flex-direction:column;
                     }
-                    .login-field-table .login-field-row {
+                    .loginwidget-field-table .loginwidget-field-row {
                         display:flex;
                         width: 100%;
                         height: 50px;
                     }
-                    .login-field-table .login-field-row .editor-label {
+                    .loginwidget-field-table .loginwidget-field-row .editor-label {
                         width: 115px;
                     }
-                    .login-field-table .login-field-row .editor-field {
+                    .loginwidget-field-table .loginwidget-field-row .editor-field {
                         width: calc(100% - 35px);
                     }
-                    .login-field-table {
+                    .loginwidget-field-table {
                         padding: 15px 25px 0;
                     }
-                    .login-field-table .width100 {
+                    .loginwidget-field-table .width100 {
                         width: 100%;
                     }
                     .guard-smart-global-logo {
@@ -809,15 +809,15 @@ class DigitalCardMainWidget extends VueComponent
                             </div>
                         </div>
                     </div>
-                    <div class="app-login-float app-modal-float" v-bind:class="{active: membersAccessOpen === true}">
+                    <div class="app-loginwidget-float app-modal-float" v-bind:class="{active: membersAccessOpen === true}">
                         <div class="app-modal">
                             <div class="app-modal-box">
                                 <span class="app-modal-hide" v-on:click="closeMembersAccess"></span>
                                 <div class="app-modal-title">Member Access</div>
                                 <div class="app-modal-body">
                                     '.'
-                                    <div class="login-field-table">
-                                        <div class="login-field-row">
+                                    <div class="loginwidget-field-table">
+                                        <div class="loginwidget-field-row">
                                             <div class="editor-label">
                                                 <label for="Username">Username</label>
                                             </div>
@@ -827,7 +827,7 @@ class DigitalCardMainWidget extends VueComponent
                                             </div>
                                             <div class="clear"></div>
                                         </div>
-                                        <div class="login-field-row">
+                                        <div class="loginwidget-field-row">
                                             <div class="editor-label">
                                                 <label for="Password">Password</label>
                                             </div>
@@ -836,14 +836,14 @@ class DigitalCardMainWidget extends VueComponent
                                                 <span class="field-validation-valid" data-valmsg-for="Password" data-valmsg-replace="true"></span>
                                             </div>
                                         </div>
-                                        <div class="login-field-row">
+                                        <div class="loginwidget-field-row">
                                             <div class="editor-label">
                                             </div>
                                             <div class="editor-field">
                                                 <a class="small-capitalized-text reset-password-dialog pointer">Forgot Your Password?</a>
                                             </div>
                                         </div>
-                                        <div class="clear editor-label login-button-box">
+                                        <div class="clear editor-label loginwidget-button-box">
                                             <button type="button" v-on:click="attemptLogin" class="btn btn-primary pointer width100">Log In</button>
                                         </div>
                                     </div>'.'
@@ -851,15 +851,15 @@ class DigitalCardMainWidget extends VueComponent
                             </div>
                         </div>
                     </div>
-                    <div class="app-login-float app-modal-float" v-bind:class="{active: loginOpen === true}">
+                    <div class="app-loginwidget-float app-modal-float" v-bind:class="{active: loginOpen === true}">
                         <div class="app-modal">
                             <div class="app-modal-box">
                                 <span class="app-modal-hide" v-on:click="closeLogin"></span>
                                 <div class="app-modal-title">Login</div>
                                 <div class="app-modal-body">
                                     '.'
-                                    <div class="login-field-table">
-                                        <div class="login-field-row">
+                                    <div class="loginwidget-field-table">
+                                        <div class="loginwidget-field-row">
                                             <div class="editor-label">
                                                 <label for="Username">Username</label>
                                             </div>
@@ -869,7 +869,7 @@ class DigitalCardMainWidget extends VueComponent
                                             </div>
                                             <div class="clear"></div>
                                         </div>
-                                        <div class="login-field-row">
+                                        <div class="loginwidget-field-row">
                                             <div class="editor-label">
                                                 <label for="Password">Password</label>
                                             </div>
@@ -878,7 +878,7 @@ class DigitalCardMainWidget extends VueComponent
                                                 <span class="field-validation-valid" data-valmsg-for="Password" data-valmsg-replace="true"></span>
                                             </div>
                                         </div>
-                                        <div v-if="loggedInAttemptError !== \'\'" class="login-field-row">
+                                        <div v-if="loggedInAttemptError !== \'\'" class="loginwidget-field-row">
                                             <div class="editor-label">
                                                 <label for="Password"></label>
                                             </div>
@@ -886,14 +886,14 @@ class DigitalCardMainWidget extends VueComponent
                                                 <span class="field-validation-valid">{{ loggedInAttemptError }}</span>
                                             </div>
                                         </div>
-                                        <div class="login-field-row">
+                                        <div class="loginwidget-field-row">
                                             <div class="editor-label">
                                             </div>
                                             <div class="editor-field">
                                                 <a class="small-capitalized-text reset-password-dialog pointer">Forgot Your Password?</a>
                                             </div>
                                         </div>
-                                        <div class="clear editor-label login-button-box">
+                                        <div class="clear editor-label loginwidget-button-box">
                                             <button type="button" v-on:click="attemptLogin" class="btn btn-primary pointer width100">Log In</button>
                                         </div>
                                     </div>'.'

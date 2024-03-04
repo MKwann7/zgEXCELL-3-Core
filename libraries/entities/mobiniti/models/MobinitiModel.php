@@ -6,7 +6,7 @@ use App\Core\AppModel;
 
 class MobinitiModel extends AppModel
 {
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [];
     }

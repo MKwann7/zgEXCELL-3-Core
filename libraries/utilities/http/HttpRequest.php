@@ -10,6 +10,7 @@ class HttpRequest
     const ENCODING_QUERY = 0;
     const ENCODING_JSON = 1;
     const ENCODING_RAW = 2;
+    const ENCODING_FORM_DATA = 3;
 
     /**
      * Allowed methods => allows postdata
@@ -352,6 +353,7 @@ class HttpRequest
         if (
             $encoding !== static::ENCODING_QUERY &&
             $encoding !== static::ENCODING_JSON &&
+            $encoding !== static::ENCODING_FORM_DATA &&
             $encoding !== static::ENCODING_RAW
         ) {
             throw new \InvalidArgumentException("Encoding [$encoding] not a known Request::ENCODING_* constant");
@@ -359,6 +361,10 @@ class HttpRequest
 
         if ($encoding === static::ENCODING_JSON && !$this->getHeader('Content-Type')) {
             $this->setHeader('Content-Type', 'application/json');
+        }
+
+        if ($encoding === static::ENCODING_FORM_DATA && !$this->getHeader('Content-Type')) {
+            $this->setHeader('Content-Type', 'multipart/form-data');
         }
 
         $this->encoding = $encoding;
@@ -389,7 +395,8 @@ class HttpRequest
             case static::ENCODING_QUERY:
                 return (!is_null($this->data) ? http_build_query($this->data) : '');
             case static::ENCODING_RAW:
-                return $this->data;
+            case static::ENCODING_FORM_DATA:
+                return $this->getData();
             default:
                 $msg = "Encoding [$this->encoding] not a known Request::ENCODING_* constant";
                 throw new \UnexpectedValueException($msg);
@@ -517,7 +524,7 @@ class HttpRequest
      *
      * @return HttpResponse
      */
-    public function send()
+    public function send(): HttpResponse
     {
         return $this->curl->sendRequest($this);
     }

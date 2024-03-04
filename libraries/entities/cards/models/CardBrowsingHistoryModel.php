@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardBrowsingHistoryModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "CardBrowsingHistory";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "CardBrowsingHistory";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CardBrowsingHistoryModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "card_browsing_history_id" => [ "type" => "int", "length" => 15],

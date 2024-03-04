@@ -7,9 +7,9 @@ use Entities\Cards\Models\CardPageModel;
 
 class ListCardPageWidget extends VueComponentEntityList
 {
-    protected $id = "1d6d624d-9635-4028-96e9-e0a92e1dadaf";
-    protected $title = "Widget Library";
-    protected $batchLoadEndpoint = "cards/card-data/get-card-library-tab-batches";
+    protected string $id = "1d6d624d-9635-4028-96e9-e0a92e1dadaf";
+    protected string $title = "Widget Library";
+    protected string $batchLoadEndpoint = "cards/card-data/get-card-library-tab-batches";
 
     public function __construct(array $components = [])
     {
@@ -63,8 +63,7 @@ class ListCardPageWidget extends VueComponentEntityList
                     }
                 }
                 
-                modal.vc.setTitle("Loading...").showModal();
-                modal.vc.hideComponents();
+                modal.vc.setTitle("Loading...").hideComponents();
                 modal.loadModal("edit", this, this.uuidv4(), entity.__widget.app_uuid, null, "Loading...", entity, this.mainEntityList, null, true);
             },
             loadDynamicModalComponent: function(currComponent, entity, modal)

@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardUserCredentialModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "CardUserCredential";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "CardUserCredential";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CardUserCredentialModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "card_user_credential_id" => ["type" => "int","length" => 15],

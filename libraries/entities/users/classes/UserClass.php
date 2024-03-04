@@ -11,7 +11,7 @@ use Entities\Users\Models\UserClassModel;
 
 class UserClass extends AppEntity
 {
-    public $strEntityName       = "Users";
+    public string $strEntityName       = "Users";
     public $strDatabaseTable    = "user_class";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = UserClassModel::class;
@@ -23,34 +23,34 @@ class UserClass extends AppEntity
 
         if(!isInteger($intCardId))
         {
-            $objCardResult->Result->Success = false;
-            $objCardResult->Result->Count = 0;
-            $objCardResult->Result->Message = "You must supply a card id.";
+            $objCardResult->result->Success = false;
+            $objCardResult->result->Count = 0;
+            $objCardResult->result->Message = "You must supply a card id.";
             return $objCardResult;
         }
 
         $lstCardResult = (new Cards())->getById($intCardId);
 
-        if ($lstCardResult->Result->Success === false || $lstCardResult->Result->Count === 0)
+        if ($lstCardResult->result->Success === false || $lstCardResult->result->Count === 0)
         {
-            $objCardResult->Result->Success = false;
-            $objCardResult->Result->Count = 0;
-            $objCardResult->Result->Message = "No card was found with ID of {$intCardId}.";
-            $objCardResult->Result->Trace = trace();
+            $objCardResult->result->Success = false;
+            $objCardResult->result->Count = 0;
+            $objCardResult->result->Message = "No card was found with ID of {$intCardId}.";
+            $objCardResult->result->Trace = trace();
             return $objCardResult;
         }
 
         $lstCardRelTypeResult = (new Cards())->GetCardRelTypes();
         $objCardRel = (new CardRels())->getWhere(["card_id" => $intCardId]);
         $objCardOwner = (new Users())->GetCardOwnerByCardId($intCardId);
-        $arCardUserId = $objCardRel->Data->FieldsToArray(["user_id"]);
-        $arCardUserId[] = $objCardOwner->Data->First()->user_id;
+        $arCardUserId = $objCardRel->getData()->FieldsToArray(["user_id"]);
+        $arCardUserId[] = $objCardOwner->getData()->first()->user_id;
 
         $objUsers = (new Users())->getWhereIn("user_id", $arCardUserId);
 
-        $objCardRel->Data->MergeFields($objUsers->Data,["first_name","last_name","username","preferred_name"],["user_id"]);
-        $objCardRel->Data->MergeFields($lstCardRelTypeResult->Data,["name" => "role","card_rel_permissions"],["card_rel_type_id"]);
-        $objCardRel->Data->Add($objCardOwner->Data->First());
+        $objCardRel->getData()->MergeFields($objUsers->data,["first_name","last_name","username","preferred_name"],["user_id"]);
+        $objCardRel->getData()->MergeFields($lstCardRelTypeResult->data,["name" => "role","card_rel_permissions"],["card_rel_type_id"]);
+        $objCardRel->getData()->Add($objCardOwner->getData()->first());
 
         return $objCardRel;
     }

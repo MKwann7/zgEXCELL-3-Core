@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardPageAppPropertyModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "CardPageWidgetProperty";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "CardPageWidgetProperty";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CardPageAppPropertyModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "card_tab_app_property_id" => ["type" => "int","length" => 15],

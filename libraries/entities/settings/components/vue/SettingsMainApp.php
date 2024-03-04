@@ -8,8 +8,8 @@ use Entities\Settings\Components\Vue\SettingsWidget\ManageSettingsWidget;
 
 class SettingsMainApp extends VueApp
 {
-    protected $appNamePlural = "Settings";
-    protected $appNameSingular = "Setting";
+    protected string $appNamePlural = "Settings";
+    protected string $appNameSingular = "Setting";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

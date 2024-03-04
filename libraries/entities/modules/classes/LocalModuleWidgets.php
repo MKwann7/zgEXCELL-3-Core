@@ -2,8 +2,10 @@
 
 namespace Entities\Modules\Classes;
 
+use App\Core\App;
 use App\Website\Vue\Classes\Base\VueComponent;
 use App\website\Vue\Classes\VueHub;
+use ArgumentCountError;
 
 class LocalModuleWidgets
 {
@@ -16,16 +18,18 @@ class LocalModuleWidgets
 
     protected function loadStaticWidgets($debug) : void
     {
+        /** @var App $app */
         global $app;
-        if ($app->blnWidgetCache === true && is_file(AppStorage . "core/widgets.json"))
+
+        if ($app->getEnv("APP_ENV") !== "local" && $app->blnWidgetCache === true && is_file(APP_STORAGE . "core/widgets.json"))
         {
-            $this->widgets = $this->loadWidgetsByClassName(json_decode(file_get_contents(AppStorage . "core/widgets.json"),true));
+            $this->widgets = $this->loadWidgetsByClassName(json_decode(file_get_contents(APP_STORAGE . "core/widgets.json"),true));
             return;
         }
 
         $objWidgets = $this->parseVueWidgetClasses($debug);
 
-        file_put_contents(AppStorage . "core/widgets.json", json_encode($objWidgets));
+        file_put_contents(APP_STORAGE . "core/widgets.json", json_encode($objWidgets));
 
         $this->widgets = $this->loadWidgetsByClassName($objWidgets);
         $this->widgets[VueHub::getStaticId()] = new VueHub();
@@ -48,11 +52,10 @@ class LocalModuleWidgets
     {
         $arModuleWidgetPaths = glob($directory . "/*");
 
-        foreach($arModuleWidgetPaths as $currModuleWidgetPath)
+        foreach ($arModuleWidgetPaths as $currModuleWidgetPath)
         {
-            if ( is_file($currModuleWidgetPath))
+            if (is_file($currModuleWidgetPath) && !is_dir($currModuleWidgetPath))
             {
-
                 if ($debug === true)
                 {
                     echo $currModuleWidgetPath. PHP_EOL;
@@ -60,7 +63,7 @@ class LocalModuleWidgets
 
                 [$currClassIndex, $objClassInstanceName] = getClassData($currModuleWidgetPath);
 
-                if ($objClassInstanceName === false)
+                if ($objClassInstanceName === false || strtolower(substr($objClassInstanceName, -3)) === "app" || !class_exists($objClassInstanceName))
                 {
                     continue;
                 }
@@ -70,6 +73,10 @@ class LocalModuleWidgets
                 {
                     $objClassInstance = new $objClassInstanceName();
 
+                    if (!method_exists($objClassInstance, "getId")) {
+                        continue;
+                    }
+
                     if (property_exists(get_class($objClassInstance), "isNotDynamic"))
                     {
                         if ($objClassInstance->isNotDynamic === true)
@@ -78,14 +85,9 @@ class LocalModuleWidgets
                         }
                     }
 
-                    if ($debug === true)
-                    {
-                        echo $objClassInstanceName. PHP_EOL;
-                    }
-
                     $objActiveAppEntities[$objClassInstance->getId()] = $objClassInstanceName;
                 }
-                catch (ArgumentCountError $ex)
+                catch (ArgumentCountError | \Exception  $ex)
                 {
                     // Silent exit.
                     // If we cant instantiate it, we don't have to worry about hydrating it.
@@ -100,7 +102,7 @@ class LocalModuleWidgets
 
     private function parseVueWidgetClasses($debug) : array
     {
-        $objModulesDir = glob(AppEntities . "*" , GLOB_ONLYDIR);
+        $objModulesDir = glob(APP_ENTITIES . "*" , GLOB_ONLYDIR);
 
         $objActiveAppEntities = [];
 

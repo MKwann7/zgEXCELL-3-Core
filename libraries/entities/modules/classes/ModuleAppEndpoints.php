@@ -8,7 +8,7 @@ use Entities\Modules\Models\ModuleAppEndpointModel;
 
 class ModuleAppEndpoints extends AppEntity
 {
-    public $strEntityName       = "Modules";
+    public string $strEntityName       = "Modules";
     public $strDatabaseTable    = "module_app_endpoints";
     public $strDatabaseName     = "Modules";
     public $strMainModelName    = ModuleAppEndpointModel::class;

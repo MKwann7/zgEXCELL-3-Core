@@ -2,7 +2,7 @@
 
 $this->CurrentPage->BodyId            = "dashboard-page";
 $this->CurrentPage->BodyClasses       = ["admin-page", "dashboard-page", "two-columns", "left-side-column"];
-$this->CurrentPage->Meta->Title       = "My ".$this->app->objCustomPlatform->getPortalName()." Home | " . $this->app->objCustomPlatform->getPortalDomain();
+$this->CurrentPage->Meta->Title       = "My ".$this->app->objCustomPlatform->getPortalName()." Home | " . $this->app->objCustomPlatform->getPortalDomainName();
 $this->CurrentPage->Meta->Description = "Welcome to the NEW AMAZING WORLD of EZ Digital Cards, where you can create and manage your own cards!";
 $this->CurrentPage->Meta->Keywords    = "";
 $this->CurrentPage->SnipIt->Title     = "My ".$this->app->objCustomPlatform->getPortalName()." Home";
@@ -41,7 +41,7 @@ $this->CurrentPage->Columns           = 0;
                     </table>
                 </div>
                 <div class="main-body-wrapper entityTab" style="padding:5px 15px;">
-                    <?php include AppEntities . "dashboard/views/partials/dashboard.partialView" . XT; ?>
+                    <?php include APP_ENTITIES . "dashboard/views/partials/dashboard.partialView" . XT; ?>
                 </div>
             </div>
         </div>

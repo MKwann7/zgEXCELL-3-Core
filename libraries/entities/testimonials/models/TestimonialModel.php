@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class TestimonialModel extends AppModel
 {
-    protected $EntityName = "Testimonials";
-    protected $ModelName = "Testimonial";
+    protected string $EntityName = "Testimonials";
+    protected string $ModelName = "Testimonial";
 
     public function __construct($entityData = null, $force = false)
     {

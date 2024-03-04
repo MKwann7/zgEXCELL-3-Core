@@ -2,6 +2,8 @@
 
 namespace Entities\Cart\Classes\Helpers;
 
+use App\entities\packages\models\PackageVariationModel;
+use App\Utilities\Excell\ExcellCollection;
 use Entities\Packages\Models\PackageModel;
 
 class CartMinimumValue
@@ -13,11 +15,11 @@ class CartMinimumValue
         $this->packageSearch = new PackageSearch();
     }
 
-    public function process(&$packages, $packageQuantities) : void
+    public function process(ExcellCollection &$packages, $packageQuantities) : void
     {
         $this->assignMininumPackageValuesToPackagesIfApplicable($packages, $packageQuantities);
 
-        $packages->Foreach(function (PackageModel $currPackage)
+        $packages->Foreach(function (PackageVariationModel $currPackage)
         {
             if (!empty($currPackage->min_package_value) && $currPackage->min_package_value > 0)
             {
@@ -65,9 +67,9 @@ class CartMinimumValue
 
     private function assignMininumPackageValuesToPackagesIfApplicable(&$packages, $packageQuantities): void
     {
-        $packages->Foreach(function (PackageModel $currPackage) use ($packageQuantities)
+        $packages->Foreach(function (PackageVariationModel $currPackage) use ($packageQuantities)
         {
-            $currPackage->AddUnvalidatedValue("cart_quantity", $packageQuantities[$currPackage->package_id]);
+            $currPackage->AddUnvalidatedValue("cart_quantity", $packageQuantities[$currPackage->package_variation_id] ?? 0);
 
             return $this->packageSearch->loopThroughLinesFromPackageRecord($currPackage, static function($currPackageLine, $currPackage)
             {
@@ -80,7 +82,7 @@ class CartMinimumValue
         });
     }
 
-    protected function processMinPackageValueAdjustment(PackageModel $currPackage, $totalValueWithoutMinValue, $adjustmentField) : void
+    protected function processMinPackageValueAdjustment(PackageVariationModel $currPackage, $totalValueWithoutMinValue, $adjustmentField) : void
     {
         $newPackageLinePrice = $currPackage->min_package_value - $totalValueWithoutMinValue;
 

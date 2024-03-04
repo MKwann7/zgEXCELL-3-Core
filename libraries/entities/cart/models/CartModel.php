@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CartModel extends AppModel
 {
-    protected $EntityName = "Cart";
-    protected $ModelName = "Cart";
+    protected string $EntityName = "Cart";
+    protected string $ModelName = "Cart";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CartModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "cart_id" => ["type" => "int", "length" => 15],

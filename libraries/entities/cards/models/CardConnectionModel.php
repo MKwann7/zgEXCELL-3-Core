@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardConnectionModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "CardConnection";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "CardConnection";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CardConnectionModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "connection_rel_id" => ["type" => "int","length" => 15],

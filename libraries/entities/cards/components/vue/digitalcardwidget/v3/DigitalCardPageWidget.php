@@ -2,90 +2,53 @@
 
 namespace Entities\Cards\Components\Vue\DigitalCardWidget\V3;
 
-use App\Website\Vue\Classes\Base\VueComponent;
+use Entities\Cards\Components\Vue\DigitalCardWidget\Assets\DigitalPageComponent;
+use Entities\Cards\Components\Vue\DigitalCardWidget\Assets\SharedVuePageMethods;
 
-class DigitalCardPageWidget extends VueComponent
+class DigitalCardPageWidget extends DigitalPageComponent
 {
-    protected $id = "3433a7db-7fab-449c-82b2-8144390b35f1";
-    protected $title = "Digital Card Page";
+    protected string $id = "3433a7db-7fab-449c-82b2-8144390b35f1";
 
     protected function renderComponentDataAssignments() : string
     {
-        return "
-            entityFound: false,
-            page: null,
-            pageContent: '',
-            pageScripts: [],
+        return SharedVuePageMethods::methods($this) . "
         ";
     }
 
     protected function renderComponentHydrationScript() : string
     {
-        return '
-            this.page = props.cardPage;
-            this.insertAndExecute();
+        return SharedVuePageMethods::hydration($this) . '
         ';
     }
 
     protected function renderComponentMethods() : string
     {
-        return '
-            renderPageContent: function(content)
-            {
-                try {
-                    return atob(content);
-                }
-                catch(ex)
-                {
-                    console.log("base64 conversion error");
-                    return "Error converting string.";
-                }
-            },
-            insertAndExecute: function() 
-            {
-                if (typeof this.page === "undefined" || this.page.content === null) return;
-                this.pageContent = this.renderPageContent(this.page.content);
-                
-                if (this.pageScripts[this.page.card_tab_rel_id] === true)
-                {
-                    return;
-                }
-                
-                this.executeScripts();
-                this.pageScripts[this.page.card_tab_rel_id] = true;
-            },
-            executeScripts: function()
-            {
-                let errorNode = createNode("div", [".page-content-scripts"], this.pageContent);
-                let scripts = Array.prototype.slice.call(errorNode.getElementsByTagName("script"));
-                
-                for (var i = 0; i < scripts.length; i++) 
-                {
-                    if (scripts[i].src != "") 
-                    {
-                        var tag = document.createElement("script");
-                        tag.src = scripts[i].src;
-                        document.getElementsByTagName("head")[0].appendChild(tag);
-                    }
-                    else 
-                    {
-                        eval(scripts[i].innerHTML);
-                    }
-                }
-            },
+        return SharedVuePageMethods::methods($this) . '
+        ';
+    }
+
+    protected function renderComponentComputedValues(): string
+    {
+        return SharedVuePageMethods::computed($this) . '
         ';
     }
 
     protected function renderTemplate(): string
     {
         return '
-            <div v-if="page != null" class="app-page">
-                <div class="app-page-title" v-on:click="backToComponent()">
-                    <a v-show="hasParent" class="back-to-entity-list pointer"></a>
-                    <span>{{ page.title }}</span>
-                </div>
-                <div class="app-page-content">
-                    <div class="app-page-content-inner" v-html="pageContent"></div>
+            <div>
+                <div class="app-page">
+                    <div v-show="page != null && noTitle === false && customPage === false" class="app-page-title app-page-editor-text-transparent" v-on:click="backToComponent()">
+                        <a v-show="hasParent" class="back-to-entity-list pointer"></a>
+                        <span v-if="editor === false">{{ page.title }}</span>
+                        <span v-if="editor === true"><span class="fas fa-edit"></span><input v-model="page.title" class="app-page-title app-page-editor-text-transparent" v-on:blur="updatePageTitle" /></span>
+                    </div>
+                    <div v-show="customPage === false" class="app-page-content">
+                        <div class="app-page-content-inner" v-html="renderCardContent"></div>
+                    </div>
+                    <div v-show="customPage === true" class="app-page-content">
+                        <component ref="dynPageWidgetComponentRef"  :is="dynPageWidgetComponent"></component>
+                    </div>
                 </div>
             </div>
                 ';

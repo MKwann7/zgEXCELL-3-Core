@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class PageModel extends AppModel
 {
-    protected $EntityName = "Pages";
-    protected $ModelName = "Page";
+    protected string $EntityName = "Pages";
+    protected string $ModelName = "Page";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class PageModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "page_id" => ["type" => "int","length" => 15],

@@ -1,10 +1,16 @@
+<?php
+global $app;
+$siteType = $app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "application_type")->value ==="default" ? "Card" : "Site";
+
+?>
+
 <!DOCTYPE html>
 <html lang="en-US">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Card <?php echo $card->card_num; ?> Is Coming Soon | <?php echo $this->app->objCustomPlatform->getCompany()->platform_name; ?></title>
+    <title><?php echo $card->card_name; ?> Is Coming Soon | <?php echo $this->app->objCustomPlatform->getCompany()->platform_name; ?></title>
     <meta name="description" content="Demo of A Free Coming Soon Bootstrap 4 Template by TemplateFlip.com."/>
     <link href="https://fonts.googleapis.com/css?family=Quicksand:300,400,500,700" rel="stylesheet">
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet">
@@ -215,7 +221,7 @@
         <div class="cover-container">
             <div class="masthead clearfix">
                 <div class="inner">
-                    <h3 class="masthead-brand">Card <?php echo $card->card_num; ?> Is Coming Soon</h3>
+                    <h3 class="masthead-brand"><?php echo $card->card_name; ?> Is Coming Soon</h3>
                     <nav class="nav nav-masthead" style="display:none;">
                         <a class="nav-link nav-social" href="#"><i class="fa fa-facebook" aria-hidden="true"></i></a>
                         <a class="nav-link nav-social" href="#"><i class="fa fa-twitter" aria-hidden="true"></i></a>
@@ -225,7 +231,7 @@
                 </div>
             </div><br>      <div class="inner cover">
                 <h1 class="cover-heading">The adventure Begins</h1>
-                <p class="lead cover-copy">Hold tight as we get our working robots together to produce the most astonishing card ever.</p>
+                <p class="lead cover-copy">Hold tight as we get our working robots together to produce the most astonishing <?php echo strtolower($siteType); ?> ever.</p>
                 <p class="lead" style="display:none;"><button type="button" class="btn btn-lg btn-default btn-notify" data-toggle="modal" data-target="#subscribeModal">Notify Me</button></p>
             </div>
             <div class="mastfoot">

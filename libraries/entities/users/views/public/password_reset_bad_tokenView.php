@@ -4,7 +4,7 @@ use App\Core\App;
 
 $this->CurrentPage->BodyId            = "password-reset-page";
 $this->CurrentPage->BodyClasses       = ["page", "password-reset-page", "no-columns"];
-$this->CurrentPage->Meta->Title       = "Reset Your Account Password | " . $this->app->objCustomPlatform->getPortalDomain();
+$this->CurrentPage->Meta->Title       = "Reset Your Account Password | " . $this->app->objCustomPlatform->getPortalDomainName();
 $this->CurrentPage->Meta->Description = "Lose your password? No worries. We have you coverted.";
 $this->CurrentPage->Meta->Keywords    = "Password Reset, Account Credentials Update";
 $this->CurrentPage->SnipIt->Title     = "Password Reset";

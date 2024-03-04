@@ -6,7 +6,7 @@ use App\Core\AppEntity;
 
 class Communications extends AppEntity
 {
-    public $strEntityName       = "Communication";
+    public string $strEntityName       = "Communication";
     public $isPrimaryModule     = true;
 
     public function __construct()

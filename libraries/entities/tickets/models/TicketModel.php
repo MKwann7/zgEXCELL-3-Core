@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class TicketModel extends AppModel
 {
-    protected $EntityName = "Tickets";
-    protected $ModelName = "Ticket";
+    protected string $EntityName = "Tickets";
+    protected string $ModelName = "Ticket";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class TicketModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "ticket_id" => ["type" => "int","length" => 15],

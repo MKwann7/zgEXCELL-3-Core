@@ -6,11 +6,11 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class VueHub extends VueComponent
 {
-    protected $id = "f0dd1eab-d55f-47c0-aeae-eb17937d8f82";
-    protected $vueType = "hub";
+    protected string $id = "f0dd1eab-d55f-47c0-aeae-eb17937d8f82";
+    protected string $vueType = "hub";
     protected $user;
-    protected $title = "My Hub";
-    protected $noMount = true;
+    protected string $title = "My Hub";
+    protected string $mountType = "no_mount";
 
     public function __construct($props = null)
     {
@@ -29,8 +29,6 @@ class VueHub extends VueComponent
             vc: null,
             hasParent: false,
             activeComponentId: \'' . $this->getDefaultComponentInstanceId() . '\',
-            userId: \'' . $this->user->sys_row_id . '\',
-            userNum: \'' . $this->user->user_id . '\',
         ';
     }
 
@@ -57,11 +55,11 @@ class VueHub extends VueComponent
     {
         return '
         <div class="formwrapper-outer">
-            <section id="vue-hub-body-' . $this->getInstanceName() . '" class="vue-app-body formwrapper-control">
+            <div id="vue-hub-body-' . $this->getInstanceName() . '" class="vue-app-body formwrapper-control">
                 <div class="vue-modal-wrapper formwrapper-control">
                     ' . $this->buildComponentList() . '
                 </div>
-            </section>
+            </div>
         </div>
         ';
     }
@@ -76,26 +74,28 @@ class VueHub extends VueComponent
     {
         $mountingScript = "let unMountedComponent = null;";
 
-        foreach ($this->components as $currInstanceId => $currComponent)
-        {
-            /** @var VueComponent $currComponent */
-            $mountingScript .= "
-                unMountedComponent = rootVc.getComponentByInstanceId('".$currComponent->getInstanceId()."');
+        if (!empty($this->components)) {
+            foreach ($this->components as $currInstanceId => $currComponent)
+            {
+                /** @var VueComponent $currComponent */
+                $mountingScript .= "
+                    unMountedComponent = rootVc.getComponentByInstanceId('".$currComponent->getInstanceId()."');
+                    
+                    if (typeof unMountedComponent.instance === 'undefined') 
+                    {
+                        let ComponentClass = Vue.extend(unMountedComponent.rawInstance);
+                        
+                        newComponent = new ComponentClass({
+                            parent: this
+                        }).\$mount(document.getElementById('sub_' +unMountedComponent.instanceId));
+                        
+                        unMountedComponent.instance = newComponent;
+                        
+                        ".(($this->getDefaultComponent()->getInstanceId() !== $currComponent->getInstanceId()) ? "this.vc.hydrate('{$currComponent->getInstanceId()}', '{$currComponent->getParentId()}', '{$currComponent->getDefaultAction()}', this.entity, this.mainEntityList, ' . {$this->renderCustomPropsJavascriptObject()} . ', false)" : "" )."
+                    }
                 
-                if (typeof unMountedComponent.instance === 'undefined') 
-                {
-                    let ComponentClass = Vue.extend(unMountedComponent.rawInstance);
-                    
-                    newComponent = new ComponentClass({
-                        parent: this
-                    }).\$mount(document.getElementById('sub_' +unMountedComponent.instanceId));
-                    
-                    unMountedComponent.instance = newComponent;
-                    
-                    ".(($this->getDefaultComponent()->getInstanceId() !== $currComponent->getInstanceId()) ? "this.vc.hydrate('{$currComponent->getInstanceId()}', '{$currComponent->getParentId()}', '{$currComponent->getDefaultAction()}', this.entity, this.mainEntityList, ' . $this->renderCustomPropsJavascriptObject() . ', false)" : "" )."
-                }
-            
-            " . PHP_EOL;
+                " . PHP_EOL;
+            }
         }
 
         return $mountingScript;

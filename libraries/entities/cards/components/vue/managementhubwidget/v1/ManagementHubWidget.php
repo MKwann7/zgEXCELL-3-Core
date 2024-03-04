@@ -5,16 +5,15 @@ namespace Entities\Cards\Components\Vue\ManagementHubWidget\V1;
 use App\Core\AppModel;
 use App\Website\Vue\Classes\Base\VueComponent;
 use App\website\Vue\Classes\VueHub;
+use App\Website\Vue\Classes\VueModal;
 use App\Website\Vue\Classes\VueProps;
 use Entities\Cards\Classes\Cards;
 use Entities\Cards\Components\Vue\DigitalCardWidget\V1\DigitalCardMainWidget as V1Card;
-use Entities\Cards\Components\Vue\DigitalCardWidget\V2\DigitalCardMainWidget as V2Card;
-use Entities\Cards\Components\Vue\DigitalCardWidget\V3\DigitalCardMainWidget as V3Card;
 
 class ManagementHubWidget extends VueComponent
 {
-    protected $id = "122160fe-9981-4d3d-8218-fabdd279713a";
-    protected $title = "Management Hub V1";
+    protected string $id = "122160fe-9981-4d3d-8218-fabdd279713a";
+    protected string $title = "Management Hub V1";
     protected $activeCardId = "";
     protected $cardTemplateId = "";
     protected $cardList = null;
@@ -34,6 +33,11 @@ class ManagementHubWidget extends VueComponent
         $filterEntity = new VueProps("filterEntityId", "object", "filterEntityId");
         $this->addProp($filterEntity);
 
+        $modal = (new VueModal("Loading...", 1200));
+        $modal->setMountType("dynamic");
+
+        $this->addModal($modal);
+
         if (!empty($props->cardId))
         {
             $this->processActiveCard($props->cardId);
@@ -47,17 +51,16 @@ class ManagementHubWidget extends VueComponent
     {
         $activeCardRequest = (new Cards())->getByUuid($cardId);
 
-        if ($activeCardRequest->Result->Count === 1)
+        if ($activeCardRequest->result->Count === 1)
         {
-            $this->activeCardId = $activeCardRequest->Data->First()->card_id;
-            $this->activeCardUuid = $activeCardRequest->Data->First()->sys_row_id;
-            $this->cardTemplateId = $activeCardRequest->Data->First()->template_id;
+            $this->activeCardId = $activeCardRequest->getData()->first()->card_id;
+            $this->activeCardUuid = $activeCardRequest->getData()->first()->sys_row_id;
+            $this->cardTemplateId = $activeCardRequest->getData()->first()->template_id;
 
-            $this->cardHub = new VueHub();
-
-            $this->cardList = new ManagementHubCardList();
-            $this->cardList->setNoMount(true);
-            $this->cardList->setComponentsToNoMount(true);
+            $this->cardHub  = new VueHub();
+            $this->cardList = new ManagementHubCardListWidget();
+            $this->cardList->setMountType("no_mount");
+            $this->cardList->setComponentsMountType("no_mount");
             $this->cardList->setNoHydrate(true);
             $this->cardList->setComponentsToNoHydrate(true);
             $this->cardList->setParentId($this->cardHub->getInstanceId());
@@ -67,8 +70,8 @@ class ManagementHubWidget extends VueComponent
 
             if ($this->activeLandingWidget !== null)
             {
-                $this->activeLandingWidget->setNoMount(true);
-                $this->activeLandingWidget->setComponentsToNoMount(true);
+                $this->activeLandingWidget->setMountType("no_mount");
+                $this->activeLandingWidget->setComponentsMountType("no_mount");
                 $this->activeLandingWidget->setNoHydrate(true);
                 $this->activeLandingWidget->setComponentsToNoHydrate(true);
                 $this->activeLandingWidget->setParentId($this->cardList->getInstanceId());
@@ -85,11 +88,11 @@ class ManagementHubWidget extends VueComponent
     {
         $this->cardHub = new VueHub();
 
-        $this->cardList = new ManagementHubCardList();
+        $this->cardList = new ManagementHubCardListWidget();
         $this->activeLandingWidget = $this->cardList;
 
-        $this->activeLandingWidget->setNoMount(true);
-        $this->activeLandingWidget->setComponentsToNoMount(true);
+        $this->activeLandingWidget->setMountType("no_mount");
+        $this->activeLandingWidget->setComponentsMountType("no_mount");
         $this->activeLandingWidget->setNoHydrate(true);
         $this->activeLandingWidget->setComponentsToNoHydrate(true);
         $this->activeLandingWidget->setParentId($this->cardHub->getInstanceId());
@@ -102,15 +105,23 @@ class ManagementHubWidget extends VueComponent
 
     protected function getActiveTemplateRequest() : ?VueComponent
     {
-        switch($this->cardTemplateId)
-        {
-            case 1:
-                return new V1Card();
-            case 2:
-                return new V2Card();
-            case 3:
-                return new V3Card();
+        $newCartTemplate = "\Entities\Cards\Components\Vue\DigitalCardWidget\V{$this->cardTemplateId}\DigitalCardMainWidget";
+        if (class_exists($newCartTemplate)) {
+            return new $newCartTemplate();
         }
+
+        return new V1Card();
+    }
+
+    public function addModal(VueModal $modal) : self
+    {
+        $this->modal = $modal;
+        return $this;
+    }
+
+    public function getModal() : VueModal
+    {
+        return $this->modal;
     }
 
     protected function renderComponentDataAssignments() : string
@@ -143,7 +154,6 @@ class ManagementHubWidget extends VueComponent
         return '
             jumpToCard: function(card)
             {
-                ezLog(card,"card")
                 const vc = this.findChildVc(this);
                 const componentId = this.cardComponentIds[card.template_id];
                 const cardComponent = vc.getComponentById(componentId);
@@ -172,20 +182,32 @@ class ManagementHubWidget extends VueComponent
             },
             authenticate: function()
             {
-                this.authentication = new ExcellAuthentication(this);                
-                this.authentication.validate();
+                const self = this;
+                if (typeof ExcellAuthentication !== "function") {
+                    setTimeout(function() {
+                        self.authenticate()
+                    },10);
+                    return
+                }
+                
+                if (!this.authentication) {
+                    self.authentication = new ExcellAuthentication(this);
+                    self.authentication.validate();
+                }
             },
-            registerAuth: function(auth)
+            registerAuth: function(data)
             {
                 const self = this;
                 modal.EngageFloatShield();
                 
-                self.authentication.registerAuth(auth);
+                self.authentication.registerAuth(data.user);
                 
                 setTimeout(function() {
                     self.authentication.validate();
                     const vueC = self.findChildVc(self)
-                    vueC.getCurrentComponent().instance.loadHubData()
+                    if (typeof vueC.getCurrentComponent().instance.loadHubData === "function") {
+                        vueC.getCurrentComponent().instance.loadHubData()
+                    }
                     modal.CloseFloatShield()
                 }, 2000);
             },
@@ -212,9 +234,9 @@ class ManagementHubWidget extends VueComponent
                     }
                 });
             },
-            processSignOut: function()
+            processSignOut: function(noRedirect)
             { 
-                this.authentication.clearAuth();
+                this.authentication.clearAuth(noRedirect);
             },
             connectToWebSocket: function()
             {
@@ -270,7 +292,9 @@ class ManagementHubWidget extends VueComponent
                 if (vueC.getCurrentComponentId() === "'.$this->cardList->getInstanceId().'")
                 {
                     this.hubAtRoot = true
-                    vueC.getCurrentComponent().instance.loadHubData()
+                    if (typeof vueC.getCurrentComponent().instance.loadHubData === "function") {
+                        vueC.getCurrentComponent().instance.loadHubData()
+                    }
                 }
                 else
                 {
@@ -310,6 +334,12 @@ class ManagementHubWidget extends VueComponent
             toggleChat: function() 
             {
                 this.showChat = !this.showChat;
+            },
+            toggleCart: function() {
+                appCart.openCart("custom")
+                    .setCartPrivacy(true)
+                    .setCustomerByUuid(Cookie.get("user"))
+                    .registerEntityListAndManager()
             },
             closeChat: function() 
             {
@@ -383,7 +413,7 @@ class ManagementHubWidget extends VueComponent
                 this.cardSearchDelayFunc = false;
                 this.cardSearchDelay = 0;
                 
-                const url = "'.$app->objCustomPlatform->getFullPortalDomain().'/api/v1/cards/search-cards";
+                const url = "'.$app->objCustomPlatform->getFullPortalDomainName().'/api/v1/cards/search-cards";
                 const searchData = {
                     text: self.cardSearch
                 };
@@ -415,9 +445,17 @@ class ManagementHubWidget extends VueComponent
 
     protected function renderComponentMountedScript() : string
     {
-        return parent::renderComponentMountedScript() . "
+        return parent::renderComponentMountedScript() . '
+            const vc = this.findVc(this)
+            const instanceId = \''.$this->getModal()->getInstanceId().'\'
+            vc.mountComponentByInstanceId(instanceId, instanceId)
+            
+            this.modal = vc.getComponentByInstanceId(\''.$this->getModal()->getInstanceId().'\').instance
+            this.modal.vc.setType("modal")
+        
+            this.hydrateCart()
             this.authenticate()
-        ";
+        ';
     }
 
     protected function renderComponentHydrationScript() : string
@@ -427,9 +465,12 @@ class ManagementHubWidget extends VueComponent
             {
                 this.hubAtRoot = false;
             }
-            
+
             this.connectToWebSocket()
             this.loadTalk2MeWidget()
+            
+            dispatch.register("register_auth", this, "registerAuth")
+            this.authenticate()
         ';
     }
 
@@ -462,9 +503,6 @@ class ManagementHubWidget extends VueComponent
                     }
                     .login-field-table .width100 {
                         width: 100%;
-                    }
-                    .management-hub .app-hub-comp-wrapper .vue-app-body-component {
-                        height: 797px;
                     }
                     .app-hub-comp-wrapper .app-main-comp-nav ul.app-hub-comp-footer-menu li {
                         min-height: 45px;
@@ -751,7 +789,7 @@ class ManagementHubWidget extends VueComponent
                     }
                     
                     @media (max-width: 600px) {
-                        .management-hub .app-hub-comp-wrapper .vue-app-body-component {
+                        .management-hub .app-template-2 .app-hub-comp-wrapper .vue-app-body-component {
                             height: var(--vhw1);
                         }
                         
@@ -768,7 +806,7 @@ class ManagementHubWidget extends VueComponent
                     }
                 </v-style>
                 <div class="app-component app-main-component">
-                    <header v-if="isLoggedIn == \'active\'" class="app-hub-header portal-header divTable">
+                    <header v-if="isLoggedIn == \'logged-active\'" class="app-hub-header portal-header divTable">
                         <div class="divRow">
                             <div v-on:click="backToCardList()" class="divCell myHubTitle">
                                 My Hub
@@ -798,15 +836,16 @@ class ManagementHubWidget extends VueComponent
                                     new VueProps("activeCardId", "object", "activeCardId")
                                 ])
                         ) . '
-                        <div v-show="hubAtRoot === false" class="app-hub-card-favorite-toggle" v-on:click="toggleFavoriteActiveCard"><span class="fas fa-heart"></span></div>
+                        <div class="app-hub-card-favorite-toggle" v-on:click="toggleFavoriteActiveCard" style="display: none;"><span class="fas fa-heart"></span></div>
                     </div>
-                    <footer v-if="isLoggedIn == \'active\'"  class="app-hub-comp-footer">
+                    <footer v-if="isLoggedIn == \'logged-active\'"  class="app-hub-comp-footer">
                         <ul class="app-hub-comp-footer-menu">
                             <li v-on:click="backToCardList()"><span><span class="fas" v-bind:class="{\'fa-arrow-left\': hubAtRoot === false, \'fa-bars\': hubAtRoot === true}"></span></span></li>
                             <li v-on:click="toggleFriends()"><span><span class="fas fa-users"></span></span></li>
                             <li v-on:click="toggleModules()"><span><span class="fas fa-th-large"></span></span></li>
                             <li v-on:click="toggleChat()"><span><span class="fas fa-comments"></span></span></li>
-                            <li v-on:click="toggleFavorites()"><span><span class="fas fa-heart"></span></span></li>
+                            <li v-on:click="toggleCart()"><span><span class="fas fa-shopping-cart"></span></span></li>
+                            <li v-on:click="toggleShareSave"><span><span class="fas fa-qrcode"></span></span></li>
                         </ul>
                     </footer>
                     <div class="app-hub-float hub-float-base app-login-float app-modal-float" v-if="showModules === true" v-bind:class="{active: showModules === true}">
@@ -820,7 +859,7 @@ class ManagementHubWidget extends VueComponent
                             </div>
                         </div>
                     </div>
-                    <div class="app-hub-float hub-float-base app-login-float app-modal-float" v-if="showChat === true" v-bind:class="{active: showChat === true}">
+                    <div class="app-hub-float hub-float-base app-loginwidget-float app-modal-float" v-if="showChat === true" v-bind:class="{active: showChat === true}">
                         <div class="app-modal">
                             <div class="app-modal-box">
                                 <span class="app-modal-hide" v-on:click="closeChat()"></span>
@@ -831,7 +870,7 @@ class ManagementHubWidget extends VueComponent
                             </div>
                         </div>
                     </div>
-                    <div class="app-hub-float app-login-float app-modal-float" v-if="showSearch === true" v-bind:class="{active: showSearch === true}">
+                    <div class="app-hub-float app-loginwidget-float app-modal-float" v-if="showSearch === true" v-bind:class="{active: showSearch === true}">
                         <div class="app-modal">
                             <div class="app-modal-box">
                                 <span class="app-modal-hide" v-on:click="closeSearch()"></span>
@@ -845,7 +884,7 @@ class ManagementHubWidget extends VueComponent
                                                 <div class="cardBanner" v-bind:style="{background: \'url(\' + cardSearchItem.banner +\') no-repeat center center / cover\'}"></div>
                                                 <div class="cardNumber">
                                                     {{ cardSearchItem.card_name }}
-                                                    <div class="cardUrl">'.$app->objCustomPlatform->getPublicDomain().'/{{ renderCardUrl(cardSearchItem) }}</div>
+                                                    <div class="cardUrl">'.$app->objCustomPlatform->getPublicDomainName().'/{{ renderCardUrl(cardSearchItem) }}</div>
                                                 </div>
                                             </li>
                                         </ul>
@@ -854,7 +893,7 @@ class ManagementHubWidget extends VueComponent
                             </div>
                         </div>
                     </div>
-                    <div class="app-hub-float app-login-float app-modal-float" v-if="showNotify === true" v-bind:class="{active: showNotify === true}">
+                    <div class="app-hub-float app-loginwidget-float app-modal-float" v-if="showNotify === true" v-bind:class="{active: showNotify === true}">
                         <div class="app-modal">
                             <div class="app-modal-box">
                                 <span class="app-modal-hide" v-on:click="closeNotify()"></span>
@@ -872,7 +911,7 @@ class ManagementHubWidget extends VueComponent
 
     private function getCardComponentIds() : array
     {
-        $digitalCardDirectories = glob(AppEntities . "/cards/components/vue/digitalcardwidget/*" , GLOB_ONLYDIR);
+        $digitalCardDirectories = glob(APP_ENTITIES . "/cards/components/vue/digitalcardwidget/*" , GLOB_ONLYDIR);
 
         $objActiveAppEntities = [];
 

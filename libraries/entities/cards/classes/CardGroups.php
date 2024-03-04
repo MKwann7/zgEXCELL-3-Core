@@ -8,7 +8,7 @@ use Entities\Cards\Models\CardGroupModel;
 
 class CardGroups extends AppEntity
 {
-    public $strEntityName       = "Cards";
+    public string $strEntityName       = "Cards";
     public $strDatabaseTable    = "card_rel_group";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = CardGroupModel::class;

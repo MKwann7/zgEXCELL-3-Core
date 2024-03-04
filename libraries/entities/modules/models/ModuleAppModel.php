@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class ModuleAppModel extends AppModel
 {
-    protected $EntityName = "Modules";
-    protected $ModelName = "ModuleApp";
+    protected string $EntityName = "Modules";
+    protected string $ModelName = "ModuleApp";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class ModuleAppModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "module_app_id" =>["type" => "int", "length" => "15"],
@@ -35,7 +35,7 @@ class ModuleAppModel extends AppModel
         ];
     }
 
-    public function ToPublicArray($arProperties = null, $collectionKeys = false)
+    public function ToPublicArray($arProperties = null, $collectionKeys = false): array
     {
         $this->AddUnvalidatedValue("id", $this->app_uuid, true);
         $this->RemoveField("module_app_id");

@@ -8,8 +8,8 @@ use Entities\Modules\Components\Vue\AppsWidget\ListModuleAppsAdminWidget;
 
 class ModulesAdminApp extends VueApp
 {
-    protected $appNamePlural = "Modules";
-    protected $appNameSingular = "Module";
+    protected string $appNamePlural = "Modules";
+    protected string $appNameSingular = "Module";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

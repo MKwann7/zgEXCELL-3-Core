@@ -7,7 +7,7 @@ use Entities\Modules\Models\AppInstanceModel;
 
 class AppInstances extends AppEntity
 {
-    public $strEntityName       = "Modules";
+    public string $strEntityName       = "Modules";
     public $strDatabaseTable    = "app_instance";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = AppInstanceModel::class;

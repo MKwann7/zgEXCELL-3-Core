@@ -17,9 +17,9 @@ use Entities\Users\Components\Vue\UserWidget\ListUserWidget;
 
 class ManagePlatformWidget extends VueComponent
 {
-    protected $id = "afc846ff-123f-4860-8d95-2cf650a694bf";
-    protected $title = "Custom Platform Dashboard";
-    protected $endpointUriAbstract = "platform-dashboard/{id}";
+    protected string $id = "afc846ff-123f-4860-8d95-2cf650a694bf";
+    protected string $title = "Custom Platform Dashboard";
+    protected string $endpointUriAbstract = "platform-dashboard/{id}";
 
     public function __construct($defaultEntity = null, array $components = [])
     {
@@ -45,7 +45,7 @@ class ManagePlatformWidget extends VueComponent
     protected function renderComponentDataAssignments() : string
     {
         return "
-        dashboardTab: 'profile',
+        dashboardTab: 'profilewidget',
         ";
     }
 
@@ -75,7 +75,6 @@ class ManagePlatformWidget extends VueComponent
                     ajax.Post(strAuthUrl, null, function(objResult) {
                         if(objResult.success == false)
                         {
-                            //alert(objResult.message);
                             console.log(objResult.message);
                             return;
                         }
@@ -127,7 +126,7 @@ class ManagePlatformWidget extends VueComponent
             this.dashboardTab = sessionStorage.getItem(\'custom-platform-dashboard-tab\');
             
             if (this.dashboardTab === null || (
-                this.dashboardTab !== "profile" &&
+                this.dashboardTab !== "profilewidget" &&
                 this.dashboardTab !== "cards" &&
                 this.dashboardTab !== "customers" &&
                 this.dashboardTab !== "packages" &&
@@ -135,7 +134,7 @@ class ManagePlatformWidget extends VueComponent
                 this.dashboardTab !== "billing"
                 )
             ) {
-                this.dashboardTab = "profile"; sessionStorage.setItem(\'custom-platform-dashboard-tab\', "profile"); 
+                this.dashboardTab = "profilewidget"; sessionStorage.setItem(\'custom-platform-dashboard-tab\', "profilewidget"); 
             }
             
             this.component_title = this.component_title_original;
@@ -172,7 +171,7 @@ class ManagePlatformWidget extends VueComponent
                                 </h3>
                             </td>
                             <td class="mobile-to-table text-right page-count-display dashboard-tab-display" style="vertical-align: middle;">
-                                <div data-block="profile" v-on:click="setDashbaordTab(\'profile\')" class="dashboard-tab fas fa-user-circle" v-bind:class="{active: dashboardTab === \'profile\'}"><span>Profile</span></div>
+                                <div data-block="profilewidget" v-on:click="setDashbaordTab(\'profilewidget\')" class="dashboard-tab fas fa-user-circle" v-bind:class="{active: dashboardTab === \'profilewidget\'}"><span>Profile</span></div>
                                 <div data-block="users" v-on:click="setDashbaordTab(\'users\')" class="dashboard-tab fas fa-users" v-bind:class="{active: dashboardTab === \'users\'}"><span>Users</span></div>
                                 <div data-block="cards" v-on:click="setDashbaordTab(\'cards\')" class="dashboard-tab fas fa-users" v-bind:class="{active: dashboardTab === \'cards\'}"><span>Cards</span></div>
                                 <div data-block="customers" v-on:click="setDashbaordTab(\'customers\')" class="dashboard-tab fas fa-users" v-bind:class="{active: dashboardTab === \'customers\'}"><span>Customers</span></div>
@@ -184,7 +183,7 @@ class ManagePlatformWidget extends VueComponent
                         </tr>
                         </tbody>
                     </table>
-                    <div class="entityTab" data-tab="profile" v-bind:class="{showTab: dashboardTab === \'profile\'}">
+                    <div class="entityTab" data-tab="profilewidget" v-bind:class="{showTab: dashboardTab === \'profilewidget\'}">
                         <div class="width100 entityDetails">
                             <div class="width50">
                                 <div class="card-tile-50">

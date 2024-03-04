@@ -274,7 +274,7 @@ $this->CurrentPage->Columns           = 0;
 
             pageIndex: 1,
 
-            people: <?php echo $objActiveBrandPartners->Data->ConvertToJavaScriptArray(["user_id","@division_id","@company_id","username","created_on","status","first_name","last_name","display_name"]) . PHP_EOL; ?>
+            people: <?php echo $objActiveBrandPartners->getData()->ConvertToJavaScriptArray(["user_id","@division_id","@company_id","username","created_on","status","first_name","last_name","display_name"]) . PHP_EOL; ?>
         }
     });
 

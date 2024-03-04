@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class ReportModel extends AppModel
 {
-    protected $EntityName = "Reports";
-    protected $ModelName = "Report";
+    protected string $EntityName = "Reports";
+    protected string $ModelName = "Report";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class ReportModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [];
     }

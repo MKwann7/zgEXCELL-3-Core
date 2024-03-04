@@ -17,7 +17,6 @@ function EzCardCartLibrary()
     this.Load = function ()
     {
         _.LoadProducts(_, function(app) {
-            console.log("test");
             app.RenderEcommerceCart();
         });
     }

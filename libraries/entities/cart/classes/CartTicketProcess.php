@@ -10,25 +10,27 @@ use Entities\Tickets\Classes\Tickets;
 
 class CartTicketProcess
 {
-    /** @var ProductProcessor $processor */
-    private $processor;
-    private $app;
+    private ProductProcessor $processor;
+    private App $app;
 
-    public function __construct (ProductProcessor $processor, App $app)
+    public function __construct()
     {
-        $this->processor = $processor;
-        $this->app       = $app;
+        global $app;
+        $this->app = $app;
+    }
+
+    public function loadProductProcessor(ProductProcessor $productProcessor) : void
+    {
+        $this->processor = $productProcessor;
     }
 
     public function registerTickets() : void
     {
         /** @var CartProductCapsule $currCartItem */
-        foreach ($this->processor->cartItems as $currCartItem)
-        {
+        foreach ($this->processor->cartItems as $currCartItem) {
             $packageLine = $currCartItem->getPackageLine();
 
-            if(!empty($packageLine->journey_id))
-            {
+            if(!empty($packageLine->journey_id)) {
                 $this->createNewTicketFromJourneyId($packageLine);
             }
         }
@@ -40,9 +42,9 @@ class CartTicketProcess
         $objJourney = new Journeys();
         $journeyResult = $objJourney->getFullJourneyById($packageLine->journey_id);
 
-        if ($journeyResult->Result->Count !== 1) { return; }
+        if ($journeyResult->result->Count !== 1) { return; }
 
         $objTickets = new Tickets();
-        $objTickets->createTicketsByFullJourney($journeyResult->Data->First());
+        $objTickets->createTicketsByFullJourney($journeyResult->getData()->first());
     }
 }

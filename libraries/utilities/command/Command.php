@@ -4,23 +4,23 @@ namespace App\Utilities\Command;
 
 abstract class Command
 {
-    public $name;
-    public $description;
-    public $tries;
-    /** @var CommandCaller $caller */
-    public $caller;
+    public string $name;
+    public string $description;
+    public int $tries;
+
+    public CommandCaller $caller;
 
     public function __construct()
     {
 
     }
 
-    public function Init(&$caller)
+    public function Init(&$caller): void
     {
         $this->caller = $caller;
     }
 
-    public function Run()
+    public function Run() : void
     {
 
     }

@@ -6,9 +6,9 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class ManageNotesWidget extends VueComponent
 {
-    protected $id = "d0cc2044-a7e3-43b9-9f84-1a4b379b0d0a";
-    protected $title = "Note Dashboard";
-    protected $endpointUriAbstract = "note-dashboard/{id}";
+    protected string $id = "d0cc2044-a7e3-43b9-9f84-1a4b379b0d0a";
+    protected string $title = "Note Dashboard";
+    protected string $endpointUriAbstract = "note-dashboard/{id}";
 
     public function __construct(array $components = [])
     {

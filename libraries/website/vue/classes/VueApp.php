@@ -2,30 +2,35 @@
 
 namespace App\Website\Vue\Classes;
 
+use App\Core\App;
 use App\Core\AppModel;
 use App\Utilities\Caret\ExcellCarets;
 use App\Website\Vue\Classes\Base\VueBase;
 use App\Website\Vue\Classes\Base\VueComponent;
 use App\Website\Vue\Classes\Breadcrumbs\VueBreadcrumbsVer1;
 use Entities\Cart\Components\Vue\CartWidget\CartWidget;
+use Entities\Users\Components\Vue\ProfileWidget\UserProfileWidget;
+use Entities\Users\Components\Vue\UserWidget\ManageCustomerProfileWidget;
 
 abstract class VueApp extends VueBase
 {
-    /** @var VueModal $modal */
-    protected $modal;
-    /** @var AppModel $entity */
-    protected $entity;
-    protected $domId;
-    protected $selfAsApp = false;
-    protected $domHtmlTag;
-    protected $breadcrumb;
-    protected $baseBinding = "";
-    protected $vueSlickSort = [];
-    protected $endpointUriBase = "";
-    protected $componentAbstracts = [];
-    protected $vueType       = "app";
-    protected $appNamePlural = "Entities";
-    protected $appNameSingular = "Entity";
+    protected VueModal $modal;
+    protected ?AppModel $entity;
+    protected ?VueBreadcrumbs $breadcrumb;
+    protected VueComponent $entityManager;
+
+    protected string $domId;
+    protected string $domHtmlTag;
+    protected ?string $baseBinding = "";
+    protected string  $endpointUriBase = "";
+
+    protected string $vueType         = "app";
+    protected string $appNamePlural   = "Entities";
+    protected string $appNameSingular = "Entity";
+
+    protected bool $selfAsApp = false;
+    protected array $vueSlickSort = [];
+    protected array $componentAbstracts = [];
 
     public function __construct($domId, VueModal &$modal = null)
     {
@@ -43,7 +48,18 @@ abstract class VueApp extends VueBase
         }
 
         global $app;
-        $this->baseBinding = $app->strActivePortalBindin;
+        $this->baseBinding = $app->strActivePortalBinding;
+    }
+
+    public function setMainEntityManager(VueComponent $component) : self
+    {
+        $this->entityManager = $component;
+        return $this;
+    }
+
+    protected function getMainEntityManagerStaticId() : string
+    {
+        return "";
     }
 
     protected function renderDeclarations() : ?string
@@ -58,7 +74,7 @@ abstract class VueApp extends VueBase
             return '';
         }
 
-        return "const { " . implode(", ", $this->vueSlickSort) . " } = window.VueSlicksort;" . PHP_EOL;
+        return "const { " . implode(", ", array_unique($this->vueSlickSort)) . " } = window.VueSlicksort;" . PHP_EOL;
     }
 
     public function enableSlickSortContainerMixin() : self
@@ -153,12 +169,12 @@ abstract class VueApp extends VueBase
         return $this;
     }
 
-    public function renderVueComponentRefLoad(VueComponent $component, $action, $title, $entity = "null", $entities): string
+    public function renderVueComponentRefLoad(VueComponent $component, $action, $title, $entity = "null", $entities = []): string
     {
         return 'this.vc.loadComponent(\'' . $component->getInstanceId() . '\',  \'' . $component->getId() . '\', null, \'' . $title . '\',  ' . (!empty($entity) ? $entity : "null") . ', ' . $entities . ', null, true, true);' . PHP_EOL;
     }
 
-    public function renderComponentRefLoad(VueComponent $component, $action, $title, $entity = "null", $entities): string
+    public function renderComponentRefLoad(VueComponent $component, $action, $title, $entity = "null", $entities = []): string
     {
         return 'this.$refs.' . $this->getRef() . '.$children[0].loadModal(\'' . $action . '\', this, \'' . $component->getInstanceId() . '\',  \'' . $component->getId() . '\', null, \'' . $title . '\',  ' . (!empty($entity) ? $entity : "null") . ', ' . $entities . ', null, true, true);' . PHP_EOL;
     }
@@ -186,11 +202,11 @@ abstract class VueApp extends VueBase
     {
         return '
         <div class="formwrapper-outer">
-            <section id="vue-app-body-' . $this->getInstanceName() . '" class="vue-app-body formwrapper-control">
+            <div id="vue-app-body-' . $this->getInstanceName() . '" class="vue-app-body formwrapper-control">
                 <div class="vue-modal-wrapper formwrapper-control">
                     ' . $this->buildComponentList() . '
                 </div>
-            </section>
+            </div>
         </div>';
     }
 
@@ -235,7 +251,9 @@ abstract class VueApp extends VueBase
 
     protected function buildMainAppJavaScript() : string
     {
+        /** @var $app App */
         global $app;
+
         return 'const vueApplication = new Vue({
 
         el: \'#' . $this->getAppId() . '\',
@@ -249,10 +267,15 @@ abstract class VueApp extends VueBase
                 user: {},
                 mainEntityList: [],
                 authentication: null,
+                cartQuantity: 0,
                 modal: null,
                 uriBase: \'' . $this->getUriBase() . '\',
                 binding: \'' . $this->baseBinding . '\',
                 activeComponentId: \'' . $this->getDefaultComponentInstanceId() . '\',
+                menuDisplay: \'launch-pad\',
+                menuItems: {},
+                menuPin: [],
+                favoriteMenus: [],
                 abstractsMap: ' . $this->renderComponentsAbstractsToIdMap() . ',
                 ' . $this->renderAppData() . '
             }
@@ -272,8 +295,8 @@ abstract class VueApp extends VueBase
                 let self = this;
                 
                 try 
-                {
-                    self.socket = new WebSocket("wss://ws.ezdigital.com/cs?auth=" + Cookie.get("me"));
+                {                    
+                    self.socket = new WebSocket("ws://localhost:3015/ws?auth=" + Cookie.get("instance"));
     
                     self.socket.onopen = function(e) {
                         self.socket.send("My name is John")
@@ -292,7 +315,7 @@ abstract class VueApp extends VueBase
                     };
                     
                     self.socket.onerror = function(error) {
-                        //console.log(`[error] ${error.message}`)
+                        console.log(`[error] ${error.message}`)
                     };
                 }
                 catch(err)
@@ -300,8 +323,13 @@ abstract class VueApp extends VueBase
                     ezLog(err,"Socket Error")
                 }
             },
+            setCartQuantityDisplay: function(data) 
+            {
+                this.cartQuantity = data.quantity;
+            },
             sendSocketMessage: function(text)
             {
+                console.log("sending: " + text)
                 this.socket.send(text)
             },
             backToComponent: function(methodCall)
@@ -320,6 +348,13 @@ abstract class VueApp extends VueBase
                 if (typeof this.$refs.'.$this->breadcrumb->getRef().' === "undefined") { console.log("Error: Breadcrumb Component has failed to load."); return; }        
                 if (typeof this.$refs.'.$this->breadcrumb->getRef().'.updateBreadCrumb === "undefined") { console.log("Error: Breadcrumb Component is missing updateBreadCrumb method."); return; }                
                 this.$refs.'.$this->breadcrumb->getRef().'.updateBreadCrumb(componentInstance.buildBreadCrumb());
+            },
+            renderSubPageLinks: function(componentInstance)
+            {
+                if (typeof componentInstance.buildSubPageLinks !== "function") { return; }                
+                if (typeof this.$refs.'.$this->breadcrumb->getRef().' === "undefined") { console.log("Error: SubPage Component has failed to load."); return; }        
+                if (typeof this.$refs.'.$this->breadcrumb->getRef().'.updateSubPageLinks === "undefined") { console.log("Error: SubPage Component is missing updateSubPageLinks method."); return; }                
+                this.$refs.'.$this->breadcrumb->getRef().'.updateSubPageLinks(componentInstance.buildSubPageLinks());
             },
             addAjaxClass: function(className)
             {
@@ -404,32 +439,91 @@ abstract class VueApp extends VueBase
                 
                 return fullName.join(" ");
             },
-            accessProfile: function()
-            {
-                app.enableAvatarMenu();
-            },
             openMobileMenu: function()
             {
                 app.Logout()
             },
+            buildMenuItems: function()
+            {
+                return JSON.parse(`'.($app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label","application_menu")->value ?? "[]").'`);
+            },
+            toggleMainMenu: function(menuTitle)
+            {
+                if (this.menuDisplay === menuTitle) {
+                    this.menuDisplay = ""
+                    return
+                }
+                
+                this.menuDisplay = menuTitle
+            },
+            pinMainMenu: function(menuItem)
+            {
+                for(currMenu of this.menuPin) {
+                    if (currMenu.title === menuItem.title) {
+                        this.menuPin = this.menuPin.filter(function(e) { return e.title !== menuItem.title })                        
+                        return
+                    }
+                }
+                
+                this.menuPin.push(menuItem);
+            },
+            unPinMainMenu: function(menuItem)
+            {
+                for(currMenu of this.menuPin) {
+                    if (currMenu.title === menuItem.title) {
+                        this.menuPin = this.menuPin.filter(function(e) { return e.title !== menuItem.title })                        
+                        return
+                    }
+                }
+            },
+            includesMenuLink: function(menuItem)
+            {
+                for (currMenu of this.menuPin) {
+                    if (currMenu.title === menuItem.title) {
+                        return true
+                    }
+                }
+                
+                return false
+            },
             openCart: function()
-            {   
+            {
                 if (appCart === null || typeof appCart.openCart === "undefined") { console.log("no cart assigned"); return; }
-                appCart.openCart({className: false});
+                appCart.openCart({className: false}, false);
+            },
+            accessProfile: function()
+            {
+                //this.sendSocketMessage("test!")
+                app.enableAvatarMenu();
             },
             openNotifications: function()
             {   
                 app.enableNotifications();
             },
+            accessProfileModal: function()
+            {   
+                const self = this;
+                
+                const modal = self.findModal(self);
+                modal.vc.setTitle("Loading...").hideComponents();
+                modal.loadModal("edit", this, this.uuidv4(), "' . UserProfileWidget::getStaticId() . '", null, "Loading...", {}, [], null, true);
+            },
+            openNotificationsModal: function()
+            {   
+                const self = this;
+                const modal = self.findModal(self);
+                modal.vc.setTitle("Loading...").hideComponents();
+                modal.loadModal("edit", this, this.uuidv4(), "' . ManageCustomerProfileWidget::getStaticId() . '", null, "Loading...", {}, [], null, true);
+            },
             openSearch: function()
             {   
-                app.enableSearch();
+                
             },
             hydrateCart: function()
             {
                 const self = this;
                 
-                if (typeof AppCart === "undefined")
+                if (typeof AppCart === "undefined" || this.modal === null)
                 {
                     setTimeout(function() 
                     {
@@ -441,6 +535,7 @@ abstract class VueApp extends VueBase
                 
                 '. $this->activateDynamicComponentByIdInModal(CartWidget::getStaticId(),"", "add", "{}", "this.mainEntityList", null, "self", false, "function(cartVueWidget) {
                     appCart = new AppCart(cartVueWidget.instance);
+                    
                 }").'
             },
             loadComponent: function(action, instanceId, id, parentInstanceId, title, entity, entities, props, show, hydrate)
@@ -493,24 +588,53 @@ abstract class VueApp extends VueBase
                 this.authentication = new ExcellAuthentication(this);
                 this.authentication.validate();
             },
-            logout: function()
+            logout: function(noRedirect)
             {
-                this.authentication.clearAuth();
+                this.authentication.clearAuth(noRedirect);
+            },
+            updateAllChildrenAuth: function(isLoggedIn, authUserId, userId, userNum, user) {
+                this.isLoggedIn = isLoggedIn;
+                this.authUserId = authUserId;
+                this.userId = userId;
+                this.userNum = userNum;
+                this.user = user;
+                this.updateVcComponentsAuth(isLoggedIn, authUserId, userId, userNum, user, this)
+            },
+            updateVcComponentsAuth: function(isLoggedIn, authUserId, userId, userNum, user, parent)
+            {
+                const self = this;
+                if (typeof parent.$children.length === "undefined" || parent.$children.length === 0) return;
+                for(let currParentIndex in parent.$children) {
+                
+                    parent.$children[currParentIndex].isLoggedIn = isLoggedIn
+                    parent.$children[currParentIndex].authUserId = authUserId
+                    parent.$children[currParentIndex].userId = userId
+                    parent.$children[currParentIndex].userNum = userNum
+                    parent.$children[currParentIndex].user = user
+                    if (typeof parent.$children[currParentIndex].checkAuthRoles === "function") {
+                        parent.$children[currParentIndex].checkAuthRoles()
+                    }
+                    self.updateVcComponentsAuth(isLoggedIn, authUserId, userId, userNum, user, parent.$children[currParentIndex]);
+                }
+            },
+            setDispatchEvents: function()
+            {
+                dispatch.register("update_cart_quantity", this, "setCartQuantityDisplay")
             },
             ' . $this->renderAppMethods() . '
         },
         mounted() 
         {
             const vueAppBody = document.getElementById("vue-app-body-' . $this->getInstanceName() . '")
-            
-            if (typeof this.$refs.'.$this->getModal()->getRef().'.$children !== "undefined")
-            {
+            this.menuItems = this.buildMenuItems();
+            if (typeof this.$refs.'.$this->getModal()->getRef().'.$children !== "undefined") {
                 this.modal = this.$refs.'.$this->getModal()->getRef().'.$children[0]
             }
             
             this.authenticate()
             this.hydrateCart()
             this.connectToWebSocket()
+            this.setDispatchEvents()
                     
             if (typeof(vueAppBody) != \'undefined\' && vueAppBody != null) 
             { 

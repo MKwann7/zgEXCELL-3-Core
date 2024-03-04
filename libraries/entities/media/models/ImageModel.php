@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class ImageModel extends AppModel
 {
-    protected $EntityName = "Media";
-    protected $ModelName = "Image";
+    protected string $EntityName = "Media";
+    protected string $ModelName = "Image";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,10 +15,11 @@ class ImageModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "image_id" => ["type" => "int","length" => 15],
+            "company_id" => ["type" => "int","length" => 15],
             "user_id" => ["type" => "int","length" => 15,"fk" => ["table" => "user","key" => "user_id","value" => "username"]],
             "entity_id" => ["type" => "int","length" => 15],
             "entity_name" => ["type" => "varchar","length" => 45],

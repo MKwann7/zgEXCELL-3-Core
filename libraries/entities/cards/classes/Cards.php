@@ -17,16 +17,11 @@ use Entities\Users\Classes\ConnectionRels;
 use Entities\Users\Classes\Connections;
 use Entities\Users\Models\ConnectionModel;
 use Entities\Users\Models\ConnectionRelModel;
-use Module\Orders\Models\OrderLineModel;
+use Entities\Orders\Models\OrderLineModel;
 
 class Cards extends AppEntity
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
-    public $strEntityName       = "Cards";
+    public string $strEntityName       = "Cards";
     public $strDatabaseTable    = "card";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = CardModel::class;
@@ -55,7 +50,7 @@ class Cards extends AppEntity
 
     public function card_mobiniti_contactsRelationship() : ExcellRelationship
     {
-        return $this->buildRelationshipModel("card_contacts", "Main", "mobiniti_contact_group_rel", "COUNT()", "card_id", "card_id");
+        return $this->buildRelationshipModel("card_contacts", "Main", "contact_user_rel", "COUNT()", "card_id", "card_id");
     }
 
     public function GetByCardNum($intCardNum, $companyFilter = false) : ExcellTransaction
@@ -103,9 +98,9 @@ class Cards extends AppEntity
 
         if ( empty($intUserId) || !isInteger($intUserId))
         {
-            $objCardResult->Result->Success = false;
-            $objCardResult->Result->Count = 0;
-            $objCardResult->Result->Message = "You must supply a valid user id.";
+            $objCardResult->result->Success = false;
+            $objCardResult->result->Count = 0;
+            $objCardResult->result->Message = "You must supply a valid user id.";
             return $objCardResult;
         }
 
@@ -118,13 +113,13 @@ class Cards extends AppEntity
 
         $objCardsAsOwnerResult = $this->getWhere($whereClause);
 
-        if ( $objCardsAsOwnerResult->Result->Success === true && $objCardsAsOwnerResult->Result->Count > 0)
+        if ( $objCardsAsOwnerResult->result->Success === true && $objCardsAsOwnerResult->result->Count > 0)
         {
-            foreach($objCardsAsOwnerResult->Data as $intCardId => $objCardData)
+            foreach($objCardsAsOwnerResult->data as $intCardId => $objCardData)
             {
 
-                $objCardsAsOwnerResult->Data->{$intCardId}->AddUnvalidatedValue("user_role", "Card Owner");
-                $objCardsAsOwnerResult->Data->{$intCardId}->AddUnvalidatedValue("user_rel_type_id", 1);
+                $objCardsAsOwnerResult->getData()->{$intCardId}->AddUnvalidatedValue("user_role", "Card Owner");
+                $objCardsAsOwnerResult->getData()->{$intCardId}->AddUnvalidatedValue("user_rel_type_id", 1);
             }
         }
 
@@ -138,26 +133,26 @@ class Cards extends AppEntity
         $objCardRelsModule = new CardRels();
         $objCardRelResult = $objCardRelsModule->noFks()->getWhere($whereClause);
 
-        if ( $objCardRelResult->Result->Success === true && $objCardRelResult->Result->Count > 0)
+        if ( $objCardRelResult->result->Success === true && $objCardRelResult->result->Count > 0)
         {
-            $arCardUserIds = $objCardRelResult->Data->FieldsToArray(["card_id"]);
+            $arCardUserIds = $objCardRelResult->getData()->FieldsToArray(["card_id"]);
 
             $objCardsAsOtherRelsResult = $this->getWhereIn("card_id", $arCardUserIds);
-            $objCardsAsOtherRelsResult->Data->MergeFields($objCardRelResult->Data,["card_rel_type_id" => "user_rel_type_id","status" => "user_rel_status"],["card_id"]);
-            $objCardsAsOtherRelsResult->Data->MergeFields($objCardRelResult->Data,["name" => "user_rel_role","card_rel_permissions" => "user_rel_permissions"],["card_rel_type_id"]);
+            $objCardsAsOtherRelsResult->getData()->MergeFields($objCardRelResult->data,["card_rel_type_id" => "user_rel_type_id","status" => "user_rel_status"],["card_id"]);
+            $objCardsAsOtherRelsResult->getData()->MergeFields($objCardRelResult->data,["name" => "user_rel_role","card_rel_permissions" => "user_rel_permissions"],["card_rel_type_id"]);
         }
 
-        if ($objCardsAsOwnerResult->Result->Count > 0 && $objCardsAsOtherRelsResult->Result->Count === 0)
+        if ($objCardsAsOwnerResult->result->Count > 0 && $objCardsAsOtherRelsResult->result->Count === 0)
         {
             return $objCardsAsOwnerResult;
         }
 
-        if ($objCardsAsOwnerResult->Result->Count === 0 && $objCardsAsOtherRelsResult->Result->Count > 0)
+        if ($objCardsAsOwnerResult->result->Count === 0 && $objCardsAsOtherRelsResult->result->Count > 0)
         {
             return $objCardsAsOtherRelsResult;
         }
 
-        $objCardsAsOwnerResult->Data->Merge($objCardsAsOtherRelsResult->Data);
+        $objCardsAsOwnerResult->getData()->Merge($objCardsAsOtherRelsResult->data);
         return $objCardsAsOwnerResult;
     }
 
@@ -175,30 +170,31 @@ class Cards extends AppEntity
             (SELECT thumb FROM `excell_media`.`image` WHERE image.entity_id = card.card_id AND image.entity_name = 'card' AND image_class = 'favicon-image' ORDER BY image_id DESC LIMIT 1) AS ico,
             (SELECT CONCAT(user.first_name, ' ', user.last_name) FROM `excell_main`.`user` WHERE user.user_id = card.owner_id LIMIT 1) AS card_owner_name,
             (SELECT user.sys_row_id FROM `excell_main`.`user` WHERE user.user_id = card.owner_id LIMIT 1) AS card_owner_uuid,
+            (SELECT user.user_id FROM `excell_main`.`user` WHERE user.user_id = card.owner_id LIMIT 1) AS card_owner_id,
             (SELECT CONCAT(user.first_name, ' ', user.last_name) FROM `excell_main`.`user` WHERE user.user_id = card.card_user_id LIMIT 1) AS card_user_name,
             (SELECT user.sys_row_id FROM `excell_main`.`user` WHERE user.user_id = card.card_user_id LIMIT 1) AS card_user_uuid,
             (SELECT user.status FROM `excell_main`.`user` WHERE user.user_id = card.card_user_id LIMIT 1) AS card_user_status,
             (SELECT cn.connection_value FROM `excell_main`.`user` ur LEFT JOIN `excell_main`.`connection` cn ON ur.user_email = cn.connection_id WHERE ur.user_id = card.card_user_id LIMIT 1) AS card_user_email,
             (SELECT cn.connection_value FROM `excell_main`.`user` ur LEFT JOIN `excell_main`.`connection` cn ON ur.user_phone = cn.connection_id WHERE ur.user_id = card.card_user_id LIMIT 1) AS card_user_phone,
             (SELECT title FROM `excell_main`.`product` WHERE product.product_id = card.product_id LIMIT 1) AS product, 
+            (SELECT name FROM `excell_main`.`card_type` WHERE card_type.card_type_id = card.card_type_id LIMIT 1) AS card_type_label, 
             (SELECT name FROM `excell_main`.`card_template` WHERE card_template.card_template_id = card.template_id LIMIT 1) AS template_name, 
-            (SELECT COUNT(*) FROM `excell_main`.`mobiniti_contact_group_rel` mcgr WHERE mcgr.card_id = card.card_id) AS card_contacts
+            (SELECT COUNT(*) FROM `excell_main`.`contact_card_rel` mcgr WHERE mcgr.card_id = card.card_id) AS card_contacts
             FROM `card` ";
 
         $objWhereClause .= "WHERE sys_row_id = '".$uuid."'";
-        //$objWhereClause .= " && company_id = {$this->app->objCustomPlatform->getCompanyId()}";
 
         $objWhereClause .= " LIMIT 1";
 
         $cardResult = Database::getSimple($objWhereClause, "card_num");
-        $cardResult->Data->HydrateModelData(CardModel::class, true);
+        $cardResult->getData()->HydrateModelData(CardModel::class, true);
 
-        if ($cardResult->Result->Count !== 1)
+        if ($cardResult->getResult()->Count !== 1)
         {
-            return new ExcellTransaction(false, $cardResult->Result->Message, ["errors" => [$cardResult->Result->Message]]);
+            return new ExcellTransaction(false, $cardResult->getResult()->Message, null, 0, [$cardResult->result->Message]);
         }
 
-        if (!empty($cardResult->Data->First()->card_data) && isJson($cardResult->Data->First()->card_data)) { $cardResult->Data->First()->card_data = json_decode($cardResult->Data->First()->card_data); }
+        if (!empty($cardResult->getData()->first()->card_data) && isJson($cardResult->getData()->first()->card_data)) { $cardResult->getData()->first()->card_data = json_decode($cardResult->getData()->first()->card_data); }
 
         return $cardResult;
     }
@@ -209,9 +205,9 @@ class Cards extends AppEntity
 
         if ( empty($intGroupId) || !isInteger($intGroupId))
         {
-            $objCardResult->Result->Success = false;
-            $objCardResult->Result->Count = 0;
-            $objCardResult->Result->Message = "You must supply a valid group id.";
+            $objCardResult->result->Success = false;
+            $objCardResult->result->Count = 0;
+            $objCardResult->result->Message = "You must supply a valid group id.";
             return $objCardResult;
         }
 
@@ -222,7 +218,7 @@ class Cards extends AppEntity
 
         $objCardWhereclause = array();
 
-        foreach($objCardRel->Data as $currCardRelId => $objCardRel)
+        foreach($objCardRel->data as $currCardRelId => $objCardRel)
         {
                 $objCardWhereclause[] = ["card_id", "=", $objCardRel->card_id];
             $objCardWhereclause[] = ["OR"];
@@ -262,9 +258,9 @@ class Cards extends AppEntity
 
         if ( empty($intCardId) || !isInteger($intCardId))
         {
-            $objConnectionResult->Result->Success = false;
-            $objConnectionResult->Result->Count = 0;
-            $objConnectionResult->Result->Message = "You must supply a valid card id.";
+            $objConnectionResult->result->Success = false;
+            $objConnectionResult->result->Count = 0;
+            $objConnectionResult->result->Message = "You must supply a valid card id.";
             return $objConnectionResult;
         }
 
@@ -329,23 +325,23 @@ class Cards extends AppEntity
 
         if ( empty($intCardId) || !isInteger($intCardId))
         {
-            $objCardOwnerResult->Result->Success = false;
-            $objCardOwnerResult->Result->Count = 0;
-            $objCardOwnerResult->Result->Message = "You must supply a valid card id.";
+            $objCardOwnerResult->result->Success = false;
+            $objCardOwnerResult->result->Count = 0;
+            $objCardOwnerResult->result->Message = "You must supply a valid card id.";
             return $objCardOwnerResult;
         }
 
         $objCardRelsModule = new CardRels();
         $colUsersResult = $objCardRelsModule->GetUsersByCardId($intCardId);
 
-        if ($colUsersResult->Result->Count === 0)
+        if ($colUsersResult->result->Count === 0)
         {
             return $colUsersResult;
         }
 
-        $objCardOwnerResult->Result->Success = true;
-        $objCardOwnerResult->Result->Count = 1;
-        $objCardOwnerResult->Data->{0} = $colUsersResult->Data->FindEntityByValue("card_rel_type_id",1);
+        $objCardOwnerResult->result->Success = true;
+        $objCardOwnerResult->result->Count = 1;
+        $objCardOwnerResult->getData()->{0} = $colUsersResult->getData()->FindEntityByValue("card_rel_type_id",1);
 
         return $objCardOwnerResult;
     }
@@ -356,9 +352,9 @@ class Cards extends AppEntity
 
         if ( empty($intUserId) || !isInteger($intUserId))
         {
-            $objCardsResult->Result->Success = false;
-            $objCardsResult->Result->Count = 0;
-            $objCardsResult->Result->Message = "You must supply a valid user id.";
+            $objCardsResult->result->Success = false;
+            $objCardsResult->result->Count = 0;
+            $objCardsResult->result->Message = "You must supply a valid user id.";
             return $objCardsResult;
         }
 
@@ -368,26 +364,26 @@ class Cards extends AppEntity
         $objCardRelsModule = new CardRels();
         $objCardRelResult = $objCardRelsModule->getWhere(["user_id" => $intUserId, "card_rel_type_id" => 9]);
 
-        if ($objCardRelResult->Result->Count === 0)
+        if ($objCardRelResult->result->Count === 0)
         {
-            $objCardsResult->Result->Success = false;
-            $objCardsResult->Result->Count = 0;
-            $objCardsResult->Result->Message = "0 Cards were found for this affiliate with id: " . $intUserId;
+            $objCardsResult->result->Success = false;
+            $objCardsResult->result->Count = 0;
+            $objCardsResult->result->Message = "0 Cards were found for this affiliate with id: " . $intUserId;
 
             $this->renableFksIfTemporarilyDisabled($blnReEnableFks);
 
             return $objCardsResult;
         }
 
-        $arCardId = $objCardRelResult->Data->FieldsToArray(["card_id"]);
+        $arCardId = $objCardRelResult->getData()->FieldsToArray(["card_id"]);
 
         $objCardsResult = $this->getWhereIn("card_id", $arCardId);
 
-        if ($objCardsResult->Result->Count === 0)
+        if ($objCardsResult->result->Count === 0)
         {
-            $objCardsResult->Result->Success = false;
-            $objCardsResult->Result->Count = 0;
-            $objCardsResult->Result->Message = "0 Cards were found for this affiliate with id: " . $intUserId;
+            $objCardsResult->result->Success = false;
+            $objCardsResult->result->Count = 0;
+            $objCardsResult->result->Message = "0 Cards were found for this affiliate with id: " . $intUserId;
 
             $this->blnFksReplace = true;
 
@@ -405,18 +401,18 @@ class Cards extends AppEntity
         $objSourceCardResult = $objCards->getById($sourceCardId);
         $objDestinationCardResult = $objCards->getById($destinationCardId);
 
-        if($objSourceCardResult->Result->Count === 0)
+        if($objSourceCardResult->result->Count === 0)
         {
             return new ExcellTransaction(false, "Source card {$sourceCardId} was not found for cloning.");
         }
 
-        if($objDestinationCardResult->Result->Count === 0)
+        if($objDestinationCardResult->result->Count === 0)
         {
             return new ExcellTransaction(false, "Destination card {$destinationCardId} was not found for cloning.");
         }
 
-        $objDestinationCard = $objDestinationCardResult->Data->First();
-        $objSourceCard = $objSourceCardResult->Data->First();
+        $objDestinationCard = $objDestinationCardResult->getData()->first();
+        $objSourceCard = $objSourceCardResult->getData()->first();
 
         $objDestinationCard->card_data = $objSourceCard->card_data;
         $objDestinationCard->template_id = $objSourceCard->template_id;
@@ -429,12 +425,12 @@ class Cards extends AppEntity
         $objImages = new Images();
         $imageResult = $objImages->getWhere(["entity_id" => $sourceCardId, "entity_name" => "card", "image_class" => "main-image"],"image_id.DESC", 1);
 
-        if ($imageResult->Result->Count !== 1)
+        if ($imageResult->result->Count !== 1)
         {
             return $imageResult;
         }
 
-        $image = $imageResult->Data->First();
+        $image = $imageResult->getData()->first();
         $image->clearField("image_id");
 
         $newImage = new ImageModel($image);
@@ -449,21 +445,21 @@ class Cards extends AppEntity
         $objSourceCardResult = $objCards->getById($sourceCardId);
         $objDestinationCardResult = $objCards->getById($destinationCardId);
 
-        if($objSourceCardResult->Result->Count === 0)
+        if($objSourceCardResult->result->Count === 0)
         {
             return new ExcellTransaction(false, "Source card {$sourceCardId} was not found for cloning.");
         }
 
-        if($objDestinationCardResult->Result->Count === 0)
+        if($objDestinationCardResult->result->Count === 0)
         {
             return new ExcellTransaction(false, "Destination card {$destinationCardId} was not found for cloning.");
         }
 
-        $objDestinationCard = $objDestinationCardResult->Data->First();
+        $objDestinationCard = $objDestinationCardResult->getData()->first();
 
         $deleteDestinationConnectionsResult = (new ConnectionRels())->deleteWhere(["card_id" => $destinationCardId]);
 
-        if ($deleteDestinationConnectionsResult->Result->Success === false)
+        if ($deleteDestinationConnectionsResult->result->Success === false)
         {
             return $deleteDestinationConnectionsResult;
         }
@@ -471,37 +467,37 @@ class Cards extends AppEntity
         $objConnectionRels = new ConnectionRels();
         $connectionRelResult = $objConnectionRels->getWhere(["card_id" => $sourceCardId]);
 
-        if ($connectionRelResult->Result->Count === 0)
+        if ($connectionRelResult->result->Count === 0)
         {
             return $connectionRelResult;
         }
 
         $objConnections = new Connections();
-        $connectionResults = $objConnections->getWhereIn("connection_id", $connectionRelResult->Data->FieldsToArray(["connection_id"]));
+        $connectionResults = $objConnections->getWhereIn("connection_id", $connectionRelResult->getData()->FieldsToArray(["connection_id"]));
 
-        if ($connectionResults->Result->Count === 0)
+        if ($connectionResults->result->Count === 0)
         {
             return $connectionResults;
         }
 
-        $connectionRelResult->Data->HydrateChildModelData("connection",["connection_id" => "connection_id"],$connectionResults->Data, true);
+        $connectionRelResult->getData()->HydrateChildModelData("connection",["connection_id" => "connection_id"],$connectionResults->data, true);
 
         $errors = new ExcellCollection();
 
-        $connectionRelResult->Data->Each(static function($currConnectionRel) use ($objConnectionRels, $objConnections, $objDestinationCard, &$errors) {
+        $connectionRelResult->getData()->Each(static function($currConnectionRel) use ($objConnectionRels, $objConnections, $objDestinationCard, &$errors) {
 
             $currConnectionRel->connection->clearField("connection_id");
             $connection = new ConnectionModel($currConnectionRel->connection);
             $connection->user_id = $objDestinationCard->owner_id;
             $newConnectionResult = $objConnections->createNew($connection);
 
-            if ($newConnectionResult->Result->Success === false)
+            if ($newConnectionResult->result->Success === false)
             {
-                $errors->Add($newConnectionResult->Result);
+                $errors->Add($newConnectionResult->result);
                 return;
             }
 
-            $newConnection = $newConnectionResult->Data->First();
+            $newConnection = $newConnectionResult->getData()->first();
 
             $currConnectionRel->clearField("connection_rel_id");
             $connectionRel = new ConnectionRelModel($currConnectionRel);
@@ -509,9 +505,9 @@ class Cards extends AppEntity
             $connectionRel->connection_id = $newConnection->connection_id;
             $newConnectionRelResult = $objConnectionRels->createNew($connectionRel);
 
-            if ($newConnectionRelResult->Result->Success === false)
+            if ($newConnectionRelResult->result->Success === false)
             {
-                $errors->Add($newConnectionRelResult->Result);
+                $errors->Add($newConnectionRelResult->result);
             }
         });
 
@@ -524,17 +520,17 @@ class Cards extends AppEntity
         $objSourceCardResult = $objCards->getById($sourceCardId);
         $objDestinationCardResult = $objCards->getById($destinationCardId);
 
-        if($objSourceCardResult->Result->Count === 0)
+        if($objSourceCardResult->result->Count === 0)
         {
             return new ExcellTransaction(false, "Source card {$sourceCardId} was not found for cloning.");
         }
 
-        if($objDestinationCardResult->Result->Count === 0)
+        if($objDestinationCardResult->result->Count === 0)
         {
             return new ExcellTransaction(false, "Destination card {$destinationCardId} was not found for cloning.");
         }
 
-        $objDestinationCard = $objDestinationCardResult->Data->First();
+        $objDestinationCard = $objDestinationCardResult->getData()->first();
         $objDestinationCard->LoadFullCard(false);
 
         if ($backup === true)
@@ -554,7 +550,7 @@ class Cards extends AppEntity
             $objDeleteDestinationCardPageRelsResult = (new CardPageRels())->deleteWhere(["card_id" => $objDestinationCard->card_id]);
         }
 
-        $objSourceCard = $objSourceCardResult->Data->First();
+        $objSourceCard = $objSourceCardResult->getData()->first();
         $objSourceCard->LoadFullCard(false);
         $arErrors = [];
 
@@ -582,18 +578,18 @@ class Cards extends AppEntity
             $objCardPage->library_tab = $currCardPage->library_tab;
             $objCardPage->permanent = $currCardPage->permanent;
             $objCardPage->order_number = $currCardPage->order_number;
-            $objCardPage->visibility = $currCardPage->visibility ? ExcellTrue : ExcellFalse;
+            $objCardPage->visibility = $currCardPage->visibility ? EXCELL_TRUE : EXCELL_FALSE;
             $objCardPage->created_by = $this->app->objCustomPlatform->getCompany()->default_sponsor_id;
             $objCardPage->updated_by = $this->app->objCustomPlatform->getCompany()->default_sponsor_id;
 
             $objNewCardPageResult = (new CardPage())->getFks()->createNew($objCardPage);
 
-            if ($objNewCardPageResult->Result->Success === false)
+            if ($objNewCardPageResult->result->Success === false)
             {
-                return new ExcellTransaction(false, "Unable to save card page: " . $objNewCardPageResult->Result->Message);
+                return new ExcellTransaction(false, "Unable to save card page: " . $objNewCardPageResult->result->Message);
             }
 
-            $intCardPageId = $objNewCardPageResult->Data->First()->card_tab_id;
+            $intCardPageId = $objNewCardPageResult->getData()->first()->card_tab_id;
         }
 
         $objCardPageRelResult = new CardPageRelModel();
@@ -601,16 +597,16 @@ class Cards extends AppEntity
         $objCardPageRelResult->card_id = $objDestinationCard->card_id;
         $objCardPageRelResult->user_id = $objDestinationCard->owner_id;
         $objCardPageRelResult->rel_sort_order = $currCardPage->rel_sort_order;
-        $objCardPageRelResult->rel_visibility = $currCardPage->rel_visibility ? ExcellTrue : ExcellFalse;
+        $objCardPageRelResult->rel_visibility = $currCardPage->rel_visibility ? EXCELL_TRUE : EXCELL_FALSE;
         $objCardPageRelResult->card_tab_rel_type = $currCardPage->card_tab_rel_type;
         $objCardPageRelResult->card_tab_rel_data = $currCardPage->card_tab_rel_data;
         $objCardPageRelResult->synced_state = $currCardPage->synced_state;
 
         $objNewCardPageRelResult = (new CardPageRels())->getFks()->createNew($objCardPageRelResult);
 
-        if ($objNewCardPageRelResult->Result->Success === false)
+        if ($objNewCardPageRelResult->result->Success === false)
         {
-            return new ExcellTransaction(false, "Unable to save card page rel: " . $objNewCardPageRelResult->Result->Message);
+            return new ExcellTransaction(false, "Unable to save card page rel: " . $objNewCardPageRelResult->result->Message);
         }
 
         return new ExcellTransaction(true, "Card page ({$intCardPageId}) successfully cloned.");
@@ -624,9 +620,9 @@ class Cards extends AppEntity
         {
             $objPagesForDeletionResult = (new CardPageRels())->getwhere(["synced_state" => 1, "card_id" => $cardId]);
 
-            if ($objPagesForDeletionResult->Result->Count === 0) { return; }
+            if ($objPagesForDeletionResult->result->Count === 0) { return; }
 
-            $arDestCardIds = $objPagesForDeletionResult->Data->FieldsToArray(["card_tab_id"]);
+            $arDestCardIds = $objPagesForDeletionResult->getData()->FieldsToArray(["card_tab_id"]);
 
             // Delete Pages
             (new CardPage())->deleteWhere([["card_tab_id", "IN", $arDestCardIds]], 1);
@@ -640,12 +636,12 @@ class Cards extends AppEntity
     {
         $objUpdatedCardResult = parent::update($objCard);
 
-        if ( $objUpdatedCardResult->Result->Success === false)
+        if ( $objUpdatedCardResult->result->Success === false)
         {
             return $objUpdatedCardResult;
         }
 
-        $objUpdatedCard = $objUpdatedCardResult->Data->First();
+        $objUpdatedCard = $objUpdatedCardResult->getData()->first();
 
         if (!empty($objCard->Tabs) && is_a($objCard->Tabs, \App\Utilities\Excell\ExcellCollection::class))
         {
@@ -654,7 +650,7 @@ class Cards extends AppEntity
             {
                 $objUpdatedCardPagesResult = $objCardPagesModule->update($objCardPages, $blnReplaceCarots);
 
-                if ( $objUpdatedCardPagesResult->Result->Success === false)
+                if ( $objUpdatedCardPagesResult->result->Success === false)
                 {
                     return $objUpdatedCardPagesResult;
                 }
@@ -667,7 +663,7 @@ class Cards extends AppEntity
             {
                 $objUpdatedCardConnectionsResult = CardConnections::update($objCardConnection);
 
-                if ( $objUpdatedCardConnectionsResult->Result->Success === false)
+                if ( $objUpdatedCardConnectionsResult->result->Success === false)
                 {
                     return $objUpdatedCardConnectionsResult;
                 }
@@ -766,7 +762,7 @@ class Cards extends AppEntity
             WHERE cd.card_id IN ({$id})";
 
         $paymentHistoryResult = Database::getSimple($objWhereClause, "order_line_id");
-        $paymentHistoryResult->Data->HydrateModelData(OrderLineModel::class, true);
+        $paymentHistoryResult->getData()->HydrateModelData(OrderLineModel::class, true);
 
         return $paymentHistoryResult;
     }
@@ -790,7 +786,7 @@ class Cards extends AppEntity
         return $objWhereClause;
     }
 
-    public function buildCardBatchWhereClause($filterIdField = null, $filterEntity = null) : string
+    public function buildCardBatchWhereClause($filterIdField = null, $filterEntity = null, int $typeId = 1) : string
     {
         $objWhereClause = $this->cardListPrimaryDataForDisplay($filterIdField, $filterEntity);
 
@@ -805,6 +801,7 @@ class Cards extends AppEntity
             $objWhereClause .= " AND (card.template_card = 0) ";
         }
 
+        $objWhereClause .= " AND card_type_id = {$typeId}";
         $objWhereClause .= " GROUP BY(card.card_id) ORDER BY card.card_num DESC";
 
         return $objWhereClause;
@@ -819,7 +816,7 @@ class Cards extends AppEntity
             (SELECT CONCAT(user.first_name, ' ', user.last_name) FROM `excell_main`.`user` WHERE user.user_id = card.owner_id LIMIT 1) AS card_owner_name,
             (SELECT CONCAT(user.first_name, ' ', user.last_name) FROM `excell_main`.`user` WHERE user.user_id = card.card_user_id LIMIT 1) AS card_user_name,
             (SELECT title FROM `excell_main`.`product` WHERE product.product_id = card.product_id LIMIT 1) AS product, 
-            (SELECT COUNT(*) FROM `excell_main`.`mobiniti_contact_group_rel` mcgr WHERE mcgr.card_id = card.card_id) AS card_contacts
+            (SELECT COUNT(*) FROM `excell_main`.`contact_card_rel` mcgr WHERE mcgr.card_id = card.card_id) AS card_contacts
             FROM excell_main.card ";
 
         if ($filterEntity !== null)

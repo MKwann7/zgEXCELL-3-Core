@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class PackageLineSettingModel extends AppModel
 {
-    protected $EntityName = "Packages";
-    protected $ModelName = "PackageLine";
+    protected string $EntityName = "Packages";
+    protected string $ModelName = "PackageLine";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class PackageLineSettingModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "package_line_setting_id" => ["type" => "int","length" => 15],

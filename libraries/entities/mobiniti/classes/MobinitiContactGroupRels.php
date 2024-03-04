@@ -7,7 +7,7 @@ use Entities\Mobiniti\Models\MobinitiContactGroupRelModel;
 
 class MobinitiContactGroupRels extends AppEntity
 {
-    public $strEntityName       = "Mobiniti";
+    public string $strEntityName       = "Mobiniti";
     public $strDatabaseTable    = "mobiniti_contact_group_rel";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = MobinitiContactGroupRelModel::class;

@@ -8,7 +8,7 @@ use Entities\Payments\Models\PaymentAccountModel;
 
 class PaymentAccounts extends AppEntity
 {
-    public $strEntityName       = "payments";
+    public string $strEntityName       = "payments";
     public $strDatabaseTable    = "payment_account";
     public $strDatabaseName     = "Financial";
     public $strMainModelName    = PaymentAccountModel::class;
@@ -23,7 +23,7 @@ class PaymentAccounts extends AppEntity
     public static function getToken($id) : ?string
     {
         $paymentAccountResult = (new static())->getById($id);
-        if ($paymentAccountResult->Result->Count === 0) { return null; }
-        return $paymentAccountResult->Data->First()->token;
+        if ($paymentAccountResult->result->Count === 0) { return null; }
+        return $paymentAccountResult->getData()->first()->token;
     }
 }

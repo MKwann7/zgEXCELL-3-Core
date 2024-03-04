@@ -7,7 +7,7 @@ use Entities\Contacts\Models\EzcardMemberDirectoryRecordModel;
 
 class ContactsMemberDirectory extends AppEntity
 {
-    public $strEntityName       = "MemberDirectory";
+    public string $strEntityName       = "MemberDirectory";
     public $strDatabaseTable    = "directory_page_rel";
     public $strMainModelName    = EzcardMemberDirectoryRecordModel::class;
     public $strMainModelPrimary = "directory_page_rel_id";

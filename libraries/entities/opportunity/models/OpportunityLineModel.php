@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class OpportunityLineModel extends AppModel
 {
-    protected $EntityName = "Opportunity";
-    protected $ModelName = "OpportunityLine";
+    protected string $EntityName = "Opportunity";
+    protected string $ModelName = "OpportunityLine";
 
     public function __construct($entityData = null, $force = false)
     {

@@ -4,13 +4,12 @@ namespace Entities\Cards\Components\Vue;
 
 use App\Website\Vue\Classes\VueApp;
 use App\Website\Vue\Classes\VueModal;
-use App\Website\Vue\Classes\VueProps;
 use Entities\Cards\Components\Vue\CardWidget\ListMyCardWidget;
 
 class MyCardMainApp extends VueApp
 {
-    protected $appNamePlural = "My Cards";
-    protected $appNameSingular = "My Card";
+    protected string $appNamePlural = "My Cards";
+    protected string $appNameSingular = "My Card";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

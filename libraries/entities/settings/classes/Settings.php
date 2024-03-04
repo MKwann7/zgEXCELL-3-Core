@@ -6,7 +6,7 @@ use App\Core\AppEntity;
 
 class Settings extends AppEntity
 {
-    public $strEntityName       = "settings";
+    public string $strEntityName       = "settings";
     public $strDatabaseTable    = "settings";
     public $strDatabaseName     = "Main";
     public $strMainModelPrimary = "setting_id";

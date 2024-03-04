@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class AuthorizationModel extends AppModel
 {
-    protected $EntityName = "Modules";
-    protected $ModelName = "Authorization";
+    protected string $EntityName = "Modules";
+    protected string $ModelName = "Authorization";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class AuthorizationModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "authorization_id" =>["type" => "int", "length" => "15"],
@@ -32,7 +32,7 @@ class AuthorizationModel extends AppModel
         ];
     }
 
-    public function ToPublicArray($arProperties = null, $collectionKeys = false)
+    public function ToPublicArray($arProperties = null, $collectionKeys = false): array
     {
         $this->AddUnvalidatedValue("id", $this->authorization_uuid, true);
         $this->RemoveField("authorization_id");

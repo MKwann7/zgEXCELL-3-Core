@@ -7,7 +7,7 @@ use Entities\Users\Models\ConnectionRelModel;
 
 class ConnectionRels extends AppEntity
 {
-    public $strEntityName       = "Users";
+    public string $strEntityName       = "Users";
     public $strDatabaseTable    = "connection_rel";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = ConnectionRelModel::class;

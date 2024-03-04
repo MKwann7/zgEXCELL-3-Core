@@ -7,7 +7,7 @@ use Entities\Mobiniti\Models\MobinitiContactUserRelModel;
 
 class MobinitiContactUserRels extends AppEntity
 {
-    public $strEntityName       = "Mobiniti";
+    public string $strEntityName       = "Mobiniti";
     public $strDatabaseTable    = "mobiniti_contact_user_rel";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = MobinitiContactUserRelModel::class;

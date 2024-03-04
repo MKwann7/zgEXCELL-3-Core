@@ -4,10 +4,11 @@ namespace Entities\Cards\Components\Vue\CardWidget;
 
 use App\website\vue\classes\VueComponentListTable;
 use Entities\Cards\Components\Vue\CardPageWidget\ManageCardPageWidget;
+use Entities\Cards\Components\Vue\Maxtech\Sitewidget\ManageSitePageWidget;
 
 class ManageCardPagesListItemWidget extends VueComponentListTable
 {
-    protected $id = "75b06a2e-0126-4136-a1f0-794780b3a9c5";
+    protected string $id = "75b06a2e-0126-4136-a1f0-794780b3a9c5";
 
     public function __construct(?array $props = [])
     {
@@ -21,7 +22,7 @@ class ManageCardPagesListItemWidget extends VueComponentListTable
                 <td class="desktop-35px"><span v-handle class="handle"></span></td>
                 <td class="desktop-35px mobile-hide" v-if="isModernCard === false">{{ page.rel_sort_order}}</td>
                 <td class="desktop-35px mobile-hide"><span v-bind:class="\'tab-type-icon-\' + getCardPageType"></span></td>
-                <td>{{ page.title}}</td>
+                <td>{{ renderMenuTitle(page)}}</td>
                 <td class="mobile-hide">{{ page.card_tab_rel_id }}</td>
                 <td class="mobile-hide">{{ page.card_tab_rel_type }}</td>
                 <td class="mobile-hide">{{ formatDateForDisplay(page.last_updated) }}</td>
@@ -31,7 +32,6 @@ class ManageCardPagesListItemWidget extends VueComponentListTable
                         <span class="slider round"></span>
                     </label>
                     <span v-on:click="editCardPageColor(page)" class="tab_color_edit_tool" v-bind:style="renderPageColor(page)"></span>
-                    <span v-on:click="editCardPage(page)" class="pointer editEntityButton"></span>
                 </td>
             </tr>
         ';
@@ -56,17 +56,24 @@ class ManageCardPagesListItemWidget extends VueComponentListTable
 
     protected function renderComponentMethods() : string
     {
+        global $app;
+        $applicationType = $app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "application_type")->value ?? "default";
         return '
         editCardPage: function(entity)
         {
+            let self = this;
             let cardPages = (typeof this.$parent.$parent.card !== "undefined" ) ? this.$parent.$parent.card.Tabs : [];
-            if (typeof entity.__app === "undefined" || entity.__app === null)
-            {
-                '. $this->activateDynamicComponentByIdInModal(ManageCardPageWidget::getStaticId(),"", "edit", "entity", "cardPages", [], "this", true ).'
-                return;
+            '.
+                // this is for MaxTech applications.
+                $this->activateDynamicComponentByIdInModal(ManageSitePageWidget::getStaticId(),"self.parentComponentInstanceId", "edit", "entity", "cardPages", [], "this", true ).'            
+        },
+        renderMenuTitle: function(page) {
+            if (this.pageDisplayMultiStyle === true) { 
+                return page.card_tab_rel_title ? page.card_tab_rel_title : page.title
+            } else if (page.rel_sort_order > 1) { 
+                return page.card_tab_rel_menu_title ? page.card_tab_rel_menu_title : page.menu_title  
             }
-
-            this.editMainEntityWithWidget(entity, cardPages);
+            return "Home"
         },
         editMainEntityWithWidget: function(entity, cardPages)
         {
@@ -83,8 +90,7 @@ class ManageCardPagesListItemWidget extends VueComponentListTable
                 }
             }
             
-            modal.vc.setTitle("Loading...").showModal();
-            modal.vc.hideComponents();
+            modal.vc.setTitle("Loading...").hideComponents();
             modal.loadModal("edit", this, this.uuidv4(), entity.__app.app_uuid, null, "Loading...", entity, cardPages, {source:"adminCards"}, true);
         },
         loadDynamicModalComponent: function(currComponent, entity, modal, cardPages)

@@ -8,7 +8,7 @@ use Entities\Visitors\Models\VisitorBrowserModel;
 
 class VisitorBrowser extends AppEntity
 {
-    public $strEntityName       = "Visitors";
+    public string $strEntityName       = "Visitors";
     public $strDatabaseTable    = "visitor_browser";
     public $strDatabaseName     = "Traffic";
     public $strMainModelName    = VisitorBrowserModel::class;

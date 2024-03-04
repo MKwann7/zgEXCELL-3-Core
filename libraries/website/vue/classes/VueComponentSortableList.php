@@ -7,9 +7,9 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class VueComponentSortableList extends VueComponent
 {
-    protected $id = "d97ed0b0-d044-4b06-a51b-061a945185ed";
-    protected $vueType = "compSortList";
-    protected $noMount = true;
+    protected string $id = "d97ed0b0-d044-4b06-a51b-061a945185ed";
+    protected string $vueType = "compSortList";
+    protected string $mountType = "no_mount";
 
     /**
      * VueComponentSortableList constructor.

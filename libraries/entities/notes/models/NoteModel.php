@@ -6,15 +6,15 @@ use App\Core\AppModel;
 
 class NoteModel extends AppModel
 {
-    protected $EntityName = "Notes";
-    protected $ModelName = "Note";
+    protected string $EntityName = "Notes";
+    protected string $ModelName = "Note";
 
     public function __construct($entityData = null, $force = false)
     {
         $this->Definitions = $this->loadDefinitions();
         parent::__construct($entityData, $force);
     }
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "note_id" => ["type" => "int","length" => 15],

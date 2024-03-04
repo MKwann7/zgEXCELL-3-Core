@@ -10,13 +10,13 @@ use Entities\Media\Classes\Images;
 
 class InstallStaticImagesToUserAccountsCommand extends Command
 {
-    public $name = "Media.FixBrokenImages";
-    public $description = "Installs missing images.";
+    public string $name = "Media.FixBrokenImages";
+    public string $description = "Installs missing images.";
 
     /**
      * Executes the command
      */
-    public function Run()
+    public function Run(): void
     {
         $this->MigrateTabImages(10000,1);
     }
@@ -28,7 +28,7 @@ class InstallStaticImagesToUserAccountsCommand extends Command
         //$lstV2CardPages = (new CardPagesModule())->getWhere(null, [$pageOffset, $pageLimit]);
         $lstV2CardPages = (new CardPage())->getWhere(["card_tab_id" => 149460]);
 
-        if ($lstV2CardPages->Result->Count === 0)
+        if ($lstV2CardPages->result->Count === 0)
         {
             return false;
         }
@@ -39,7 +39,7 @@ class InstallStaticImagesToUserAccountsCommand extends Command
         $arAllFileTypes = [];
         $arFileTypeCounts = [];
 
-        foreach($lstV2CardPages->Data as $intV2CardsIndex => $objCardPage)
+        foreach($lstV2CardPages->data as $intV2CardsIndex => $objCardPage)
         {
             $intUserId = $objCardPage->user_id;
 
@@ -133,9 +133,9 @@ class InstallStaticImagesToUserAccountsCommand extends Command
     {
         $lstCardImages = (new Images())->getWhere([["entity_name" => "user", "user_id" => $intUserId, "image_class" =>"editor", "title" => $strImageTitle]]);
 
-        if ($lstCardImages->Result->Count > 0)
+        if ($lstCardImages->result->Count > 0)
         {
-            return $lstCardImages->Data->First()->url;
+            return $lstCardImages->getData()->first()->url;
         }
 
         $intBatchCount++;
@@ -159,7 +159,7 @@ class InstallStaticImagesToUserAccountsCommand extends Command
 
         $arFilePath = explode(".", $strOldImagePath);
         $strFileExtension = end($arFilePath);
-        $strTempFileNameAndPath = AppStorage . 'uploads/'. sha1(microtime()) . "." . $strFileExtension;
+        $strTempFileNameAndPath = APP_STORAGE . 'uploads/'. sha1(microtime()) . "." . $strFileExtension;
 
         if ($objMainImage === false)
         {

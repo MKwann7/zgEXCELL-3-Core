@@ -3,11 +3,11 @@
 namespace Entities\Orders\Classes;
 
 use App\Core\AppEntity;
-use Module\Orders\Models\OrderModel;
+use Entities\Orders\Models\OrderModel;
 
 class Orders extends AppEntity
 {
-    public $strEntityName       = "Orders";
+    public string $strEntityName       = "Orders";
     public $strDatabaseTable    = "orders";
     public $strDatabaseName     = "Crm";
     public $strMainModelName    = OrderModel::class;

@@ -9,12 +9,15 @@ use Entities\Companies\Models\CompanyModel;
 
 class Companies extends AppEntity
 {
-    public $strEntityName       = "Companies";
+    public string $strEntityName       = "Companies";
     public $strDatabaseTable    = "company";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = CompanyModel::class;
     public $strMainModelPrimary = "company_id";
     public $isPrimaryModule     = true;
+
+    const APP_TYPE_DEFAULT = "default";
+    const APP_TYPE_MAXTECH = "maxtech";
 
     public $intDefaultSponsor = 726;
 
@@ -33,11 +36,11 @@ class Companies extends AppEntity
         $objWhereClause .= "WHERE cp.sys_row_id = '".$uuid."'";
 
         $customPlatformResult = Database::getSimple($objWhereClause, "company_id");
-        $customPlatformResult->Data->HydrateModelData(CompanyModel::class, true);
+        $customPlatformResult->getData()->HydrateModelData(CompanyModel::class, true);
 
-        if ($customPlatformResult->Result->Count !== 1)
+        if ($customPlatformResult->result->Count !== 1)
         {
-            return new ExcellTransaction(false, $customPlatformResult->Result->Message, ["errors" => [$customPlatformResult->Result->Message, $objWhereClause]]);
+            return new ExcellTransaction(false, $customPlatformResult->result->Message, ["errors" => [$customPlatformResult->result->Message, $objWhereClause]]);
         }
         return $customPlatformResult;
     }

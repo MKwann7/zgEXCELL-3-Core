@@ -9,8 +9,8 @@ use Entities\Cards\Components\Vue\CardPageWidget\ListCardPageWidget;
 class CardWidgetLibraryApp extends VueApp
 {
     protected $appTitle = "Widget Library";
-    protected $appNamePlural = "Card Widgets";
-    protected $appNameSingular = "Card Widget";
+    protected string $appNamePlural = "Card Widgets";
+    protected string $appNameSingular = "Card Widget";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

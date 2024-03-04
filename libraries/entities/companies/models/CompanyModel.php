@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CompanyModel extends AppModel
 {
-    protected $EntityName = "Company";
-    protected $ModelName = "Company";
+    protected string $EntityName = "Company";
+    protected string $ModelName = "Company";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CompanyModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "company_id" => ["type" => "int","length" => 15],

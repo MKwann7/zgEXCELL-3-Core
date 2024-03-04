@@ -7,7 +7,7 @@ use Entities\Testimonials\Models\TestimonialModel;
 
 class Testimonials extends AppEntity
 {
-    public $strEntityName       = "testimonials";
+    public string $strEntityName       = "testimonials";
     public $strDatabaseTable    = "testimonial";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = TestimonialModel::class;

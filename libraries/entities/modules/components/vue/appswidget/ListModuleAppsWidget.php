@@ -3,14 +3,15 @@
 namespace Entities\Modules\Components\Vue\AppsWidget;
 
 use App\Website\Constructs\Breadcrumb;
+use App\Website\Vue\Classes\Base\VueComponent;
 use App\Website\Vue\Classes\VueComponentEntityList;
 use Entities\Modules\Models\ModuleMainModel;
 
 class ListModuleAppsWidget extends VueComponentEntityList
 {
-    protected $id = "834a5a03-d5e2-4c9b-8af9-a877a79f356a";
-    protected $title = "My Modules";
-    //protected $batchLoadEndpoint = "modules/module-data/get-module-batches";
+    protected string $id = "834a5a03-d5e2-4c9b-8af9-a877a79f356a";
+    protected string $title = "My Modules";
+    //protected string $batchLoadEndpoint = "modules/module-data/get-module-batches";
 
     public function __construct(array $components = [])
     {
@@ -33,8 +34,6 @@ class ListModuleAppsWidget extends VueComponentEntityList
 
         parent::__construct($defaultEntity, $components);
 
-        $this->addBreadcrumb(new Breadcrumb("Admin","/account/admin/", "link"));
-
         $editorComponent = new ManageModuleAppsWidget();
         $editorComponent->addParentId($this->getInstanceId(), ["edit"]);
 
@@ -46,6 +45,12 @@ class ListModuleAppsWidget extends VueComponentEntityList
         $this->modalTitleForDeleteEntity = "View Apps";
         $this->modalTitleForRowEntity = "View Apps";
         $this->setDefaultAction("view");
+    }
+
+    protected function loadBreadCrumbs(): VueComponent
+    {
+        $this->addBreadcrumb(new Breadcrumb("Admin","/account/admin/", "link"));
+        return $this;
     }
 
     protected function renderTemplate() : string

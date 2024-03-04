@@ -7,8 +7,8 @@ use Entities\Cart\Components\Vue\CartWidget\CartWidget;
 
 class VueBreadcrumbs extends VueComponent
 {
-    protected $name = "compBC";
-    protected $vueType = "compBC";
+    protected string $name = "compBC";
+    protected string $vueType = "compBC";
 
     public function __construct()
     {
@@ -43,7 +43,6 @@ class VueBreadcrumbs extends VueComponent
                             <img v-on:click="openCart" src="/_ez/images/financials/cart-icon-white.png" class="pointer" />
                         </li>
                     </ul>
-                    
                 </div>
             </div>
         ';

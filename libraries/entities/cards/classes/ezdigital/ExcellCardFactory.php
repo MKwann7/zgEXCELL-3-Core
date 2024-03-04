@@ -2,52 +2,67 @@
 
 namespace Entities\Cards\Classes\EzDigital;
 
+use App\Core\App;
+use App\Utilities\Excell\ExcellHttpModel;
 use Entities\Cards\Classes\Cards;
 use Entities\Cards\Classes\EzCard;
+use Entities\Cards\Models\CardModel;
 use Entities\Companies\Classes\Companies;
 
-class EzDigitalCardFactory
+class ExcellCardFactory
 {
-    private $cardFound = false;
-    private $httpHeader = null;
-    private $accessedByVanityUrl = false;
-    private $card = null;
-    private $redirectCard = null;
-    private $app = null;
+
+    protected ExcellHttpModel $httpHeader;
+    protected App $app;
+    protected Cards $cards;
+
+    protected ?CardModel $card = null;
+    protected ?CardModel $redirectCard = null;
+
+    protected bool $cardFound = false;
+    protected bool $accessedByVanityUrl = false;
 
     public const CardStatusActive = "active";
     public const CardStatusBuildReady = "build";
     public const CardStatusBuildQa = "buildcomplete";
 
-    public function __construct ($httpHeader, $app)
+    public function __construct (App $app, ExcellHttpModel $httpHeader, Cards $cards)
     {
         $this->httpHeader = $httpHeader;
         $this->app = $app;
+        $this->cards = $cards;
+    }
+
+    protected function getCardByRequest() :?CardModel
+    {
+        $card = null;
+
+        if ($this->app->getActiveDomain()->getType() !== "app") {
+            $card = $this->cards->getById($this->app->getActiveDomain()->getCardId())->getData()->first();
+        }
+
+        if ($card === null && !empty($this->httpHeader->Uri[0]) && $this->app->getActiveDomain()->getType() === "app") {
+            $card = $this->cards->GetByCardNum($this->httpHeader->Uri[0])->getData()->first();
+        }
+
+        return $card;
     }
 
     public function process() : bool
     {
-        if ($this->httpHeader === null)
-        {
-            return false;
-        }
+        $card = $this->getCardByRequest();
 
-        $cardResult = (new Cards())->GetByCardNum($this->httpHeader->Uri[0]);
+        if ($card === null) {
+            $card = $this->cards->GetByCardVanityUrl($this->httpHeader->Uri[0], $this->app->objCustomPlatform->getCompanyId())->getData()->first();
 
-        if ($cardResult->Result->Count === 0)
-        {
-            $cardResult = (new Cards())->GetByCardVanityUrl($this->httpHeader->Uri[0], $this->app->objCustomPlatform->getCompanyId());
-
-            if ($cardResult->Result === true)
-            {
+            if ($card !== null) {
                 $this->accessedByVanityUrl = true;
             }
         }
 
-        if ($cardResult->Result->Success === true && $cardResult->Result->Count === 1 && $this->app->isPublicWebsite())
-        {
-            $this->card = $cardResult->Data->First();
-            $this->card->LoadCardImages();
+        if ($card !== null && $this->app->isPublicWebsite()) {
+            $this->card = $card;
+            $this->card->LoadCardSettings();
             $this->cardFound = true;
             return true;
         }
@@ -57,10 +72,8 @@ class EzDigitalCardFactory
 
     public function render($myHub = false) : bool
     {
-        if ($this->cardFound === false)
-        {
-            if ($myHub === true)
-            {
+        if ($this->cardFound === false) {
+            if ($myHub === true) {
                 die((new Cards())->getView("card.myhub", $this->app->strAssignedPortalTheme));
             }
 
@@ -69,36 +82,30 @@ class EzDigitalCardFactory
 
         $this->redirectCardIfApplicable();
 
-        if ((int)$this->card->company_id !== $this->app->objCustomPlatform->getCompanyId())
-        {
+        if ((int)$this->card->company_id !== $this->app->getCustomPlatform()->getCompanyId()) {
             return false;
         }
 
-        switch (strtolower($this->card->status))
-        {
+        switch (strtolower($this->card->status)) {
             case self::CardStatusActive:
                 $this->renderCardWithMyHub();
                 break;
 
             case self::CardStatusBuildReady:
             case self::CardStatusBuildQa:
-                die((new Cards())->getView("card.coming_soon", $this->app->strAssignedPortalTheme, ["card" => $this->card]));
+
+                $portalTheme = $this->app->getCustomPlatform()->getCompanySettings()->FindEntityByValue("label","portal_theme")->value ?? 1;
+
+                die((new Cards())->getView("card.t".$portalTheme.".coming_soon", $this->app->strAssignedPortalTheme, ["card" => $this->card]));
         }
         return false;
     }
 
     private function renderCardWithMyHub() : void
     {
-        if ($this->card->template_id > 1 || $this->app->getActiveLoggedInUser()->user_id === 1000)
-        {
-            die((new Cards())->getView("card.card_base", $this->app->strAssignedPortalTheme, [
-                "objCard" => $this->card
-            ]));
-        }
-        else
-        {
-            (new EzCard())->RenderCardByCardEntity($this->card, $this->httpHeader, $this->app);
-        }
+        die((new Cards())->getView("card.card_base", $this->app->strAssignedPortalTheme, [
+            "objCard" => $this->card
+        ]));
     }
 
     private function redirectCardIfApplicable() : void
@@ -134,9 +141,9 @@ class EzDigitalCardFactory
             {
                 $objCardRedirectResult = (new Cards())->GetByCardNum($this->card->redirect_to);
 
-                if ($objCardRedirectResult->Result->Count === 1)
+                if ($objCardRedirectResult->result->Count === 1)
                 {
-                    $this->redirectCard = $objCardRedirectResult->Data->First();
+                    $this->redirectCard = $objCardRedirectResult->getData()->first();
                     return true;
                 }
             }
@@ -151,7 +158,7 @@ class EzDigitalCardFactory
 
         if ($this->redirectCard->company_id !== $this->app->objCustomPlatform->getCompanyId())
         {
-            $customPlatformResult = (new Companies())->getById($this->redirectCard->company_id)->Data->First();
+            $customPlatformResult = (new Companies())->getById($this->redirectCard->company_id)->getData()->first();
             $redirectUrl = "http" . ($customPlatformResult->domain_public_ssl === 1 ? "s://" : "://") . $customPlatformResult->domain_public;
         }
 

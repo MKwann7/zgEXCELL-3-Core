@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class ConnectionTypeModel extends AppModel
 {
-    protected $EntityName = "Users";
-    protected $ModelName = "Connection";
+    protected string $EntityName = "Users";
+    protected string $ModelName = "Connection";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class ConnectionTypeModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return  [
             "connection_type_id" => ["type" => "int","length" => 15],

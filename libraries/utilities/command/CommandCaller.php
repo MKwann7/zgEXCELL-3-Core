@@ -33,7 +33,7 @@ class CommandCaller
         $this->commandId = rand(10000,99999);
         $this->startTime = date("Y-m-d H:i:s");
         $this->startUnixTimestamp = strtotime("now");
-        $this->strFileInstancePath = AppStorage . "commands/{$this->name}.json";
+        $this->strFileInstancePath = APP_STORAGE . "commands/{$this->name}.json";
         $this->objCommand = $objCommand;
         $this->intTries = $objCommand->tries ?? 5;
 
@@ -56,7 +56,14 @@ class CommandCaller
 
         if ($this->strCommandExecutionType === "interval")
         {
-            $this->intNextTime = ($this->objHistory->last_execution + $this->intInterval);
+            if (!empty($this->objHistory)) {
+                if ($this->objHistory->last_execution === null) {
+                    $this->objHistory->last_execution = 0;
+                }
+                $this->intNextTime = ($this->objHistory->last_execution + $this->intInterval);
+            } else {
+                $this->intNextTime = $this->intInterval;
+            }
         }
 
         if ($this->intNextTime <= $this->intInstatiationTime || $app->blnForceCommands === true )
@@ -211,27 +218,24 @@ class CommandCaller
 
     protected function getOrCreateCommandInstanceData() : bool
     {
-        if (is_file($this->strFileInstancePath))
-        {
+        if (is_file($this->strFileInstancePath)) {
             $this->objCommandInsanceData = $this->addCommandInstanceToData($this->getUpdateCommandInstance());
 
-        }
-        else
-        {
+        } else {
             $this->objCommandInsanceData = [
                 "commands" => [$this->commandId => $this->generateCommandInstanceData()]
             ];
         }
 
-        if (count(array_filter($this->objCommandInsanceData["history"]["commands"])) >= $this->instanceLimit)
-        {
-             return false;
+        if (!empty($this->objCommandInsanceData["history"])) {
+            if (count(array_filter($this->objCommandInsanceData["history"]["commands"])) >= $this->instanceLimit) {
+                 return false;
+            }
         }
 
         $this->addCommandIdToHistory($this->objCommandInsanceData);
 
-        if ($this->objCommand === null)
-        {
+        if ($this->objCommand === null) {
             $this->updateCommandInsance(
                 false,
                 0,

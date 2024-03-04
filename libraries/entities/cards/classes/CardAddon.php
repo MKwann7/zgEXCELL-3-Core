@@ -7,7 +7,7 @@ use Entities\Cards\Models\CardAddonModel;
 
 class CardAddon extends AppEntity
 {
-    public $strEntityName       = "Cards";
+    public string $strEntityName       = "Cards";
     public $strDatabaseTable    = "card_addon";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = CardAddonModel::class;

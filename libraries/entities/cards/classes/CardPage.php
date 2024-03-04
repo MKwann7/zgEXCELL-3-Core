@@ -11,7 +11,7 @@ use Entities\Cards\Models\CardPageModel;
 
 class CardPage extends AppEntity
 {
-    public $strEntityName       = "Cards";
+    public string $strEntityName       = "Cards";
     public $strDatabaseTable    = "card_tab";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = CardPageModel::class;
@@ -35,9 +35,9 @@ class CardPage extends AppEntity
 
         if ( empty($intCardId) || !isInteger($intCardId))
         {
-            $objCardResult->Result->Success = false;
-            $objCardResult->Result->Count = 0;
-            $objCardResult->Result->Message = "You must supply a valid card id.";
+            $objCardResult->result->Success = false;
+            $objCardResult->result->Count = 0;
+            $objCardResult->result->Message = "You must supply a valid card id.";
             return $objCardResult;
         }
 
@@ -55,15 +55,15 @@ class CardPage extends AppEntity
             $objCardRel = $objCardPageRelModule->getWhere(["card_id" => $intCardId]);
         }
 
-        if ($objCardRel->Result->Count === 0)
+        if ($objCardRel->result->Count === 0)
         {
             return $objCardRel;
         }
 
-        $arCardPageIds = $objCardRel->Data->FieldsToArray(["card_tab_id"]);
+        $arCardPageIds = $objCardRel->getData()->FieldsToArray(["card_tab_id"]);
         $objCardPages = $this->getWhereIn("card_tab_id", $arCardPageIds);
-        $objCardRel->Data->MergeFields($objCardPages->Data,["user_id","title","content","order_number","url","library_tab","visibility","permanent","card_tab_type_id","created_on","last_updated"],["card_tab_id"]);
-        $objCardRel->Data->SortBy("rel_sort_order","ASC");
+        $objCardRel->getData()->MergeFields($objCardPages->data,["user_id","title","menu_title","url","content","order_number","library_tab","visibility","permanent","card_tab_type_id","created_on","last_updated"],["card_tab_id"]);
+        $objCardRel->getData()->SortBy("rel_sort_order","ASC");
 
         return $objCardRel;
     }
@@ -125,13 +125,13 @@ class CardPage extends AppEntity
             "", // Build this soon...
             "", // Build this soon...
             $objOwner->preferred_name,
-            !empty($lstAddresses->First()) ? $lstAddresses->First()->address_1 . " " . $lstAddresses->First()->address_2 . "<br>" . $lstAddresses->First()->city . ", " . $lstAddresses->First()->state . " " . $lstAddresses->First()->zip : "",
-            !empty($lstAddresses->First()) ? $lstAddresses->First()->address_1 : "",
-            !empty($lstAddresses->First()) ? $lstAddresses->First()->address_2 : "",
-            !empty($lstAddresses->First()) ? $lstAddresses->First()->city : "",
-            !empty($lstAddresses->First()) ? $lstAddresses->First()->state : "",
-            !empty($lstAddresses->First()) ? $lstAddresses->First()->zip : "",
-            !empty($lstAddresses->First()) ? $lstAddresses->First()->country : "",
+            !empty($lstAddresses->first()) ? $lstAddresses->first()->address_1 . " " . $lstAddresses->first()->address_2 . "<br>" . $lstAddresses->first()->city . ", " . $lstAddresses->first()->state . " " . $lstAddresses->first()->zip : "",
+            !empty($lstAddresses->first()) ? $lstAddresses->first()->address_1 : "",
+            !empty($lstAddresses->first()) ? $lstAddresses->first()->address_2 : "",
+            !empty($lstAddresses->first()) ? $lstAddresses->first()->city : "",
+            !empty($lstAddresses->first()) ? $lstAddresses->first()->state : "",
+            !empty($lstAddresses->first()) ? $lstAddresses->first()->zip : "",
+            !empty($lstAddresses->first()) ? $lstAddresses->first()->country : "",
             $objCard->card_data->style->card->color->main_rgb->red ?? "255",
             $objCard->card_data->style->card->color->main_rgb->green ?? "00",
             $objCard->card_data->style->card->color->main_rgb->blue ?? "00",
@@ -158,7 +158,7 @@ class CardPage extends AppEntity
 
     public function LoadTabClasses() : array
     {
-        $objTabFilesDir = glob(PublicData . "_ez/tabs/v1/controllers/*Controller.php");
+        $objTabFilesDir = glob(PUBLIC_DATA . "_ez/tabs/v1/controllers/*Controller.php");
         $arTabClasses = array();
 
         foreach( $objTabFilesDir as $currTabFileDir)
@@ -187,8 +187,8 @@ class CardPage extends AppEntity
 
             if (!in_array($strTabClassName, $arTabClasses))
             {
-                $objResult->Result->Success = false;
-                $objResult->Result->Count = 0;
+                $objResult->result->Success = false;
+                $objResult->result->Count = 0;
                 return $objResult;
             }
         }
@@ -234,9 +234,9 @@ class CardPage extends AppEntity
             }
         }
 
-        $objResult->Result->Success = true;
-        $objResult->Result->Count = count($arTabClassProperties);
-        $objResult->Data = $arTabClassProperties;
+        $objResult->result->Success = true;
+        $objResult->result->Count = count($arTabClassProperties);
+        $objResult->data = $arTabClassProperties;
 
         return $objResult;
     }
@@ -259,9 +259,9 @@ class CardPage extends AppEntity
             }
         }
 
-        $objResult->Result->Success = true;
-        $objResult->Result->Count = count($arTabClassProperties);
-        $objResult->Data = $arTabClassProperties;
+        $objResult->result->Success = true;
+        $objResult->result->Count = count($arTabClassProperties);
+        $objResult->data = $arTabClassProperties;
 
         return $objResult;
     }

@@ -6,7 +6,7 @@ use App\Core\AppEntity;
 
 class Dashboard extends AppEntity
 {
-    public $strEntityName       = "Dashboard";
+    public string $strEntityName       = "Dashboard";
     public $strDatabaseTable    = "dashboard";
     public $strMainModelName    = "Dashboard";
     public $strMainModelPrimary = "dashboard_id";

@@ -15,7 +15,7 @@ class ExcellCarets
     {
         $carets = new \stdClass();
 
-        $carets->authSession = $_COOKIE["authId"] ? "active" : "inactive";
+        $carets->authSession = $_COOKIE["authId"] ?? "inactive";
         $carets->authSessionId = $_COOKIE["authId"] ?? null;
 
         return $this->processExternalCarets($componentObject, $carets);

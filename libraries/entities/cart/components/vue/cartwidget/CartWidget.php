@@ -4,13 +4,11 @@ namespace Entities\Cart\Components\Vue\CartWidget;
 
 use App\Core\App;
 use App\Website\Vue\Classes\Base\VueComponent;
-use Entities\Cards\Components\Vue\CardWidget\ListCardWidget;
-use Entities\Cards\Components\Vue\CardWidget\ManageCardWidget;
 use Entities\Cart\Models\CartModel;
 
 class CartWidget extends VueComponent
 {
-    protected $id = "f878dc91-2ed7-4252-b5d8-ac25e92dabb8";
+    protected string $id = "f878dc91-2ed7-4252-b5d8-ac25e92dabb8";
 
     public function __construct(array $components = [])
     {
@@ -29,16 +27,52 @@ class CartWidget extends VueComponent
         $this->setDefaultAction("view");
     }
 
+    protected function renderComponentHydrationScript() : string
+    {
+        return "
+            if (typeof this.disableModalLoadingSpinner === 'function') { this.disableModalLoadingSpinner(); }
+            if (props.productGroup) {
+                if (props.loggedInUserId) {
+                    this.selectPackagesByClass(props.productGroup, false, props.loggedInUserId, props.loggedInUserId); 
+                } else {
+                    this.selectPackagesByClass(props.productGroup, false);
+                }
+            }
+            
+            if (props.inModal) {
+                this.inModal = props.inModal;             
+            }
+            
+            if (props.cardId) {
+                this.cardSource = props.cardId;             
+            } else {
+                this.cardSource = 'admin';
+            }
+            
+            if (sessionStorage.getItem(this.cardSource)) {
+                this.cartItemsList = JSON.parse(sessionStorage.getItem(this.cardSource))
+            } else {
+                sessionStorage.setItem(this.cardSource,'[]')
+            }
+            
+            this.updateCartQuantityReferences()
+            this.setDispatchEvents()
+        ";
+    }
+
     protected function renderComponentDataAssignments() : string
     {
         return '
             rootUrl: "",
+            inModal: true,
+            isPublic: false,
+            cardSource: "admin",
             cartType: false,
-            cartFuncType: 0,
+            cartSourceType: "",
+            cartCustomerId: 0,
             parentEntity: {id: 0, type: "unknown"},
             previousProductClass: "",
             cloningCart: false,
-            cartItems: [],
             cartDisplayItemsForComplete: [],
             cartUser: null,
             cartUserId: null,
@@ -54,6 +88,7 @@ class CartWidget extends VueComponent
             totalSearchDisplayCount: 0,
             dynamicSearch: false,
             displayComponent: "selectPackagesByClass",
+            cartItemsList: [],
             packageList: [],
             customerPaymentAccounts: [],
             checkoutUserId: null,
@@ -86,26 +121,42 @@ class CartWidget extends VueComponent
         global $app;
 
         return '
-            selectPackagesByClass: function(name, public, parentEntity, userId)
+            selectPackagesByClass: function(name, public, parentEntity, customerId, userId)
             {
                 const self = this
-                const vc = this.findVc(this)
                 this.setRootDomain();
-                this.processDefaultTitle(vc, name)
+                this.processDefaultTitle(name)
                 this.setCartDefaults(public)
-                this.setCartSource(name, parentEntity, userId);
+                this.setCartSource(name, parentEntity, customerId, userId);
                 
                 return self;
             },
-            setCartSource: function(name, parentEntity, userId)
+            alertTest: function() {
+                alert("I am a cart");
+            },
+            parentEntityNotUser: function()
             {
-                if (typeof parentEntity === "undefined" || parentEntity.type !== "user")
-                {
-                    this.cartFuncType = "card_nouser"; 
+                return typeof parentEntity === "undefined" || parentEntity.type !== "user"
+            },
+            setCartSource: function(name, parentEntity, customerId, userId)
+            {
+                this.cartCustomerId = 0;
+                
+                if (this.parentEntityNotUser())
+                {                    
+                    if (typeof customerId !== "undefined" && customerId !== null) 
+                    {
+                        this.cartCustomerId = customerId;
+                        this.assignUserToCardById(customerId);
+                    }
+                    if (typeof parentEntity !== "undefined")
+                    {
+                        this.assignParentEntityToCartById(parentEntity);
+                    }
                 }
                 else
                 {
-                    this.cardEntityBind(name, parentEntity, userId)
+                    this.cardEntityBind(parentEntity, userId)
                 }
                 
                 if (this.previousProductClass !== name)
@@ -115,23 +166,56 @@ class CartWidget extends VueComponent
                     this.loadPackagesByClass(name)
                 }
             },
-            cardEntityBind: function(name, parent, userId)
+            userIsExcellAdmin: function(logical)
             {
-                this.cartFuncType = name;                
-                this.assignParentEntityToCartById(parent);
+                if (typeof this.user.data.Roles === "undefined" || this.user.data.Roles.length === 0) {
+                    // Invalidate user and sign them out.
+                }
+                
+                let isExcellAdmin = false;
+                
+                this.user.data.Roles.forEach(role => {
+                    if (role.user_class_type_id__value <= 3) isExcellAdmin = true;
+                })
+                return isExcellAdmin;
+            },
+            setCartPrivacy: function(logical)
+            {
+                this.cartType = logical;
+                this.isPublic = logical;
+            },
+            cardEntityBind: function(parentEntity, userId)
+            {           
+                this.assignParentEntityToCartById(parentEntity);
                 this.cartUserId = userId;
                 this.assignUserToCardById(userId);
             },
+            getParentEntityType: function() {
+            
+                if (typeof this.parentEntity === "undefined" || this.parentEntity.type === "unknown")
+                {
+                    return "global";
+                }
+                
+                return this.parentEntity.type ?? "global";
+            },
             cartIsCardProcess: function()
             {
-                switch(this.cartFuncType)
-                {
-                    case "card":
-                    case "card_nouser":
-                        return true;
-                    default:
-                        return false; 
+                let cardInCart = false
+                // Loop through items and see if there is a card.
+                if (this.isIterable(this.cartItemsList)) {
+                    for (let currPackage of this.cartItemsList)
+                    {
+                        if (typeof currPackage.line === "undefined") {
+                            continue;
+                        }
+                        if (this.packageContainsCard(currPackage)) {
+                            cardInCart = true
+                        }
+                    }
                 }
+                
+                return cardInCart
             },
             cartIsNotCardProcess: function()
             {
@@ -153,9 +237,13 @@ class CartWidget extends VueComponent
                 
                 return true; 
             },
+            setCartFuncType: function(type)
+            {
+                this.cartFuncType = type;
+            },
             cartIsAllCardProcess: function()
             {
-                if (this.cartFuncType !== "card_nouser")
+                if (this.cartFuncType !== "card_nouser" || this.cartCustomerId !== 0)
                 {
                     return false;      
                 }
@@ -180,11 +268,22 @@ class CartWidget extends VueComponent
                 
                 return true; 
             },
-            processDefaultTitle: function(vc, name)
-            {
-                vc.showModal(this, function() {
+            processDefaultTitle: function(name)
+            {                
+                this.showModal(this,  function(vc) {
                     vc.setTitle("Select a " + ucwords(name) + " Package");
                 });
+            },
+            showModal: function(self, callback) {
+                if (this.inModal === false) return;
+                
+                const vc = self.findVc(self);
+                
+                if (vc) vc.showModal(self);
+                
+                if (typeof callback === "function") {
+                    callback(vc);
+                }
             },
             setCartDefaults: function(public)
             {
@@ -194,7 +293,6 @@ class CartWidget extends VueComponent
                 }
                 
                 this.displayComponent = "selectPackagesByClass";
-                this.cartItems = [];
                 this.setAppWrapperClass("products");
             },
             setRootDomain: function()
@@ -215,9 +313,7 @@ class CartWidget extends VueComponent
             {
                 const self = this;
                 
-                console.log(this.rootUrl);
-                
-                let url = this.rootUrl + "/cart/get-packages-by-class-name?name=" + name;
+                let url = this.rootUrl + "/cart/get-packages-by-class-name?name=" + name + "&e="+this.userAdminRole;
 
                 ajax.GetExternal(url, true, function(result) 
                 {
@@ -248,9 +344,9 @@ class CartWidget extends VueComponent
             loadCartPackagesByExistingCardId: function(id)
             {
                 const self = this;
-                self.cartItems = [];
+                self.setCartItems([]);
                 
-                ajax.GetExternal("' . $app->objCustomPlatform->getFullPortalDomain() . '/cart/get-packages-from-existing-card?id=" + id, true, function(result) 
+                ajax.GetExternal("' . $app->objCustomPlatform->getFullPortalDomainName() . '/cart/get-packages-from-existing-card?id=" + id, true, function(result) 
                 {
                     if (result.success === false || (typeof result.response !== "undefined" && result.response.success === false))
                     {
@@ -265,18 +361,43 @@ class CartWidget extends VueComponent
             },
             getPackageFromCart: function(package)
             {
-                for (let currPackage of this.cartItems)
-                {
-                    if (currPackage.package_id === package.package_id)
+                if (this.isIterable(this.cartItemsList)) {
+                    for (let currPackage of this.cartItemsList)
                     {
-                        return currPackage;
+                        if (currPackage.package_id === package.package_id)
+                        {
+                            return currPackage;
+                        }
                     }
                 }
-                
+
                 return null;
             },
             addPackageToCart: function(package)
             {
+                ezLog(package, "package");
+                const self = this;
+                if (this.inModal === false) {
+                    // This doesn\'t work...
+                    appCart.addPackageToCart(package.package_variation_id)
+                        .registerEntityListAndManager()
+
+                    modal.EngageFloatShield();
+        
+                    let alertData = {title: "Item Added To Cart", html: "Go to your shopping cart?<hr/><i>Clicking cancel will return you to your browsing.</i><hr/>"};
+        
+                    modal.EngagePopUpConfirmation(alertData, function() {
+                        modal.CloseFloatShield(function() {
+                            appCart.openCart("custom")
+                                .setCartPrivacy(self.isPublic)
+                                .setCustomerByUuid(Cookie.get("user"))
+                                .registerEntityListAndManager()
+                            modal.CloseFloatShield();
+                        });
+                    }, 500, 115, true);
+                    return;
+                }
+                
                 package.quantity = this.fixUndefined(package.quantity);
                 package.max_quantity = this.fixUndefined(package.max_quantity);
                 
@@ -289,13 +410,12 @@ class CartWidget extends VueComponent
                         return;
                     }
                     
-                    existingPackage.quantity = existingPackage.quantity + 1;
+                    this.upsertToCartItems(existingPackage);
                     
                 } else
                 {
                     const newPackage = _.clone(package);
-                    newPackage.quantity += 1;
-                    this.cartItems.push(newPackage);
+                    this.upsertToCartItems(newPackage);
                 }
                 
                 modal.EngageFloatShield();
@@ -309,12 +429,7 @@ class CartWidget extends VueComponent
                 }, 250);
             },
             addPackageAndGoToCart: function(package)
-            {
-                if (!this.productCartContainsCard(this.cartItems) && ! this.packageContainsCard(package) && this.cartIsCardProcess()) 
-                { 
-                    return;
-                }
-                
+            {                
                 package.quantity = this.fixUndefined(package.quantity);
                 package.max_quantity = this.fixUndefined(package.max_quantity);
                 
@@ -327,13 +442,12 @@ class CartWidget extends VueComponent
                         return;
                     }
                     
-                    existingPackage.quantity = existingPackage.quantity + 1;
+                    this.upsertToCartItems(existingPackage);
                     
                 } else
                 {
                     const newPackage = _.clone(package);
-                    newPackage.quantity += 1;
-                    this.cartItems.push(newPackage);
+                    this.upsertToCartItems(newPackage);
                 }
                 
                 modal.EngageFloatShield();
@@ -353,48 +467,34 @@ class CartWidget extends VueComponent
                     
                     setTimeout(function() 
                     {
-                        vc.showModal(self);
-                        
-                        if (self.cartIsCardProcess())
-                        {
-                            self.openAssignUser(false);
-                        }
-                        else
-                        {
-                            self.openCheckout(false);
-                        }
+                        self.showModal(self);
+                        self.openCheckout(false);
                         
                     }, 750);
                     
                 }, 750);
                 
                 return;
-                
-                ajax.PostExternal(this.rootUrl + "/cart/add-package-to-cart?id=" + package.package_id, {}, true, function(result) 
-                {
-                    if (result.success === false || (typeof result.response !== "undefined" && result.response.success === false))
-                    {
-                        self.packageList = [];
-                        return;
-                    }
-                    
-                    self.packageList = result.response.data.list;
-                });
-
             },
-            openCart: function(options)
+            openCart: function(options, public)
             {
-                if (!this.productCartContainsCard(this.cartItems) && ( this.cartIsCardProcess() && options.className !== false)) 
-                { 
+                this.isPublic = public;
+
+                if (this.inModal === false) {
+                    appCart.openCart("custom")
+                        .setCartPrivacy(this.isPublic)
+                        .setCustomerByUuid(Cookie.get("user"))
+                        .registerEntityListAndManager()
                     return;
-                }
-                
+                }      
+
                 if (options.className === false) { this.previousProductClass = \'\'; }
                 
                 const self = this;
-                (this.findVc(this)).showModal(this);
+                this.showModal(self);
                 this.displayComponent = "shoppingCart";
                 this.setAppWrapperClass("cart");
+                this.refreshCartItems();
             },
             setAppWrapperClass: function(className)
             {
@@ -408,14 +508,17 @@ class CartWidget extends VueComponent
             },
             backToProductSelection: function()
             {
-                this.selectPackagesByClass(this.previousProductClass, this.cartType, this.parentEntity, this.cartUserId);
+                this.selectPackagesByClass(this.previousProductClass, this.cartType, this.parentEntity, this.cartCustomerId, this.cartUserId);
             },
             openAssignUser: function(useFloat)
             {
                 const self = this;
                 
-                if (!this.productCartContainsCard(this.cartItems) && this.cartIsCardProcess())
-                {
+                if (this.inModal === false) {
+                    appCart.openAssignUser("custom")                 
+                        .setCartPrivacy(true)
+                        .setCustomerByUuid(Cookie.get("user"))
+                        .registerEntityListAndManager()
                     return;
                 }
                 
@@ -424,45 +527,66 @@ class CartWidget extends VueComponent
                     modal.EngageFloatShield()
                 }
                 
-                ezLog("openAssignUser")
-                ezLog(this.cartIsAllCardProcess())
-                ezLog(this.cartType)
-                ezLog(this.cartUser)
-  
-                if (this.cartIsAllCardProcess())
-                {                
-                    setTimeout(function() 
-                    {
-                        const vc = self.findVc(self)
-                        
-                        vc.showModal(self, function() {
-                            vc.setTitle("Select a Customer")
-                            self.loadUsers()
-                        });
-                        
-                        if (self.displayComponent === "checkout" || self.cartUser === null || (self.cartType !== true && self.cartIsAllCardProcess() ) )
-                        {
-                            self.cartUser = null
-                            self.setAppWrapperClass("user")
-                            self.displayComponent = "assignUser"
-                        }
-                        else
-                        {
-                            
-                            self.openCheckout()
-                        }
-                        
+                console.log(JSON.stringify(self.cartUser))
+                console.log(self.displayComponent)
+                
+                if (self.displayComponent === "checkout" || self.cartUser === null) {
+                    console.log("Open Assign User")
+                    self.showModal(self, function(vc) {
+                        if (vc) vc.setTitle("Select a Customer")
+                    });
+                    self.cartUser = null
+                    self.setAppWrapperClass("user")
+                    self.displayComponent = "assignUser"
+                    if (useFloat) {
                         modal.CloseFloatShield()
-                    }, 750);
-                }
-                else
-                {
-                    self.openCheckout(true)
+                    }
+                } else {
+                    console.log("Open Checkout")
+                    console.log(self);
+                    self.openCheckout(false)
                 }
             },
             assignParentEntityToCartById: function(entity)
             {
                 this.parentEntity = entity
+            },
+            registerCustomerByUuid: function(uuid)
+            {
+                const self = this;
+                ajax.GetExternal(this.rootUrl + "/cart/get-user-information-by-uuid?uuid=" + uuid, true, function(result) 
+                {
+                    if (result.success === false || (typeof result.response !== "undefined" && result.response.success === false))
+                    {
+                        self.clearCartUser();
+                        return;
+                    }
+                    
+                    self.cartUser = result.response.data.user;                    
+                    self.dynamicSearch = false;
+                    self.userSearch = "";
+                    self.userSearchResult = "";            
+                });
+            },
+            addPackageToCartById: function(variation_id)
+            {
+                const self = this;
+                ajax.PostExternal(this.rootUrl + "/cart/get-package-by-variation-id-for-cart?id=" + variation_id, {}, true, function(result) 
+                {
+                    if (typeof result.response !== "undefined") {
+                        result = result.response;
+                    }
+                    
+                    if (result.success === false || (typeof result.response !== "undefined" && result.response.success === false))
+                    {
+                        return;
+                    }
+                    
+                    let newPackage = _.clone(result.data.package);
+                    newPackage.quantity = self.fixUndefined(newPackage.quantity);
+                    self.upsertToCartItems(newPackage)
+                    self.$forceUpdate();
+                });
             },
             assignUserToCart: function(user)
             {
@@ -471,7 +595,7 @@ class CartWidget extends VueComponent
                 const vc = this.findVc(this);
                 vc.setTitle("Confirm Customer Selection");
             },
-            assignUserToCardById: function(userId)
+            assignUserToCardById: function(userId, callback)
             { 
                 const self = this;
                 ajax.GetExternal(this.rootUrl + "/cart/get-user-information?id=" + userId, true, function(result) 
@@ -487,7 +611,10 @@ class CartWidget extends VueComponent
                     self.userSearch = "";
                     self.userSearchResult = "";
                     
-                    modal.CloseFloatShield()                    
+                    modal.CloseFloatShield()
+                    if (typeof callback === "function") {
+                        callback();
+                    }                    
                 });
             },
             assignAffiliateToUser: function(user)
@@ -502,7 +629,7 @@ class CartWidget extends VueComponent
                 this.userSearch = "";
                 this.userSearchResult = "";
                 const vc = this.findVc(this);
-                vc.setTitle("Select a Customer");
+                if (vc) vc.setTitle("Select a Customer");
             },
             engageDynamicSearch: function(user)
             {
@@ -563,6 +690,13 @@ class CartWidget extends VueComponent
                     self.$forceUpdate();
                 });
             },
+            assignSelfToCart: function()
+            {
+                const self = this;
+                this.assignUserToCardById(Cookie.get("userNum"), function() {
+                    self.openCheckout(true);
+                });
+            },
             toggleCreateNewCustomer: function()
             {
                 this.loadAffiliates();
@@ -572,8 +706,13 @@ class CartWidget extends VueComponent
             },
             loginCustomer: function()
             {
-                let newUser = this.newUserForCreate;
-                this.errorText.general = null;
+                if(this.$parent.$parent && typeof this.$parent.$parent.validateUsername === "function" && !this.$parent.$parent.validateUsername(this.loginUsername)) return;
+                if(this.$parent.$parent && typeof this.$parent.$parent.validatePassword === "function" && !this.$parent.$parent.validatePassword(this.loginPassword)) return;
+                
+                const urlApp = "'.$app->objCustomPlatform->getFullPublicDomainName().'/process/loginwidget/authenticate-loginwidget-request"
+                const urlCardDomain = "'.$app->objCustomPlatform->getFullPortalDomainName().'/api/v1/users/validate-existing-user-credentials"
+                const newUser = this.newUserForCreate
+                this.errorText.general = null
                 
                 if (!this.dataValidation(newUser, {
                     username: "required",
@@ -583,22 +722,63 @@ class CartWidget extends VueComponent
                     return;
                 }
                 
-                modal.EngageFloatShield();
+                let self = this;
+                this.loginCardUser(
+                    urlApp,
+                    newUser.username, 
+                    newUser.password, 
+                    function(result) 
+                    {
+                        if (result.response) result = result.response
+                        if (result.success === false)
+                        {
+                            self.cartUser = null;
+                            self.errorText.general = result.message;
+                            self.$forceUpdate();
+                            modal.CloseFloatShield();
+                            return;
+                        }
+                        
+                        dispatch.broadcast("register_auth", {user: result.data});
+    
+                        self.cartUser = {
+                            id: result.data.user,
+                            first_name: result.data.user.first_name,
+                            last_name: result.data.user.last_name,
+                            user_email: result.data.user.user_email,
+                            user_phone: result.data.user.user_phone
+                        };
+                        
+                        self.creatingNewCustomer = false;
+                        self.openCheckout(true);       
+                    }, 
+                    function(error) 
+                    {
+                        console.log(error);
+                    }
+                );
+            },
+            loginCardUser: function(url, username, password, successCallback, errorCallback)
+            {
+                let newUser = {browserId: Cookie.get("instance"), affiliate_id:"", first_name: "", last_name: "", email: "", phone: "", username: username,  password: password};
+                
                 const self = this;
                 
-                ajax.PostExternal(this.rootUrl + "/api/v1/users/validate-existing-user-credentials", newUser, true, function(result) 
+                ajax.PostExternal(url, newUser, true, function(result) 
                 {
-                    if (result.success === false || (typeof result.response !== "undefined" && result.response.success === false))
-                    {
-                        self.errorText.general = result.response.message; 
-                        self.$forceUpdate();
-                        modal.CloseFloatShield();
+                    if (result.success === false)
+                    {                        
+                        if (typeof errorCallback === "function") 
+                        {
+                            errorCallback(result);
+                        }
                         return;
                     }
                     
-                    self.cartUser = result.response.data.user;
-                    self.creatingNewCustomer = false;
-                    self.openCheckout(true);
+                    if (typeof successCallback === "function") 
+                    {
+                        successCallback(result);
+                    }
                 });
             },
             createNewCustomer: function()
@@ -771,18 +951,18 @@ class CartWidget extends VueComponent
                 {
                     modal.EngageFloatShield();
                 }
-                
+                   
                 this.setAppWrapperClass("checkout");
                 
-                ajax.GetExternal(this.rootUrl + "/cart/get-checkout-data?id=" + this.cartUser.user_id, true, function(result) 
-                {
-                    if (result.response.success === true)
-                    {
+                console.log("get-checkout-data");
+                
+                ajax.GetExternal(this.rootUrl + "/cart/get-checkout-data?id=" + this.cartUser.user_id, true, function(result) {
+                    if (result.response.success === true) {
+                        console.log("loading Payment Accounts");
+                    
                         self.customerPaymentAccounts = [];
-                       
                         const paymentAccounts = Object.entries(result.response.data.paymentAccounts);
-                        paymentAccounts.forEach(function([index, currPaymentAccount])
-                        {
+                        paymentAccounts.forEach(function([index, currPaymentAccount]) {
                             self.customerPaymentAccounts.push(currPaymentAccount);
                         });
                         
@@ -800,32 +980,40 @@ class CartWidget extends VueComponent
                     
                     setTimeout(function() 
                     {
-                        const vc = self.findVc(self);
-                        vc.showModal(self, function() {
-                            vc.setTitle("Checkout");
+                        console.log("loading Checkout");
+                        self.showModal(self, function(vc) {
+                            if (vc) vc.setTitle("Checkout")
                         });
                         
                         self.loadUsers();
                         modal.CloseFloatShield();
                         
                         self.displayComponent = "checkout";
+                        self.$forceUpdate();
+                        console.log("displayComponent = checkout");
                     }, 750);
                 });
             },
             openCompleted: function()
             {
                 // check to make sure there is an assigned user for checkout
-                const self = this;
-                const vc = this.findVc(this);
-                vc.showModal(this, function() {
-                    vc.setTitle("Checkout Complete");
+                const self = this;                
+                self.showModal(self, function(vc) {
+                    vc.setTitle("Checkout Complete")
                 });
+                
                 this.displayComponent = "completed";
                 this.setAppWrapperClass("commpleted");
             },
-            displayCurrency: function(currency)
+            displayCurrency: function(currPackage)
             {
-                return "$";
+                if (currPackage.regular_price == 0) return ""
+                return "$"
+            },
+            displayCurrencySpace: function(currPackage)
+            {
+                if (currPackage.regular_price == 0) return ""
+                return " "
             },
             calculateTotalPackagePrice: function(package)
             {
@@ -871,26 +1059,80 @@ class CartWidget extends VueComponent
             },
             calculateTotalCheckoutPriceFee: function(money)
             {
-                return this.renderMoney((money * 0.0298662) + 0.30);
+                if (money == 0) return this.renderMoney(0)
+                return this.renderMoney((money * 0.0298662) + 0.30)
+            },
+            renderTotalCheckoutPriceWithFee: function(cartPromoCode, cartItems, applyCartPromoCode) 
+            {
+                return this.renderMoney(this.calculateTotalCheckoutPriceWithFee(cartPromoCode, cartItems, applyCartPromoCode));
             },
             calculateTotalCheckoutPriceWithFee: function(cartPromoCode, cartItems, applyCartPromoCode)
             {
                 const fee = this.calculateTotalCheckoutPriceFee(this.calculateTotalCheckoutPrice(cartPromoCode, cartItems, applyCartPromoCode))
-                const totalPrice = this.calculateTotalCheckoutPrice(cartPromoCode, cartItems, applyCartPromoCode);
-                const newTotalPrice = (parseFloat(fee) + parseFloat(totalPrice));
+                const totalPrice = this.calculateTotalCheckoutPrice(cartPromoCode, cartItems, applyCartPromoCode)
+                const newTotalPrice = (parseFloat(fee) + parseFloat(totalPrice))
                 
-                return this.renderMoney(newTotalPrice);
+                return newTotalPrice < 0 ? 0 : newTotalPrice;
             },
             removePackageFromCart: function(package)
             {
-                for (let currPackageIndex in this.cartItems)
+                let cartItems = this.getCartItems();
+                for (let currPackageIndex in cartItems)
                 {
-                    if (this.cartItems[currPackageIndex].package_id === package.package_id)
+                    if (cartItems[currPackageIndex].package_id === package.package_id)
                     {
-                        this.cartItems.splice(currPackageIndex, 1);
+                        cartItems.splice(currPackageIndex, 1)
+                        this.setCartItems(cartItems)
+                        this.$forceUpdate()
+                        this.updateCartQuantityReferences()
                         return;
                     }
                 }
+            },
+            getCartItems: function() {
+                try {
+                    let cartItems = JSON.parse(sessionStorage.getItem(this.cardSource))
+                    this.cartItemsList = (cartItems !== null && typeof cartItems !== "undefined") ? cartItems : []
+                    return this.cartItemsList
+                } catch(e) {
+                    this.cartItemsList = [];
+                    return [];
+                }
+            },
+            refreshCartItems: function() {
+                this.getCartItems();
+            },
+            setCartItems: function(items) {
+                sessionStorage.setItem(this.cardSource, JSON.stringify(items))
+                this.cartItemsList = items
+                this.updateCartQuantityReferences()
+                this.updateCartItemReferences()
+            },
+            overwriteLocalCartItems: function(data) {
+                this.cartItemsList = data.items
+            },
+            upsertToCartItems: function(package) {
+                let cartItems = this.getCartItems();
+                let updatedItem = false;
+                
+                for (let currCartItemIndex in cartItems) {
+                    if (cartItems[currCartItemIndex].package_id === package.package_id) {
+                        cartItems[currCartItemIndex].quantity += 1
+                        package.quantity = cartItems[currCartItemIndex].quantity
+                        cartItems[currCartItemIndex] = package
+                        updatedItem = true
+                    }
+                }
+                
+                if (updatedItem === false) {
+                    package.quantity = 1;
+                    cartItems.push(package);
+                }
+
+                this.setCartItems(cartItems);
+            },
+            updateCartItems: function() {
+                this.setCartItems(this.cartItemsList);
             },
             selectCartPaymentAccount: function(account)
             {
@@ -907,40 +1149,46 @@ class CartWidget extends VueComponent
             },
             updateProductQuantity: function(package)
             {
-                package.quantity = parseFloat(package.quantity);
+                package.quantity = parseFloat(package.quantity)
                 
                 if (package.quantity === 0)
                 {
-                    this.removePackageFromCart(package);
+                    this.removePackageFromCart(package)
                 }
                 
-                this.$forceUpdate();
+                this.$forceUpdate()
+                this.updateCartItems();
             },
             cartQuantityCalculation: function(package)
             {
-                let quantity = 10;
+                let quantity = 10
                 
                 if (typeof package.max_quantity !== "undefined" && package.max_quantity > 0)
                 {
                     quantity = package.max_quantity
                 }
                 
-                let customQuantity = [0];
+                let customQuantity = [0]
                     
                 for(let currIndex = 1; currIndex <= quantity; currIndex++)
                 {
-                    customQuantity.push(currIndex);
+                    customQuantity.push(currIndex)
                 }
                 
-                return customQuantity;
+                return customQuantity
             },
             renderMoney: function(num) 
-            {                
-                return parseFloat(this.renderCartCurrency(num)).toFixed(2);
+            {      
+                return parseFloat(this.renderCartCurrency(num)).toFixed(2)
+            },
+            renderMoneyText: function(num) 
+            {
+                if (num == 0) return "FREE"
+                return this.renderMoney(num)
             },
             renderCartCurrency: function(num) 
             {
-               return num;
+               return num
             },
             keyMonitorUserList: function(event)
             {
@@ -1121,18 +1369,22 @@ class CartWidget extends VueComponent
                 
                 ajax.PostExternal(url, card, true, function(result) 
                 {
-                    if (result.success === false || (typeof result.response !== "undefined" && result.response.success === false))
+                    if (typeof result.response !== "undefined") {
+                        result = result.response;
+                    }
+                    
+                    if (result.success === false)
                     {
-                        let data = {title: "Credit Card Error", html: result.response.message};
+                        let data = {title: "Credit Card Error", html: result.message};
                         modal.EngagePopUpAlert(data, function() {
                             modal.CloseFloatShield();
                         }, 350, 115);
                         return;
                     }
                     
-                    self.cartPaymentAccount = result.response.data.payment_account_id;
+                    self.cartPaymentAccount = result.data.payment_account_id;
 
-                    self.customerPaymentAccounts.push(result.response.data);
+                    self.customerPaymentAccounts.push(result.data);
                     self.toggleCreateNewCartPaymentAccount = false;
                     
                     self.clearNewCard();
@@ -1224,7 +1476,7 @@ class CartWidget extends VueComponent
             },
             processCartOrder: function()
             {
-                if (this.toggleCreateNewCartPaymentAccount === true || this.cartPaymentAccount === null || this.cartUser === null || this.termsAndAgreementAcceptence === false)
+                if (this.toggleCreateNewCartPaymentAccount === true || ( this.cartPaymentAccount === null && this.calculateTotalCheckoutPriceWithFee(this.activeCartPromoCode, this.cartItemsList, this.applyCartPromoCode) > 0 ) || this.cartUser === null || this.termsAndAgreementAcceptence === false)
                 {
                     return;
                 }
@@ -1244,12 +1496,12 @@ class CartWidget extends VueComponent
 
                 let packageList = [];
                 
-                for (let currPackage of this.cartItems)
+                for (let currPackage of this.cartItemsList)
                 {
-                    packageList.push({id: currPackage.package_id, quantity: currPackage.quantity});
+                    packageList.push({id: currPackage.package_id, var_id: currPackage.package_variation_id, quantity: currPackage.quantity});
                 }
                 
-                const cartData = {package_ids: packageList, user_id: this.cartUser.user_id, payment_id: this.cartPaymentAccount, promo_code: promoCodeId, cart_type: this.cartFuncType, parent_entity_id: this.parentEntity.id, parent_entity_type: this.parentEntity.type };
+                const cartData = {package_ids: packageList, user_id: this.cartUser.user_id, payment_id: this.cartPaymentAccount, promo_code: promoCodeId, parent_entity_id: this.parentEntity.id, parent_entity_type: this.parentEntity.type };
                 
                 ajax.PostExternal(this.rootUrl + "/cart/submit-order-checkout", cartData, true, function(result) 
                 {
@@ -1282,7 +1534,7 @@ class CartWidget extends VueComponent
                             modal.CloseFloatShield();
                             self.loadCardsIfApplicable(resultResponse);
                             
-                            self.cartDisplayItemsForComplete = _.clone(self.cartItems);
+                            self.cartDisplayItemsForComplete = _.clone(self.cartItemsList);
                             self.completedDisplayCartPromoCode = _.clone(self.activeCartPromoCode);
                             self.applyCompletedCartPromoCode = _.clone(self.applyCartPromoCode);
                             
@@ -1293,13 +1545,16 @@ class CartWidget extends VueComponent
                             self.applyCartPromoCode = false;
                           
                             self.openCompleted();
-                            self.cartItems = [];
+                            sessionStorage.setItem(self.cardSource,[])
+                            self.cartItemsList = [];
+                            const broadcastData = {quantity: self.getCartTotalQuantity()}
+                            dispatch.broadcast("update_cart_quantity", broadcastData)
                             
                             if (self.cartIsCardPageProcess())
                             {
                                 let vc = self.findAppVc(self);
                                 const listCardPageWidget = vc.getComponentById(self.managerId);
-                                listCardPageWidget.instance.refreshCard(function() 
+                                listCardPageWidget.instance.refreshCard(false, function() 
                                 {
                                     let objModal = self.findModal(self);                 
                                     objModal.close();   
@@ -1313,28 +1568,40 @@ class CartWidget extends VueComponent
             },
             loadCardsIfApplicable: function(response)
             {                
-                if (this.productCartContainsProductType(this.cartItems, this.ENUM_CardType) !== true)
+                if (this.productCartContainsProductType(this.cartItemsList, this.ENUM_CardType) !== true)
                 {
                     return;
                 }
                 
                 this.cardList = response.data.list;
             },
+            isIterable: function(obj) {
+                if (obj == null) {
+                    return false
+                }
+                
+                return typeof obj[Symbol.iterator] === "function"
+            },
             renderCartItemsCount: function()
             {
+                let totalCartItems = this.getCartTotalQuantity()
+                        
+                if (totalCartItems === 0) {
+                    return ""
+                }
+                
+                return "(" + totalCartItems + ") "
+            },
+            getCartTotalQuantity: function() {
                 let totalCartItems = 0;
                 
-                for (let currPackage of this.cartItems)
-                {
-                    totalCartItems = totalCartItems + parseFloat(currPackage.quantity);
+                if (this.isIterable(this.cartItemsList)) {
+                    for (let currPackage of this.cartItemsList) {
+                        totalCartItems = totalCartItems + parseFloat(currPackage.quantity)
+                    }
                 }
                 
-                if (totalCartItems === 0)
-                {
-                    return "";
-                }
-                
-                return "(" + totalCartItems + ") ";
+                return totalCartItems;
             },
             removePromoCode: function()
             {
@@ -1355,6 +1622,15 @@ class CartWidget extends VueComponent
                     modal.CloseFloatShield();
                 }, 1500);
 
+            },
+            togglePromoCode: function()
+            {
+                if (this.cartPromoCodeSearch !== "X") {
+                    this.applyPromoCode();
+                    return;
+                }
+                
+                this.removePromoCode();
             },
             applyPromoCode: function()
             {
@@ -1422,7 +1698,7 @@ class CartWidget extends VueComponent
                 existingPackage.max_quantity = this.fixUndefined(existingPackage.max_quantity);
                 existingPackage.quantity = this.fixUndefined(existingPackage.quantity);
            
-                if (existingPackage.quantity >= existingPackage.max_quantity && existingPackage.max_quantity !== 0)
+                if (existingPackage.quantity >= existingPackage.max_quantity && existingPackage.max_quantity > 0)
                 {
                     return true;
                 }
@@ -1431,11 +1707,6 @@ class CartWidget extends VueComponent
             },
             disableGoToCartButton(package)
             {
-                if (!this.productCartContainsCard(this.cartItems) && !this.packageContainsCard(package) && this.cartIsCardProcess()) 
-                { 
-                    return true;
-                }
-
                 const existingPackage = this.getPackageFromCart(package);
                 
                 if (existingPackage === null)
@@ -1446,18 +1717,19 @@ class CartWidget extends VueComponent
                 existingPackage.max_quantity = this.fixUndefined(existingPackage.max_quantity);
                 existingPackage.quantity = this.fixUndefined(existingPackage.quantity);
            
-                if (existingPackage.quantity >= existingPackage.max_quantity && existingPackage.max_quantity !== 0)
+                if (existingPackage.quantity >= existingPackage.max_quantity && existingPackage.max_quantity > 0)
                 {
                     return true;
                 }
                 
                 return false;
             },
-            productCartContainsCard: function(items)
-            {
-                if (items.length === 0) { return false; }
-                
+            productCartContainsCard: function()
+            {                
+                if (this.getParentEntityType() === \'card\' || this.getParentEntityType() === \'custom\') return true;
                 if (this.cartIsNotCardProcess()) return true;
+                let items = this.cartItemsList;
+                if (!this.isIterable(this.cartItemsList) || items.length === 0) return false;
                 
                 for (let currPackage of items)
                 {
@@ -1558,9 +1830,13 @@ class CartWidget extends VueComponent
             {
                 return "url(" + package.image_url + ") no-repeat top center / contain";
             },
+            renderEndUserLabel: function(package)
+            {
+                return package.enduser_label.toUpperCase();
+            },
             goToCardDashboard: function(card)
             {                
-                window.location.href = "/account/cards/card-dashboard/" + card.sys_row_id;
+                window.location.href = "/account/my-sites/site-profile/" + card.sys_row_id;
             },
             renderCardNameForLink: function(card)
             {
@@ -1650,6 +1926,19 @@ class CartWidget extends VueComponent
                         break;
                 }
             },
+            updateCartQuantityReferences: function() 
+            {
+                const broadcastData = {quantity: this.getCartTotalQuantity()}
+                dispatch.broadcast("update_cart_quantity", broadcastData)
+            },
+            updateCartItemReferences: function() {
+                const broadcastData = {items: this.cartItemsList}
+                dispatch.broadcast("update_cart_items", broadcastData)
+            },
+            setDispatchEvents: function()
+            {
+                dispatch.register("update_cart_items", this, "overwriteLocalCartItems")
+            },
         ';
     }
 
@@ -1680,21 +1969,166 @@ class CartWidget extends VueComponent
     protected function renderComponentDismissalScript() : string
     {
         return '
-            this.cartUser = null;
+            if (this.cartType !== true) {
+                this.cartUser = null;
+            }
             this.userSearch = "";
             this.dynamicSearch = false;
         ';
     }
 
-    protected function renderComponentHydrationScript() : string
-    {
-        return "if (typeof this.disableModalLoadingSpinner === 'function') { this.disableModalLoadingSpinner(); }";
+    protected function renderCss() : string {
+        /** @var App $app */
+        global $app;
+        $appType = $app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "application_type")->value ?? "default";
+
+        if ($appType === "maxtech") {
+            return str_replace(["\t","\s\s"], "",'
+                .appCartWrapper .card-main-image-wrapper {
+                    display:flex;
+                    width: 159px;
+                    height: 159px;
+                }
+                
+                .appCartWrapper .card-tile-inner {
+                     flex: 1 0;
+                     padding-left:25px;
+                }
+                .appCartWrapper .cart-display-box {
+                    display:block;
+                    margin: 0 25px;
+                }
+                .appCartWrapper .cart-display-box-inner {
+                   
+                }
+                .appCartWrapper .cart-display-box .cartPackageItem {
+                    display:flex;
+                    flex-direction:column;
+                    border-bottom:1px solid #ccc;
+                    padding: 15px 0;
+                }
+                .appCartWrapper .cart-display-box .cartPackageItem:last-child {
+                    border-bottom:0;
+                }
+                .appCartWrapper .cart-display-box .cartPackageItem .cartPackageItemTile {
+                    display: flex;
+                }
+                .appCartWrapper .cart-display-box > ul > li > div {
+
+                }
+                
+                .appCartWrapper .card-tile-description {
+                    margin-bottom:15px;
+                }
+                .appCartWrapper .entityDashboard .card-tile-50, 
+                .appCartWrapper  .entityDashboard .card-tile-100 {
+                    border-radius: 0;
+                    padding: 15px 0;
+                }
+                .appCartWrapper .entityDashboard .card-tile-50,
+                .appCartWrapper .entityDashboard .card-tile-500 {
+                    min-height: 0;
+                }
+                
+                .appCartWrapper .card-tile-action-box {
+                    position:relative;
+                    width: calc(100% - 160px);
+                }
+                .appCartWrapper .card-tile-title {
+                    font-size: 20px;
+                    margin:15px 0 0 0;
+                    font-family: \'Roboto Condensed\', sans-serif;
+                }
+            ');
+        } else {
+            return str_replace(["\t","\s\s"], "",'
+                .appCartWrapper .card-main-image-wrapper {
+                    position: absolute;
+                    top: 20px;
+                    left: -40px;
+                    width: 159px;
+                    height: 245px;
+                    text-align: center;
+                    overflow: hidden;
+                }
+                .appCartWrapper .card-tile-inner {
+                    margin-left: 102px;
+                    padding-right: 15px;
+                    padding-bottom: 45px;
+                }
+                .appCartWrapper .cart-display-box {
+                    display:flex;
+                    flex-direction:column;
+                }
+                .appCartWrapper .cart-display-box-inner {
+                    display:flex;
+                    flex-wrap: wrap;
+                    justify-content: space-between;
+                }
+                .appCartWrapper .cart-display-box .cartPackageItem {
+                    flex-direction:column;
+                    display:flex;
+                    flex: auto;
+                    margin: 10px;
+                    position:relative;
+                    max-width: 48%;
+                }
+                .appCartWrapper .cart-display-box .cartPackageItem .cartPackageItemTile {
+                    background: #fff;
+                    box-shadow: #cccccc 0 0 5px;
+                    padding: 15px 25px;
+                }
+                .appCartWrapper .cart-display-box > ul > li > div {
+                    min-height: 295px;
+                }
+                .appCartWrapper .card-tile-description {
+                    padding-top: 5px;
+                    padding-bottom: 10px;
+                }
+                .appCartWrapper .card-tile-description ul {
+                    margin-left:17px;
+                    padding:10px 0;
+                }
+                .appCartWrapper .card-tile-description ul li {
+                    font-size: 12px;
+                    list-style-type: circle;
+                }
+                .appCartWrapper .cart-title-lines {
+                    margin-left: 17px;
+                    margin-bottom: 65px;
+                }
+                .appCartWrapper .cart-title-line-item {
+                    font-size:12px;
+                    list-style-type: circle;
+                }
+                .appCartWrapper .card-tile-action-box {
+                    position:absolute;
+                    bottom:20px;
+                    width: calc(100% - 160px);
+                }
+                .appCartWrapper .card-tile-title {
+                    font-size: 20px;
+                    margin:15px 0;
+                }
+                .appCartWrapper .btn-add-to-cart {
+                    background: #fb9c27;
+                    color: #000;
+                    border-color: #fb9c27;
+                }
+                .appCartWrapper .btn-add-to-cart:hover {
+                    background: #d09042;
+                    color: #000;
+                    border-color: #d09042;
+                }
+            ');
+        }
     }
 
     protected function renderTemplate() : string
     {
+        /** @var App $app */
         global $app;
-
+        $appType = $app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "application_type")->value ?? "default";
         $privacyPolicyLink = $app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "cart_privacy_policy_url");
 
         if ($privacyPolicyLink !== null)
@@ -1708,21 +2142,12 @@ class CartWidget extends VueComponent
 
         return '
         <div class="appCartWrapper products" v-bind:class="{\'private-cart\': cartType === false, \'public-cart\': cartType === true}">
-            <v-style type="text/css">
+            <v-style type="text/css">'.$this->renderCss(). '
                 .appCartWrapper .card-tile-100,
                 .appCartWrapper .card-tile-50,
                 .appCartWrapper .card-tile-33 {
                     position:relative;
                     height: 100%;
-                }
-                .appCartWrapper .card-main-image-wrapper {
-                    position: absolute;
-                    top: 20px;
-                    left: -40px;
-                    width: 159px;
-                    height: 245px;
-                    text-align: center;
-                    overflow: hidden;
                 }
                 .appCartWrapper .product-icon-img-md {
                     position: absolute;
@@ -1765,20 +2190,11 @@ class CartWidget extends VueComponent
                 .appCartWrapper.checkout .product-icon-img-sm {
                     left: 26px;
                 }
-                .appCartWrapper .card-tile-inner {
-                    margin-left: 102px;
-                    padding-right: 15px;
-                    padding-bottom: 45px;
-                }
                 .appCartWrapper .card-tile-inner .btn {
                     width: calc(49% - 5px) !important;
                     font-size: 12px;
                     float: left;
                     margin-right: 5px;
-                }
-                .appCartWrapper .card-tile-title {
-                    font-size: 20px;
-                    margin:15px 0;
                 }
                 .appCartWrapper .card-tile-price {
                     font-weight: bold;
@@ -1791,26 +2207,6 @@ class CartWidget extends VueComponent
                     position: relative;
                     bottom: 4px;
                 }
-                .appCartWrapper .card-tile-description {
-                    padding-top: 5px;
-                    padding-bottom: 10px;
-                }
-                .appCartWrapper .card-tile-description ul {
-                    margin-left:17px;
-                    padding:10px 0;
-                }
-                .appCartWrapper .card-tile-description ul li {
-                    font-size: 12px;
-                    list-style-type: circle;
-                }
-                .appCartWrapper .cart-title-lines {
-                    margin-left: 17px;
-                    margin-bottom: 65px;
-                }
-                .appCartWrapper .cart-title-line-item {
-                    font-size:12px;
-                    list-style-type: circle;
-                }
                 .appCartWrapper .cart-display-outer .item-header {
                     padding-bottom: 0;
                     border-bottom: 0;
@@ -1820,6 +2216,7 @@ class CartWidget extends VueComponent
                     border-spacing: 0 20px;
                     margin-top: -20px;
                     margin-bottom: -20px;
+                    width:100%;
                 }
                 .appCartWrapper .product-info-detail .cart-title-lines {
                     margin-top: 10px;
@@ -1941,7 +2338,7 @@ class CartWidget extends VueComponent
                 .appCartWrapper .field-validation-error {
                     color: red;
                     padding: 7px 28px 6px;
-                    background: url('.$app->objCustomPlatform->getFullPortalDomain().'/_ez/images/icons/warning.svg) no-repeat left center / 24px;
+                    background: url('.$app->objCustomPlatform->getFullPortalDomainName().'/_ez/images/icons/warning.svg) no-repeat left center / 24px;
                 }
                 .appCartWrapper .cart-display-preview .product-main-title-h2 {
                     font-size: 21px;
@@ -2036,29 +2433,19 @@ class CartWidget extends VueComponent
                     content: " ";
                 }
                 .ico-home:before {
-                    background: url('.$app->objCustomPlatform->getFullPortalDomain().'/_ez/images/icons/home.svg) no-repeat center center / 100% 100%;
+                    background: url(/_ez/images/icons/home.svg) no-repeat center center / 100% 100%;
                 }
                 .ico-billing:before {
-                    background: url('.$app->objCustomPlatform->getFullPortalDomain().'/_ez/images/icons/credit-card.svg) no-repeat center center / 100% 100%;
+                    background: url(/_ez/images/icons/credit-card.svg) no-repeat center center / 100% 100%;
                 }
                 .appCartWrapper .small-cart-icon {
-                    background: url('.$app->objCustomPlatform->getFullPortalDomain().'/_ez/images/financials/cart-icon-black.png) center center / auto 100% no-repeat;
+                    background: url(/_ez/images/financials/cart-icon-black.png) center center / auto 100% no-repeat;
                     display: inline-block;
                     width: 21px;
                     height: 19px;
                     position: relative;
                     top: 4px;
                     margin-right: 5px;
-                }
-                .appCartWrapper .btn-add-to-cart {
-                    background: #fb9c27;
-                    color: #000;
-                    border-color: #fb9c27;
-                }
-                .appCartWrapper .btn-add-to-cart:hover {
-                    background: #d09042;
-                    color: #000;
-                    border-color: #d09042;
                 }
                 .appCartWrapper .view-cart-button {
                     display: inline-block;
@@ -2076,7 +2463,7 @@ class CartWidget extends VueComponent
                     color: #fff;
                 }
                 .appCartWrapper .view-cart-button.disabled .small-cart-icon {
-                    background: url('.$app->objCustomPlatform->getFullPortalDomain().'/_ez/images/financials/cart-icon-white.png) center center / auto 100% no-repeat;
+                    background: url('.$app->objCustomPlatform->getActiveDomain()->getDomainFull().'/_ez/images/financials/cart-icon-white.png) center center / auto 100% no-repeat;
                 }
                 .appCartWrapper .empty-cart-text {
                     background-image: none;
@@ -2088,7 +2475,7 @@ class CartWidget extends VueComponent
                     left: -30px;
                 }
                 .appCartWrapper .empty-cart-text .cart-icon-large {
-                    background: url('.$app->objCustomPlatform->getFullPortalDomain().'/_ez/images/financials/cart-icon-white.svg) no-repeat center center / auto 100%;
+                    background: url('.$app->objCustomPlatform->getActiveDomain()->getDomainFull().'/_ez/images/financials/cart-icon-white.svg) no-repeat center center / auto 100%;
                     display: inline-block;
                     width: 80px;
                     height: 75px;
@@ -2136,11 +2523,6 @@ class CartWidget extends VueComponent
                 }
                 .checkout-ribon ul li a.selected:hover {
                     color: #fff !important;
-                }
-                .appCartWrapper .card-tile-action-box {
-                    position:absolute;
-                    bottom:20px;
-                    width: calc(100% - 160px);
                 }
                 .appCartWrapper .checkout-bottom-wrapper {
                     margin-top:15px;
@@ -2202,9 +2584,7 @@ class CartWidget extends VueComponent
                     width:calc( 100% - 7px );
                     margin-right:7px;
                 }
-                .appCartWrapper .cart-display-box > ul > li > div {
-                    min-height: 295px;
-                }
+                
                 .appCartWrapper .product-icon-img-md,
                 .appCartWrapper .product-icon-img-sm, {
                     box-shadow:transparent 0 0 0;
@@ -2419,7 +2799,7 @@ class CartWidget extends VueComponent
                 <ul>
                     <li v-if="displayComponent !== \'completed\'"><a v-on:click="openCart">Cart</a></li>
                     <li v-if="displayComponent === \'completed\'"><a class="no-click">Cart</a></li>
-                    <li v-if="cartType !== true && this.cartIsAllCardProcess()"><a v-on:click="openAssignUser" v-bind:class="{selected: displayComponent === \'assignUser\'}">Assign Customer</a></li>
+                    <li v-if="cartType !== true && cartIsAllCardProcess()"><a v-on:click="openAssignUser" v-bind:class="{selected: displayComponent === \'assignUser\'}">Assign Customer</a></li>
                     <li v-if="cartType === true && cartUser !== null && this.cartIsCardProcess()"><a class="no-click" v-bind:class="{selected: displayComponent === \'assignUser\'}">You\'re Signed In!</a></li>
                     <li v-if="cartType === true && cartUser === null && this.cartIsCardProcess()"><a v-on:click="if (displayComponent !== \'assignUser\' ) { openAssignUser }" v-bind:class="{selected: displayComponent === \'assignUser\'}">Sign In</a></li>
                     <li v-if="displayComponent !== \'checkout\' && displayComponent !== \'assignUser\' && displayComponent !== \'completed\'"><a v-on:click="" v-bind:class="{selected: displayComponent === \'checkout\'}">Checkout</a></li>
@@ -2428,25 +2808,39 @@ class CartWidget extends VueComponent
                 </ul>
             </div>
             <div v-if="displayComponent === \'selectPackagesByClass\'" class="cart-display-box entityDashboard">
-                <ul>
-                    <li v-for="currPackage in packageList" v-bind:class="\'width\' + calculateProductCartDisplayCount() + \' itemCount\' + getMaxWidthColumnCount()">
-                        <div v-bind:class="\'card-tile-\' + calculateProductCartDisplayCount()">
+                <ul class="cart-display-box-inner">
+                    <li v-for="currPackage in packageList" v-bind:class="\'width cartPackageItem itemCount\' + getMaxWidthColumnCount()">
+                        <div v-bind:class="\'cartPackageItemTile card-tile-\' + calculateProductCartDisplayCount()">
                             <div class="card-main-image-wrapper" v-bind:style="{background: renderProductImage(currPackage)}">
                             </div>
                             <div class="card-tile-inner">
-                                <h4 class="card-tile-title">{{ currPackage.name }}</h4>
-                                <div class="card-tile-price">
-                                    <span class="card-price-currency">{{ displayCurrency(currPackage.currency) }}</span> {{ renderMoney(currPackage.regular_price) }}
+                                <h4 class="card-tile-title">{{ currPackage.package_variation_name }} <span v-if="currPackage.enduser_id > 1"> ({{ renderEndUserLabel(currPackage) }} ONLY)</span></h4>
+                                <i v-if="currPackage.enduser_id > 1" style="font-size:11px;display:block;">{{ currPackage.enduser_desc }}</i>
+                                '.($appType === "default" ? '
+                                <div class="card-tile-price" style="white-space:nowrap;">
+                                    <span class="card-price-currency">{{ displayCurrency(currPackage) }}</span>{{ displayCurrencySpace(currPackage) }}{{ renderMoneyText(currPackage.regular_price) }}
                                 </div>
-                                <div class="card-tile-description" v-html="currPackage.description">{{ currPackage.description }}</div>
+                                ' : '') . '
+                                '.($appType === "maxtech" ? '
+                                <div class="card-tile-price" style="white-space:nowrap;">
+                                    {{ displayCurrency(currPackage) }}{{ renderMoneyText(currPackage.regular_price) }}
+                                </div>
+                                ' : '') . '
+                                <div v-if="currPackage.enduser_id == 1" class="card-tile-description" v-html="currPackage.description">{{ currPackage.description }}</div>
                                 <div v-if="currPackage.line && currPackage.hide_line_items !== 1" class="cart-title-lines">
                                     <ul>
                                         <li v-for="currLine in currPackage.line" class="cart-title-line-item">{{ currLine.name }}<span v-if="currLine.quantity > 1">s</span></li>
                                     </ul>
                                 </div>
                                 <div class="card-tile-action-box">
-                                    <button v-bind:class="{disabled: disableCartButton(currPackage)}" v-on:click="addPackageToCart(currPackage)" class="buttonID23542445 btn btn-danger btn-add-to-cart w-100">Add To Cart</button> 
+                                    '.($appType === "default" ? '
+                                    <button v-bind:class="{disabled: disableCartButton(currPackage)}" v-on:click="addPackageToCart(currPackage)" class="buttonID23542445 btn btn-danger btn-add-to-cart w-100 ">Add To Cart</button> 
                                     <button v-bind:class="{disabled: disableGoToCartButton(currPackage)}" v-on:click="addPackageAndGoToCart(currPackage)" class="buttonID23542445 btn btn-warning w-100">Buy Now</button>
+                                    ' : '') . '
+                                    '.($appType === "maxtech" ? '
+                                    <button v-on:click="showPackagePage(currPackage)" class="buttonID23542447 btn btn-success btn-show-package-page w-100 text-light">Learn More</button>
+                                    <button v-bind:class="{disabled: disableCartButton(currPackage)}" v-on:click="addPackageToCart(currPackage)" class="buttonID23542445 btn btn-warning btn-add-to-cart w-100">Add To Cart</button>
+                                    ' : '') . '
                                 <div>
                                 <div style="clear:both;"></div>
                             </div>
@@ -2454,33 +2848,32 @@ class CartWidget extends VueComponent
                     </li>   
                 </ul>
                 <div style="clear:both;"></div>
-                <div style="text-align:center;padding-top:5px;">
-                    <div v-if="!productCartContainsCard(cartItems) && this.cartIsCardProcess()" style="color:#cc0000;margin-bottom:15px;">This checkout requires the purchase of a new card.</div>
-                    <div v-bind:class="{disabled: !productCartContainsCard(cartItems)}" class="view-cart-button pointer" v-on:click="openCart">
+                <div v-if="inModal" style="text-align:center;padding-top:5px;">
+                    <div class="view-cart-button pointer" v-on:click="openCart">
                         <span class="small-cart-icon"></span><span>{{ renderCartItemsCount() }}</span> View Cart
                     </div>
                 </div>
             </div>
             
             <div v-if="displayComponent === \'shoppingCart\'" class="cart-display-box">
-                <div v-if="cartItems.length === 0" class="cart-display-outer">
+                <div v-if="cartItemsList.length === 0" class="cart-display-outer">
                     <div style="display: flex;top: 0px;left: 0px;right: 0px;bottom: 0px;width: 100%;height: 100%;">
                         <div style="display: flex;align-items: center; width:100%;flex-direction: column;">
                             <div class="empty-cart-text">
                                 <div>
                                     <span class="cart-icon-large"></span>
                                     Your Shopping Cart is empty! 
-                                    <button style="display:inline-block;" v-if="cartType !== true && previousProductClass !== \'\'" v-on:click="backToProductSelection" class="button-back-to-selection btn btn-secondary w-100">Back To Selection</button>
+                                    <button style="display:inline-block;" v-if="previousProductClass !== \'\' && cartType !== true && previousProductClass !== \'\' && parentEntity != \'custom\' && inModal" v-on:click="backToProductSelection" class="button-back-to-selection btn btn-secondary w-100">Back To Selection</button>
                                 </div>
                             </div>                                
-                            <button style="margin-top: -35px;" v-if="cartType === true" v-on:click="backToProductSelection" class="external buttonID23542445 btn btn-secondary w-100">Back To Selection</button>
+                            <button style="margin-top: -35px;" v-if="previousProductClass !== \'\' && cartType === true && parentEntity != \'custom\' && inModal" v-on:click="backToProductSelection" class="external buttonID23542445 btn btn-secondary w-100">Back To Selection</button>
                         </div> 
                     </div> 
                 </div>
-                <h4 v-if="cartItems.length > 0 && cartType === true" class="account-page-title" style="margin-bottom:15px;">
+                <h4 v-if="!inModal && cartItemsList.length > 0 && cartType === true" class="account-page-title" style="margin-bottom:15px;">
                     Your Shopping Cart
                 </h4>
-                <table v-if="cartItems.length > 0" class="cart-display-outer">
+                <table v-if="cartItemsList.length > 0" class="cart-display-outer">
                     <thead>
                         <tr>
                             <th class="item-title item-header">Package Name &amp; Details</th>
@@ -2490,14 +2883,14 @@ class CartWidget extends VueComponent
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="currPackage in cartItems" class="item-product">
+                        <tr v-for="currPackage in cartItemsList" class="item-product">
                             <td class="product-info-detail">
                                 <div class="product-main-image-prime-md">
                                     <div class="product-icon-img-md" v-bind:style="{background: renderProductImage(currPackage)}" @error="imgError(currPackage)"></div>
                                 </div>
                                 <div class="product-main-details">
                                     <div class="product-main-title">
-                                        <h2 class="product-main-title-h2">{{ currPackage.name }}</h2>
+                                        <h2 class="product-main-title-h2">{{ currPackage.package_variation_name }}</h2>
                                     </div>
                                     <div v-html="currPackage.description">
                                         {{ currPackage.description }}
@@ -2522,7 +2915,7 @@ class CartWidget extends VueComponent
                             <td class="product-price">
                                 <div class="product-price-inner">
                                     <span class="currency"></span>
-                                    <span class="value">{{ displayCurrency(currPackage.currency) }}{{ renderMoney(currPackage.regular_price) }}</span>
+                                    <span class="value">{{ displayCurrency(currPackage.currency) }}{{ renderMoneyText(currPackage.regular_price) }}</span>
                                     <span class="separator">/</span>
                                     <span class="unit">Year</span>
                                 </div>
@@ -2535,92 +2928,95 @@ class CartWidget extends VueComponent
                         </tr>
                     </tbody>
                 </table>
-                <div v-if="cartItems.length > 0" class="cart-total-price">
+                <div v-if="cartItemsList.length > 0" class="cart-total-price">
                     <div class="product-price-info-wrapper">
                         <div class="product-price-info1">
                             <span class="product-price-title">Subtotal:</span>
-                            <span class="value notranslate product-price-value">US $ {{ calculateTotalCartPrice(cartItems) }}</span>
+                            <span class="value notranslate product-price-value">US $ {{ calculateTotalCartPrice(cartItemsList) }}</span>
                         </div>
                         <div class="product-price-info1">
                             <span class="product-price-title">Tax:</span>
-                            <span class="value notranslate product-price-value">US $0.00</span>
+                            <span class="value notranslate product-price-value">US $ 0.00</span>
                         </div>
                         <div class="product-price-info2">
                             <span class="product-price-title">Total:</span>
-                            <span class="product-price-total ui-cost notranslate product-price-value"><b>US $ {{ calculateTotalCartPrice(cartItems) }}</b></span>
+                            <span class="product-price-total ui-cost notranslate product-price-value"><b>US $ {{ calculateTotalCartPrice(cartItemsList) }}</b></span>
                         </div>
                         <div style="clear:both;"></div>
                     </div>
                     <div class="product-price-submit-wrapper">
                         <div class="product-price-info3" style="margin-top: 15px;">
-                            <button v-bind:class="{external: cartType === true, internal: cartType === false, }" v-on:click="backToProductSelection" class="buttonID23542445 btn btn-secondary w-100" style="color:#fff;">Back To Selection</button> 
-                            <button v-bind:class="{external: cartType === true, internal: cartType === false, disabled: !productCartContainsCard(cartItems) }" v-on:click="openAssignUser(true)" class="buttonID23542445 btn btn-warning w-100"">Go To Checkout</button>
+                            <button v-if="previousProductClass !== \'\' && parentEntity != \'custom\' && inModal" v-bind:class="{external: cartType === true, internal: cartType === false, }" v-on:click="backToProductSelection" class="buttonID23542445 btn btn-secondary w-100" style="color:#fff;">Back To Selection</button> 
+                            <button v-bind:class="{external: cartType === true, internal: cartType === false}" v-on:click="openAssignUser(true)" class="buttonID23542445 btn btn-warning w-100"">Go To Checkout</button>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div v-if="displayComponent === \'assignUser\' && cartType === false"class="cart-display-box entityDashboard">
+            <div v-if="displayComponent === \'assignUser\' && cartType === false" class="cart-display-box entityDashboard">
                 <p v-if="cartUser === null">Please assign a customer for this purchase.</p>
-                <div v-if="creatingNewCustomer === false" style="background:#ddd;padding: 0px 8px 0px;border-radius:5px;box-shadow:rgba(0,0,0,.2) 0 0 10px inset;margin-bottom:15px;">
-                    <table v-if="cartUser === null" class="table" style="margin-bottom: 5px; margin-top:10px;">
-                        <tbody>
-                            <tr>
-                                <td style="width:100px;vertical-align: middle;">Customer</td>
-                                <td style="position:relative;">
-                                    <div class="dynamic-search">
-                                        <span class="inputpicker-arrow">
-                                            <b></b>
-                                        </span>
-                                        <input v-on:focus="engageDynamicSearch" v-on:blur="hideDynamicSearch" v-model="userSearch" v-on:keyup="keyMonitorUserList" autocomplete="off" value="" placeholder="Start Typing..." class="form-control ui-autocomplete-input">
-                                        <div class="dynamic-search-list" style="position:absolute;" v-if="dynamicSearch === true && userSearchResult === \'\'">
-                                            <table>
-                                                <thead>
-                                                    <th>User Id</th>
-                                                    <th>Name</th>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="currUser in cartUserSearchList">
-                                                        <td @click="assignUserToCart(currUser)">{{currUser.user_id}}</td>
-                                                        <td @click="assignUserToCart(currUser)">{{currUser.first_name}} {{currUser.last_name}}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        <div>
-                                    </div>
-                                </td>
-                                <td v-if="cartUser === null" style="white-space: nowrap;width:240px;">
-                                    or <button v-on:click="toggleCreateNewCustomer" class="buttonID23542445 btn btn-primary w-100" style="width: 195px !important; margin-left: 6px;">Create New Customer</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div v-if="cartUser !== null" class="selected-customer-wrapper">
-                        <div type="button" v-on:click="clearCartUser" class="general-dialog-close" style="right: 11px;top: 33px !important;display: block;"></div>
-                        <table class="selected-customer-outer">
-                            <tr>
-                                <td>
-                                    <img class="user-avatar" src="'.$app->objCustomPlatform->getFullPortalDomain().'/_ez/images/users/no-user.jpg" @error="avatarError(cartUser)" width="100"/>
-                                </td>
-                                <td>
-                                    <table class="selected-customer">
-                                        <tr>
-                                            <td>Name:</td>
-                                            <td><b>{{ renderUserPrefix }} {{ cartUser.first_name }} {{ cartUser.last_name }} {{ renderUserSuffix }}</b></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Phone:</td>
-                                            <td><b>{{ cartUser.user_phone }}</b></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Email:</td>
-                                            <td><b>{{ cartUser.user_email }}</b></td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
+                <div v-if="creatingNewCustomer === false" style="display:flex;margin-bottom:15px;">
+                    <div style="display:flex;flex-direction: column; flex: 1 1; background:#ddd;padding: 0px 8px 0px;border-radius:5px;box-shadow:rgba(0,0,0,.2) 0 0 10px inset;">
+                        <table v-if="cartUser === null" class="table" style="margin-bottom: 5px; margin-top:10px;">
+                            <tbody>
+                                <tr>
+                                    <td style="width:100px;vertical-align: middle;">Customer</td>
+                                    <td style="position:relative;">
+                                        <div class="dynamic-search">
+                                            <span class="inputpicker-arrow">
+                                                <b></b>
+                                            </span>
+                                            <input v-on:focus="engageDynamicSearch" v-on:blur="hideDynamicSearch" v-model="userSearch" v-on:keyup="keyMonitorUserList" autocomplete="off" value="" placeholder="Start Typing..." class="form-control ui-autocomplete-input">
+                                            <div class="dynamic-search-list" style="position:absolute;" v-if="dynamicSearch === true && userSearchResult === \'\'">
+                                                <table>
+                                                    <thead>
+                                                        <th>User Id</th>
+                                                        <th>Name</th>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr v-for="currUser in cartUserSearchList">
+                                                            <td @click="assignUserToCart(currUser)">{{currUser.user_id}}</td>
+                                                            <td @click="assignUserToCart(currUser)">{{currUser.first_name}} {{currUser.last_name}}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            <div>
+                                        </div>
+                                    </td>
+                                    <td v-if="cartUser === null" style="white-space: nowrap;width:240px;">
+                                        or <button v-on:click="toggleCreateNewCustomer" class="buttonID23542445 btn btn-primary w-100" style="width: 195px !important; margin-left: 6px;">Create New Customer</button>
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
+                        <div v-if="cartUser !== null" class="selected-customer-wrapper">
+                            <div type="button" v-on:click="clearCartUser" class="general-dialog-close" style="right: 11px;top: 33px !important;display: block;"></div>
+                            <table class="selected-customer-outer">
+                                <tr>
+                                    <td>
+                                        <img class="user-avatar" src="'.$app->objCustomPlatform->getFullPortalDomainName().'/_ez/images/users/no-user.jpg" @error="avatarError(cartUser)" width="100"/>
+                                    </td>
+                                    <td>
+                                        <table class="selected-customer">
+                                            <tr>
+                                                <td>Name:</td>
+                                                <td><b>{{ renderUserPrefix }} {{ cartUser.first_name }} {{ cartUser.last_name }} {{ renderUserSuffix }}</b></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Phone:</td>
+                                                <td><b>{{ cartUser.user_phone }}</b></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Email:</td>
+                                                <td><b>{{ cartUser.user_email }}</b></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
+                    <div style="display:flex;flex-direction: column;justify-content: center;padding: 0 0 0 15px;"><button v-on:click="assignSelfToCart" class="buttonID23542445 btn btn-primary w-100" style="width: 195px !important; margin-left: 6px;">Purchase For Myself</button></div>
                 </div>
                 <div class="create-new-customer-wrapper" v-if="creatingNewCustomer === true">
                     <h4 class="account-page-title" style="margin-bottom:15px;"><a v-on:click="backToSelectCustomer" id="back-to-entity-list" class="back-to-entity-list pointer" style=""></a> Create New Customer</h4>
@@ -2766,16 +3162,16 @@ class CartWidget extends VueComponent
                 <h4 v-if="cartType === true"  class="account-page-title" style="margin-bottom:15px;">
                     Checkout - Select A Payment Account And Submit Your Order
                 </h4>
-                <table v-if="cartItems.length > 0" class="cart-display-outer cart-display-preview">
+                <table v-if="cartItemsList.length > 0" class="cart-display-outer cart-display-preview">
                     <tbody>
-                        <tr v-for="currPackage in cartItems" class="item-product-preview">
+                        <tr v-for="currPackage in cartItemsList" class="item-product-preview">
                             <td class="product-info-detail">
                                 <div class="product-main-image-prime-sm">
                                     <div class="product-icon-img-sm" v-bind:style="{background: renderProductImage(currPackage)}" @error="imgError(currPackage)"></div>
                                 </div>
                                 <div class="product-main-details">
                                     <div class="product-main-title">
-                                        <h2 class="product-main-title-h2">{{ currPackage.name }}</h2>
+                                        <h2 class="product-main-title-h2">{{ currPackage.package_variation_name }}</h2>
                                     </div>
                                     <div v-if="currPackage.line && currPackage.hide_line_items !== 1" class="cart-title-lines">
                                         <ul>
@@ -2792,7 +3188,7 @@ class CartWidget extends VueComponent
                             <td class="product-price">
                                 <div class="product-price-inner">
                                     <span class="currency"></span>
-                                    <span class="value">{{ displayCurrency(currPackage.currency) }}{{ renderMoney(currPackage.regular_price) }}</span>
+                                    <span class="value">{{ displayCurrency(currPackage.currency) }}{{ renderMoneyText(currPackage.regular_price) }}</span>
                                     <span class="separator">/</span>
                                     <span class="unit">Year</span>
                                 </div>
@@ -2825,7 +3221,7 @@ class CartWidget extends VueComponent
                                 </tr>
                             </table>
                         </div>
-                        <div v-if="toggleCreateNewCartPaymentAccount === false" class="selected-payment-account-checkout">
+                        <div v-if="toggleCreateNewCartPaymentAccount === false && calculateTotalCheckoutPriceWithFee(activeCartPromoCode, cartItemsList, applyCartPromoCode) > 0" class="selected-payment-account-checkout">
                             <h4 style="margin-bottom: 7px;">Select Payment Account</h4>
                             <ul class="selected-payment-account-list">
                                 <li v-for="currCard in customerPaymentAccounts" class="pointer" v-on:click="selectCartPaymentAccount(currCard)">
@@ -2840,7 +3236,7 @@ class CartWidget extends VueComponent
                                 </li>
                             </ul>
                         </div>
-                        <div v-if="toggleCreateNewCartPaymentAccount === true" class="selected-payment-account-checkout">
+                        <div v-if="toggleCreateNewCartPaymentAccount === true && calculateTotalCheckoutPriceWithFee(activeCartPromoCode, cartItemsList, applyCartPromoCode) > 0" class="selected-payment-account-checkout">
                             <h4 style="margin-bottom: 7px;"><a v-on:click="backToSelectPaymentAccount" id="back-to-entity-list" class="back-to-entity-list pointer" style=""></a> Create New Payment Account</h4>
                             <div class="create-new-payment-account">
                                 <div class="create-new-payment-account-box">
@@ -2851,7 +3247,7 @@ class CartWidget extends VueComponent
                                     </div>
                                     <div>
                                         <input v-on:keypress="testCreditCard(newCardForCreate.number)" v-on:blur="clearError(\'number\')" v-model="newCardForCreate.number" type="text" class="form-control" placeholder="Card Number" style="width: calc(100% - 50px); display: inline-block;">
-                                        <img v-bind:src="\'' . $app->objCustomPlatform->getFullPortalDomain() . '/_ez/images/financials/cc_small_\' + creditCartType + \'.png\'" style="position: relative; top: -3px; right: -5px;"/>
+                                        <img v-bind:src="\'' . $app->objCustomPlatform->getFullPortalDomainName() . '/_ez/images/financials/cc_small_\' + creditCartType + \'.png\'" style="position: relative; top: -3px; right: -5px;"/>
                                         <div v-if="checkForErrorTextDisplay(errorText.number)" class="field-validation-error">{{ errorText.number }}</div>
                                     </div>
                                     <div class="inlineBlock">
@@ -2924,19 +3320,25 @@ class CartWidget extends VueComponent
                         </div>
                     </div>
                     <div class="width50">
-                        <div class="promo-code">
+                        <div v-if="!userIsExcellAdmin()" class="promo-code">
                             <input style="display: inline-block;width: calc(100% - 77px);margin-right: 5px;" type="text" class="form-control" v-model="cartPromoCodeSearch" placeholder="Have a promo code?" /> 
                             <button v-if="applyCartPromoCode === false" v-on:click="applyPromoCode" class="btn btn-primary" style="margin-top: -4px;">Apply</button>
                             <button v-if="applyCartPromoCode === true" v-on:click="removePromoCode" class="btn btn-danger" style="margin-top: -4px;width: 65px;padding: 5px;font-size: 12px;height: 38px;">Remove</button>
                         </div>
+                        <div v-if="userIsExcellAdmin()" class="promo-code">
+                            <select v-model="cartPromoCodeSearch" class="form-control" v-on:change="togglePromoCode">
+                                <option value="X">-- Select Code --</option>
+                                <option v-for="currCode in promoCodeList" v-bind:value="currCode.promo_code">{{ currCode.promo_code }} - {{ currCode.title }}</option>
+                            </select>
+                        </div>
                         <div class="legal-stuff" style="margin-top:25px">
                             <p v-if="cartType === true" style="text-align: right;"><label class="pointer" for="terms-and-agreement" class="terms-and-agreement"><input id="terms-and-agreement" v-model="termsAndAgreementAcceptence" class="form-check-input" type="checkbox"> I acknowledge and understand the ' . $app->objCustomPlatform->getPortalName() . ' ' . $privacyPolicyLink . ' and Terms of Service.</label><p>
                             <p v-if="cartType === false" style="text-align: right;"><label class="pointer" for="terms-and-agreement" class="terms-and-agreement"><input id="terms-and-agreement" v-model="termsAndAgreementAcceptence" class="form-check-input" type="checkbox"> The customer acknowledges and understands the ' . $app->objCustomPlatform->getPortalName() . ' ' . $privacyPolicyLink . ' and Terms of Service.</label><p>
-                            <div v-if="cartItems.length > 0" class="cart-total-price">
+                            <div v-if="cartItemsList.length > 0" class="cart-total-price">
                                 <div class="product-price-info-wrapper">
                                     <div class="product-price-info1">
                                         <span class="product-price-title">Subtotal:</span>
-                                        <span class="value notranslate product-price-value">US $ {{ calculateTotalCartPrice(cartItems) }}</span>
+                                        <span class="value notranslate product-price-value">US $ {{ calculateTotalCartPrice(cartItemsList) }}</span>
                                     </div>
                                     <div v-if="applyCartPromoCode === true" class="product-price-info1" style="color:#ff0000">
                                         <span class="product-price-title">Promo Code:</span>
@@ -2944,7 +3346,7 @@ class CartWidget extends VueComponent
                                     </div>
                                     <div class="product-price-info1">
                                         <span class="product-price-title">Processing Fee:</span>
-                                        <span class="value notranslate product-price-value">US $ {{ calculateTotalCheckoutPriceFee(calculateTotalCheckoutPrice(activeCartPromoCode, cartItems, applyCartPromoCode)) }}</span>
+                                        <span class="value notranslate product-price-value">US $ {{ calculateTotalCheckoutPriceFee(calculateTotalCheckoutPrice(activeCartPromoCode, cartItemsList, applyCartPromoCode)) }}</span>
                                     </div>
                                     <div class="product-price-info1">
                                         <span class="product-price-title">Tax:</span>
@@ -2952,7 +3354,7 @@ class CartWidget extends VueComponent
                                     </div>
                                     <div class="product-price-info2">
                                         <span class="product-price-title">Total:</span>
-                                        <span class="product-price-total ui-cost notranslate product-price-value"><b>US $ {{ calculateTotalCheckoutPriceWithFee(activeCartPromoCode, cartItems, applyCartPromoCode) }}</b></span>
+                                        <span class="product-price-total ui-cost notranslate product-price-value"><b>US $ {{ renderTotalCheckoutPriceWithFee(activeCartPromoCode, cartItemsList, applyCartPromoCode) }}</b></span>
                                     </div>
                                 </div>
                             </div>
@@ -2960,10 +3362,10 @@ class CartWidget extends VueComponent
                     </div>
                     <div style="clear:both;"></div>
                     <div v-bind:class="{\'text-right\': cartType === true}">
-                        <button v-if="cartType === true" v-bind:class="{external: cartType === true, disabled: (toggleCreateNewCartPaymentAccount === true || cartPaymentAccount === null || termsAndAgreementAcceptence === false)}" v-on:click="processCartOrder" class="buttonID23542445 btn btn-primary w-100"">Submit Order</button>
+                        <button v-if="cartType === true" v-bind:class="{external: cartType === true, disabled: (toggleCreateNewCartPaymentAccount === true || ( cartPaymentAccount === null && calculateTotalCheckoutPriceWithFee(activeCartPromoCode, cartItemsList, applyCartPromoCode) > 0 ) || termsAndAgreementAcceptence === false)}" v-on:click="processCartOrder" class="buttonID23542445 btn btn-primary w-100"">Submit Order</button>
                     </div>
                 </div>
-                <button v-if="cartType !== true" v-bind:class="{disabled: (toggleCreateNewCartPaymentAccount === true || cartPaymentAccount === null || termsAndAgreementAcceptence === false)}" v-on:click="processCartOrder" class="buttonID23542445 btn btn-primary w-100"">Submit Order</button>
+                <button v-if="cartType !== true" v-bind:class="{disabled: (toggleCreateNewCartPaymentAccount === true || ( cartPaymentAccount === null && calculateTotalCheckoutPriceWithFee(activeCartPromoCode, cartItemsList, applyCartPromoCode) > 0 ) || termsAndAgreementAcceptence === false)}" v-on:click="processCartOrder" class="buttonID23542445 btn btn-primary w-100"">Submit Order</button>
             </div>
             
             <div v-if="displayComponent === \'completed\'"class="cart-display-box entityDashboard">
@@ -2982,7 +3384,7 @@ class CartWidget extends VueComponent
                                 </div>
                                 <div class="product-main-details">
                                     <div class="product-main-title">
-                                        <h2 class="product-main-title-h2">{{ currPackage.name }}</h2>
+                                        <h2 class="product-main-title-h2">{{ currPackage.package_variation_name }}</h2>
                                     </div>
                                     <div v-if="currPackage.line && currPackage.hide_line_items !== 1" class="cart-title-lines">
                                         <ul>
@@ -3032,7 +3434,7 @@ class CartWidget extends VueComponent
                         </div>
                         <div class="product-price-info2">
                             <span class="product-price-title">Total:</span>
-                            <span class="product-price-total ui-cost notranslate product-price-value"><b>US $ {{ calculateTotalCheckoutPriceWithFee(completedDisplayCartPromoCode, cartDisplayItemsForComplete, applyCompletedCartPromoCode) }}</b></span>
+                            <span class="product-price-total ui-cost notranslate product-price-value"><b>US $ {{ renderTotalCheckoutPriceWithFee(completedDisplayCartPromoCode, cartDisplayItemsForComplete, applyCompletedCartPromoCode) }}</b></span>
                         </div>
                     </div>
                 </div>
@@ -3043,7 +3445,7 @@ class CartWidget extends VueComponent
                     <p>It is now time to tell us what you want on your card!</p>
                     <ul>
                         <li v-for="currCard in cardList">
-                            <a v-bind:href="\''.$app->objCustomPlatform->getFullPortalDomain().'/account/cards/card-dashboard/\' + currCard.sys_row_id" target="_blank" style="background: rgb(0, 133, 255);padding: 5px 15px;color: rgb(255, 255, 255);border-radius: 5px;cursor: pointer;display: inline-block;margin-bottom: 12px;margin-right: 11px;"><span class="fas fa-hammer" style="margin-right: 7px;"></span>Access your new card here!</a>
+                            <a v-bind:href="\''.$app->objCustomPlatform->getFullPortalDomainName().'/account/cards/card-dashboard/\' + currCard.sys_row_id" target="_blank" style="background: rgb(0, 133, 255);padding: 5px 15px;color: rgb(255, 255, 255);border-radius: 5px;cursor: pointer;display: inline-block;margin-bottom: 12px;margin-right: 11px;"><span class="fas fa-hammer" style="margin-right: 7px;"></span>Access your new card here!</a>
                         </li>
                     </ul>
                     <p>Once logged in you will find a <b>card build form</b> to submit to us. Please do so at your earliest convenience.</p>

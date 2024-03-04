@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardGroupModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "CardGroup";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "CardGroup";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CardGroupModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "card_rel_group_id" => [ "type" => "int", "length" => 15],

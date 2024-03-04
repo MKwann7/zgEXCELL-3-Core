@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class GroupModel extends AppModel
 {
-    protected $EntityName = "Groups";
-    protected $ModelName = "Group";
+    protected string $EntityName = "Groups";
+    protected string $ModelName = "Group";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class GroupModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [];
     }

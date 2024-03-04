@@ -9,7 +9,7 @@ use Entities\Modules\Models\ModuleMainModel;
 
 class Modules extends AppEntity
 {
-    public $strEntityName       = "Modules";
+    public string $strEntityName       = "Modules";
     public $strDatabaseTable    = "modules";
     public $strDatabaseName     = "Modules";
     public $strMainModelName    = ModuleMainModel::class;

@@ -10,7 +10,7 @@ use Entities\Users\Models\ConnectionModel;
 
 class CardSocialMedia extends AppEntity
 {
-    public $strEntityName       = "Cards";
+    public string $strEntityName       = "Cards";
     public $strDatabaseTable    = "card_socialmedia";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = CardSocialMediaModel::class;
@@ -38,7 +38,7 @@ class CardSocialMedia extends AppEntity
             WHERE cnr1.card_id = {$cardId} ORDER BY cnr1.display_order ASC;";
 
         $colCardConnectionsResult = Database::getSimple($strCardConnectionsQuery);
-        $colCardConnectionsResult->Data->HydrateModelData(ConnectionModel::class, true);
+        $colCardConnectionsResult->getData()->HydrateModelData(ConnectionModel::class, true);
 
         return $colCardConnectionsResult;
     }

@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class PaymentAccountModel extends AppModel
 {
-    protected $EntityName = "Payments";
-    protected $ModelName = "PaymentAccount";
+    protected string $EntityName = "Payments";
+    protected string $ModelName = "PaymentAccount";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class PaymentAccountModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "payment_account_id" => ["type" => "int","length" => 15],

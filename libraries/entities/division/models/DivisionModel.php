@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class DivisionModel extends AppModel
 {
-    protected $EntityName = "Division";
-    protected $ModelName = "Division";
+    protected string $EntityName = "Division";
+    protected string $ModelName = "Division";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class DivisionModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [];
     }

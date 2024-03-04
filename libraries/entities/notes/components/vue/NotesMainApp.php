@@ -8,8 +8,8 @@ use Entities\Notes\Components\Vue\NotesWidget\ListNotesWidget;
 
 class NotesMainApp extends VueApp
 {
-    protected $appNamePlural = "Notes";
-    protected $appNameSingular = "Note";
+    protected string $appNamePlural = "Notes";
+    protected string $appNameSingular = "Note";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

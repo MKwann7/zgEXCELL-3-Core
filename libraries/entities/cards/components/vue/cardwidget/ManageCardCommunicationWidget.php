@@ -10,9 +10,9 @@ use Entities\Users\Components\Vue\ConnectionWidget\ManageUserConnectionsWidget;
 
 class ManageCardCommunicationWidget extends VueComponent
 {
-    protected $id = "8c7cb199-b362-425c-9e2c-080f113b7439";
-    protected $modalWidth = 750;
-    protected $noMount = true;
+    protected string $id = "8c7cb199-b362-425c-9e2c-080f113b7439";
+    protected string $modalWidth = "750";
+    protected string $mountType = "no_mount";
 
     public function __construct ($props = [], ?VueComponentListTable $listTable = null, ?VueComponentSortableList $sortableList = null)
     {
@@ -121,9 +121,7 @@ class ManageCardCommunicationWidget extends VueComponent
                 let connectionList = self.shareTypeList;
                 let swapType = "shares";
                 let createNew = true;
-                
-                ezLog(self.createConnection, "self.createConnection")
-                
+ 
                 '. $this->activateDynamicComponentByIdInModal(SwapCardConnectionWidget::getStaticId(),"", "edit", "entity", "cardConnections", ["ownerId"=> "ownerId", "connectionList" => "connectionList", "swapType" => "swapType", "functionType" =>"'update'", "createNew" => "createNew"], "self", true,"function(component) {
                         let modal = self.findModal(self);
                         modal.vc.setTitle('Swap Share Button Link');
@@ -146,7 +144,6 @@ class ManageCardCommunicationWidget extends VueComponent
         {
             if (connection.connection_type_name === "blank") { return; }
             let self = this;
-            console.log(self.$parent);
             let intEntityId = self.$parent.entity.card_id;
             modal.EngageFloatShield();
             let data = {title: "Remove Card Connection?", html: "Are you sure you want to proceed?<br>Please confirm."};

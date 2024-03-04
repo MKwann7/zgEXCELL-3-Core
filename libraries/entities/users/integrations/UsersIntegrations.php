@@ -7,7 +7,7 @@ use Entities\Users\Integrations\Models\UsersIntegrationModel;
 
 class UsersIntegrations extends AppEntity
 {
-    public $strEntityName       = "Users";
+    public string $strEntityName       = "Users";
     public $strDatabaseTable    = "integrations_users";
     public $strDatabaseName     = "Integration";
     public $strMainModelName    = UsersIntegrationModel::class;

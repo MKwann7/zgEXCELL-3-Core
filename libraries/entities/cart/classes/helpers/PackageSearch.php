@@ -3,13 +3,13 @@
 namespace Entities\Cart\Classes\Helpers;
 
 use App\Core\AppModel;
+use App\entities\packages\models\PackageVariationModel;
 use App\Utilities\Excell\ExcellCollection;
 use Entities\Packages\Models\PackageLineModel;
-use Entities\Packages\Models\PackageModel;
 
 class PackageSearch
 {
-    public function loopThroughLinesFromPackageRecord(PackageModel &$currPackage, $callback) : ?AppModel
+    public function loopThroughLinesFromPackageRecord(PackageVariationModel &$currPackage, $callback) : ?AppModel
     {
         if (empty($currPackage->lines) || !is_a($currPackage->lines, ExcellCollection::class)) { return null; }
 

@@ -7,7 +7,7 @@ use Entities\Users\Models\ConnectionTypeModel;
 
 class ConnectionTypes extends AppEntity
 {
-    public $strEntityName       = "Users";
+    public string $strEntityName       = "Users";
     public $strDatabaseTable    = "connection_type";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = ConnectionTypeModel::class;

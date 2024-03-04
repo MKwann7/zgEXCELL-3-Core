@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardSocialMediaModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "CardSocialMedia";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "CardSocialMedia";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CardSocialMediaModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "card_socialmedia_id" => ["type" => "int","length" => 15],

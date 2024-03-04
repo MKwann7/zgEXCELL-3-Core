@@ -2,35 +2,47 @@
 
 namespace Entities\Media\Classes;
 
-use App\Core\AppController;
 use App\Core\AppEntity;
 use App\Utilities\Excell\ExcellCollection;
-use App\Utilities\Http\Http;
 use App\Utilities\Transaction\ExcellTransaction;
 use Entities\Media\Models\ImageModel;
+use Slim;
 
 class Images extends AppEntity
 {
-    public $strEntityName       = "Media";
+    public string $strEntityName       = "Media";
     public $strDatabaseTable    = "image";
     public $strDatabaseName     = "Media";
     public $strMainModelName    = ImageModel::class;
     public $strMainModelPrimary = "image_id";
 
-    public function uploadBase64ImageToMediaServer($base64, $entityId, $entityName, $imageClass = "editor") : ExcellTransaction
+    public function uploadBase64ImageToMediaServer(
+        string $base64,
+        string $uuid,
+        int $userId,
+        int $entityId,
+        string $entityName,
+        string $imageClass = "images",
+        ?ImageModel $parentImage = null
+    ) : ExcellTransaction
     {
         $imageResult = $this->decodeBase64ImageStringToLocalFile($base64);
 
-        if ($imageResult->Result->Success === false)
-        {
+        if ($imageResult->result->Success === false) {
             return $imageResult;
         }
 
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mime = finfo_file($finfo, $imageResult->Data->First()->getFullFileName());
+        $mime = finfo_file(
+            $finfo,
+            $imageResult
+                ->getData()
+                ->first()
+                ->getFullFileName()
+        );
 
         if (
-            !in_array(strtolower($imageResult->Data->First()->getFileExtension()), ["gif", "jpeg", "jpg", "png","svg"])
+            !in_array(strtolower($imageResult->getData()->first()->getFileExtension()), ["gif", "jpeg", "jpg", "png","svg"])
             && ($mime != "image/gif")
             && ($mime != "image/jpeg")
             && ($mime != "image/pjpeg")
@@ -42,51 +54,29 @@ class Images extends AppEntity
             return new ExcellTransaction(false, "You can only upload an image file: "  . $mime);
         }
 
-        $localFile = $imageResult->Data->First();
+        /** @var LocalFile $localFile */
+        $localFile = $imageResult->getData()->first();
         $tempFilePathAndName = $localFile->getFullFileName();
         $userId = $this->app->getActiveLoggedInUser()->sys_row_id ?? "73a0d8b4-57e9-11ea-b088-42010a522005";
         $link = null;
         $result = null;
 
-        register_shutdown_function('unlink', $tempFilePathAndName);
+        require APP_VENDORS . "slim/main/v4.5.1/process/slim" . XT;
 
-        try
-        {
-            $strPostUrl = "https://app.ezcardmedia.com/upload-image/{$entityName}/" . $entityId;
-            $objHttp = new Http();
-            $objFileForCurl = curl_file_create($tempFilePathAndName);
-            $objHttpRequest = $objHttp->newRawRequest(
-                "post",
-                $strPostUrl,
-                [
-                    "file" => $objFileForCurl,
-                    "user_id" => $userId,
-                    "image_class" => $imageClass
-                ]
-            )
-                ->setOption(CURLOPT_CAINFO, '/etc/ssl/ca-bundle.crt')
-                ->setOption(CURLOPT_SSL_VERIFYPEER, false);
+        $slim = new Slim($this->app, $userId);
 
-            $objHttpResponse = $objHttpRequest->send();
+        $fileName = $parentImage?->title ?? $localFile->getFileName();
 
-            $result = json_decode($objHttpResponse->body);
+        $imageFromServer = $slim->postFileToMediaServer($tempFilePathAndName, $fileName, $entityName, $entityId, $userId, $imageClass, $parentImage->image_id);
 
-            $link = $result->link;
-        }
-        catch(\Exception $ex)
-        {
-            new ExcellTransaction(false, $ex->getMessage(), ["error" => $ex]);
-        }
-
-        if ($link === null)
-        {
+        if (!$imageFromServer) {
             new ExcellTransaction(false,"Unable to save the image", ["error" => $result]);
         }
 
-        return new ExcellTransaction(true, "Upload Successful", $link);
+        return new ExcellTransaction(true, "Upload Successful", (new ExcellCollection())->Add($imageFromServer));
     }
 
-    public function decodeBase64ImageStringToLocalFile($data) : ExcellTransaction
+    public function decodeBase64ImageStringToLocalFile(string $data) : ExcellTransaction
     {
         $type = "txt";
 
@@ -109,7 +99,7 @@ class Images extends AppEntity
         }
         else
         {
-            return new ExcellTransaction(false, 'did not match data URI with image data');
+            return new ExcellTransaction(false, 'did not match data URI with image data: ' . $data);
         }
 
         $localFile = new LocalFile(getGuid() . ".{$type}" );
@@ -119,5 +109,48 @@ class Images extends AppEntity
         $colImageData->Add($localFile);
 
         return new ExcellTransaction(true, 'base64_decode decoded', $colImageData);
+    }
+
+    public function buildImageBatchWhereClause($filterIdField = null, $filterEntity = null, int $typeId = 1) : string
+    {
+        $objWhereClause = $this->cardListPrimaryDataForDisplay($filterIdField, $filterEntity);
+
+        if ($filterEntity !== null)
+        {
+            $objWhereClause .= "usr.{$filterIdField} = {$filterEntity} AND "; // 9 = card affiliate
+        }
+
+        $objWhereClause .= "img.image_class = 'images' GROUP BY(img.image_id) ORDER BY img.image_id DESC";
+
+        return $objWhereClause;
+    }
+
+    public function buildLogoBatchWhereClause($filterIdField = null, $filterEntity = null, int $typeId = 1) : string
+    {
+        $objWhereClause = $this->cardListPrimaryDataForDisplay($filterIdField, $filterEntity);
+
+        if ($filterEntity !== null)
+        {
+            $objWhereClause .= "usr.{$filterIdField} = {$filterEntity} AND "; // 9 = card affiliate
+        }
+
+        $objWhereClause .= "img.image_class = 'logos' GROUP BY(img.image_id) ORDER BY img.image_id DESC";
+
+        return $objWhereClause;
+    }
+
+    private function cardListPrimaryDataForDisplay($filterIdField = null, $filterEntity = null)
+    {
+        $objWhereClause = "SELECT img.* FROM excell_media.image img ";
+
+        if ($filterEntity !== null)
+        {
+            $objWhereClause .= "LEFT JOIN excell_main.user usr ON usr.user_id = img.user_id ";
+        }
+
+        //$objWhereClause .= "WHERE card.company_id = {$this->app->objCustomPlatform->getCompanyId()} AND card.status != 'Deleted' ";
+        $objWhereClause .= "WHERE ";
+
+        return $objWhereClause;
     }
 }

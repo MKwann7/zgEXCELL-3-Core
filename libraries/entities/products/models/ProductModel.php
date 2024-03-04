@@ -4,10 +4,32 @@ namespace Entities\Products\Models;
 
 use App\Core\AppModel;
 
+/**
+ * @property int $product_id
+ * @property int $product_class_id
+ * @property int $product_type_id
+ * @property int $product_enduser_id
+ * @property string $title
+ * @property string $abbreviation
+ * @property string $display_name
+ * @property string $description
+ * @property string $source_uuid
+ * @property float $min_package_value
+ * @property float $promo_value
+ * @property int $promo_cycle_duration
+ * @property float $value
+ * @property int $value_duration
+ * @property int $cycle_type
+ * @property string $status
+ * @property string $created_on
+ * @property string $last_updated
+ * @property string $sys_row_id
+ */
+
 class ProductModel extends AppModel
 {
-    protected $EntityName = "Products";
-    protected $ModelName = "Product";
+    protected string $EntityName = "Products";
+    protected string $ModelName = "Product";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +37,7 @@ class ProductModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "product_id" => ["type" => "int","length" => 15],

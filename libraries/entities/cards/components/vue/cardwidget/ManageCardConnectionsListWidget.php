@@ -9,9 +9,9 @@ use Entities\Cards\Models\CardModel;
 
 class ManageCardConnectionsListWidget extends VueComponentList
 {
-    protected $id = "8ab04d1b-6f50-4509-9a8d-964f2f05b886";
-    protected $modalWidth = 750;
-    protected $noMount = true;
+    protected string $id = "8ab04d1b-6f50-4509-9a8d-964f2f05b886";
+    protected string $modalWidth = "750";
+    protected string $mountType = "no_mount";
 
     public function __construct ($props = [])
     {

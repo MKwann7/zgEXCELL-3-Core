@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class OpportunityModel extends AppModel
 {
-    protected $EntityName = "Opportunity";
-    protected $ModelName = "Opportunity";
+    protected string $EntityName = "Opportunity";
+    protected string $ModelName = "Opportunity";
 
     public function __construct($entityData = null, $force = false)
     {

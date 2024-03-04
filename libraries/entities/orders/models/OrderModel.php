@@ -1,13 +1,13 @@
 <?php
 
-namespace Module\Orders\Models;
+namespace Entities\Orders\Models;
 
 use App\Core\AppModel;
 
 class OrderModel extends AppModel
 {
-    protected $EntityName = "Orders";
-    protected $ModelName = "Order";
+    protected string $EntityName = "Orders";
+    protected string $ModelName = "Order";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class OrderModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "order_id" => ["type" => "int","length" => 15],

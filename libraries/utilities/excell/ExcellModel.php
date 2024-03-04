@@ -9,13 +9,12 @@ use Countable;
 
 abstract class ExcellModel extends ExcellIterator
 {
-    protected $Definitions = array();
-    public $Errors = array();
+    protected array $Definitions = [];
+    public array $Errors = [];
 
     public function __get($strName)
     {
-        if (!isset($this->Properties[$strName]))
-        {
+        if (!isset($this->Properties[$strName])) {
             return null;
         }
 
@@ -27,26 +26,21 @@ abstract class ExcellModel extends ExcellIterator
         return $this->Add($strName, $objValue);
     }
 
-    public function __isset($strName)
+    public function __isset($strName): bool
     {
         return isset($this->Properties[$strName]);
     }
 
     public function Hydrate($arItems, $force = false) : void
     {
-        if ($arItems === null || (!isIterable($arItems) && !$arItems instanceof \Countable) || (is_array($arItems) && count($arItems) === 0))
-        {
+        if ($arItems === null || (!isIterable($arItems) && !$arItems instanceof \Countable) || (is_array($arItems) && count($arItems) === 0)) {
             return;
         }
 
-        foreach($arItems as $currField => $currValue)
-        {
-            if ($force === true)
-            {
+        foreach($arItems as $currField => $currValue) {
+            if ($force === true) {
                 $this->AddUnvalidatedValue($currField, $currValue);
-            }
-            else
-            {
+            } else {
                 $this->Add($currField, $currValue);
             }
         }
@@ -54,20 +48,17 @@ abstract class ExcellModel extends ExcellIterator
 
     function Add($strName, $objValue) : bool
     {
-        if (empty($strName))
-        {
+        if (empty($strName)) {
             $this->Errors["main"]["setup"] = "Field was not passed in for value assignment.";
             return false;
         }
 
-        if (empty($this->Definitions[$strName]) && strpos($strName, "__") === false)
-        {
+        if (empty($this->Definitions[$strName]) && !str_contains($strName, "__")) {
             $this->Errors["validation"]["integrity"][$strName] = $strName . " is not in the model.";
             return false;
         }
 
-        if ( !$this->ValidateField($strName, $objValue, true) )
-        {
+        if ( !$this->ValidateField($strName, $objValue, true) ) {
 
             return false;
         }
@@ -77,14 +68,14 @@ abstract class ExcellModel extends ExcellIterator
         return true;
     }
 
-    public function RemoveField($strField)
+    public function RemoveField($strField): static
     {
         unset($this->Properties[$strField]);
 
         return $this;
     }
 
-    public function AddUnvalidatedValue($strField, $objValue, $inFront = false, $debug = false)
+    public function AddUnvalidatedValue($strField, $objValue, $inFront = false, $debug = false): static
     {
         if ($inFront === false)
         {
@@ -178,11 +169,11 @@ abstract class ExcellModel extends ExcellIterator
     {
         $blnModelPassesValidation = true;
 
-        if ( $strName === null && $objValue === null )
+        if ($strName === null && $objValue === null)
         {
             foreach($this->Properties as $currKey => $currPropertyValue)
             {
-                if(!$this->ValidateItem($currKey, $currPropertyValue, $blnTransformTypes))
+                if (!$this->ValidateItem($currKey, $currPropertyValue, $blnTransformTypes))
                 {
                     $blnModelPassesValidation = false;
                 }
@@ -190,7 +181,7 @@ abstract class ExcellModel extends ExcellIterator
         }
         else
         {
-            if(!$this->ValidateItem($strName, $objValue, $blnTransformTypes))
+            if (!$this->ValidateItem($strName, $objValue, $blnTransformTypes))
             {
                 $blnModelPassesValidation = false;
             }
@@ -213,7 +204,7 @@ abstract class ExcellModel extends ExcellIterator
             return true;
         }
 
-        if (($this->Definitions[$strName]["nullable"] ?? false) == true && $objValue === ExcellNull)
+        if (($this->Definitions[$strName]["nullable"] ?? false) == true && $objValue === EXCELL_NULL)
         {
             return true;
         }
@@ -233,7 +224,7 @@ abstract class ExcellModel extends ExcellIterator
             switch($this->Definitions[$strName]["type"])
             {
                 case "int":
-                    if (!isInteger($objValue) || $objValue === ExcellNull)
+                    if (!isInteger($objValue) || $objValue === EXCELL_NULL)
                     {
                         $this->Errors[$strName]["type"] = "The value passed in is not an integer.";
                         return false;
@@ -246,7 +237,7 @@ abstract class ExcellModel extends ExcellIterator
                     break;
 
                 case "decimal":
-                    if (!isDecimal($objValue) || $objValue === ExcellNull)
+                    if (!isDecimal($objValue) || $objValue === EXCELL_NULL)
                     {
                         $this->Errors[$strName]["type"] = "The value passed in  is not a decimal.";
                         return false;
@@ -259,10 +250,13 @@ abstract class ExcellModel extends ExcellIterator
                     break;
 
                 case "datetime":
-                    if (!isDateTime($objValue) || $objValue === ExcellNull)
-                    {
+                    if (!isDateTime($objValue) && (is_string($objValue) && strtotime($objValue) === false)) {
                         $this->Errors[$strName]["type"] = $objValue . " is not a datetime.";
                         return false;
+                    }
+
+                    if ($objValue === EXCELL_NULL) {
+                        $objValue = date("Y-m-d H:i:s");
                     }
 
                     // TODO - add $blnTransformTypes qualifier?
@@ -298,22 +292,30 @@ abstract class ExcellModel extends ExcellIterator
                         return false;
                     }
 
-                    if ( $objValue === ExcellNull )
+                    if ($objValue === EXCELL_NULL)
                     {
                         $objValue = "";
                     }
 
-                    if ( $blnTransformTypes === true && !is_a($objValue,"stdClass") )
+                    if ($blnTransformTypes === true && !is_a($objValue,"stdClass"))
                     {
-                        $objValue = json_decode($objValue);
+                        if ( is_array($objValue)) {
+                            $objValue = json_decode(json_encode($objValue));
+                        } else {
+                            $objValue = json_decode($objValue);
+                        }
                     }
 
                     break;
                 default:
 
-                    if ($objValue === ExcellNull)
+                    if ($objValue === EXCELL_NULL)
                     {
                         $objValue = "";
+                    }
+
+                    if (class_exists($this->Definitions[$strName]["type"])) {
+                        return true;
                     }
 
                     break;
@@ -408,32 +410,16 @@ abstract class ExcellModel extends ExcellIterator
     {
         foreach ($this->Properties as $strName => $currValue)
         {
-            if (!empty($this->Definitions[$strName]["type"]))
+            if (!empty($this->Definitions[$strName]["type"]) && $this->Definitions[$strName]["type"] === "json")
             {
-                switch($this->Definitions[$strName]["type"])
+                $objDataValueTest = json_decode(json_encode($currValue, JSON_FORCE_OBJECT), true);
+
+                if ( !empty($objDataValueTest) && (is_array($objDataValueTest) || $objDataValueTest instanceof Countable) && count($objDataValueTest) > 0 )
                 {
-                    case "int":
-                    case "decimal":
-                    case "datetime":
-                        break;
+                    $objValueTransaction = new ExcellTransaction();
+                    $objValueTransaction->setExtraData("toUnEncode", $currValue);
 
-                    case "json":
-
-                        $objDataValueTest = json_decode(json_encode($currValue, JSON_FORCE_OBJECT), true);
-
-                        if ( !empty($objDataValueTest) && (is_array($objDataValueTest) || $objDataValueTest instanceof Countable) && count($objDataValueTest) > 0 )
-                        {
-                            $objValueTransaction = new ExcellTransaction();
-                            $objValueTransaction->Data = $currValue;
-
-                            $this->Properties[$strName] = Database::unBase64Encode($objValueTransaction)->Data;
-                        }
-
-                        break;
-
-                    default:
-
-                        break;
+                    $this->Properties[$strName] = Database::unBase64Encode($objValueTransaction, "toUnEncode")->getExtraData("toUnEncode");
                 }
             }
         }

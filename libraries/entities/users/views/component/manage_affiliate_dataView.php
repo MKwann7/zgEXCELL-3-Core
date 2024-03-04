@@ -13,12 +13,12 @@ if ($strViewTitle === "addAffiliate" || $strViewTitle === "editAffiliate")
         $intUserId = $this->app->objHttpRequest->Data->PostData->user_id;
         $objUserResult = (new Users())->getById($intUserId);
 
-        if ( $objUserResult->Result->Success === false)
+        if ( $objUserResult->result->Success === false)
         {
             die("Error: No user was found for id: $intUserId.");
         }
 
-        $objUser = $objUserResult->Data->First();
+        $objUser = $objUserResult->getData()->first();
 
         $strButtonText = "Edit Member";
     }

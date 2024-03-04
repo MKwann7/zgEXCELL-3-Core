@@ -8,7 +8,7 @@ use Entities\Companies\Models\CompanySettingModel;
 
 class CompanySettings extends AppEntity
 {
-    public $strEntityName       = "Companies";
+    public string $strEntityName       = "Companies";
     public $strDatabaseTable    = "company_setting";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = CompanySettingModel::class;

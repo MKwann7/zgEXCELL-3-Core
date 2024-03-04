@@ -10,7 +10,7 @@ use Entities\Companies\Models\Departments\DepartmentTicketQueueModel;
 
 class DepartmentTicketQueues extends AppEntity
 {
-    public $strEntityName       = "Companies";
+    public string $strEntityName       = "Companies";
     public $strDatabaseTable    = "ticket_queue";
     public $strDatabaseName     = "Crm";
     public $strMainModelName    = DepartmentTicketQueueModel::class;
@@ -29,11 +29,11 @@ class DepartmentTicketQueues extends AppEntity
         $objWhereClause .= "WHERE utr.user_id = '" . $userId . "' AND tq.company_department_id IN (".implode(",", $departmentIds).")";
 
         $departmentResult = Database::getSimple($objWhereClause, "ticket_queue_id");
-        $departmentResult->Data->HydrateModelData(DepartmentTicketQueueModel::class, true);
+        $departmentResult->getData()->HydrateModelData(DepartmentTicketQueueModel::class, true);
 
-        if ($departmentResult->Result->Count !== 1)
+        if ($departmentResult->result->Count === 0)
         {
-            return new ExcellTransaction(false, $departmentResult->Result->Message, ["errors" => [$departmentResult->Result->Message]]);
+            return new ExcellTransaction(false, $departmentResult->result->Message, ["errors" => [$departmentResult->result->Message]]);
         }
 
         return $departmentResult;

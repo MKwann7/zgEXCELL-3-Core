@@ -10,9 +10,9 @@ use Entities\Modules\Models\AppInstanceRelModel;
 
 class ListContactsWidget extends VueComponentEntityList
 {
-    protected $id = "679a7c38-29b8-4643-918b-1b220f912104";
-    protected $title = "Contacts";
-    protected $batchLoadEndpoint = "api/v1/contacts/get-contact-batches";
+    protected string $id = "679a7c38-29b8-4643-918b-1b220f912104";
+    protected string $title = "Contacts";
+    protected string $batchLoadEndpoint = "api/v1/contacts/get-contact-batches";
 
     public function __construct(array $components = [])
     {

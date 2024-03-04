@@ -7,10 +7,10 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class VueComponentListTable extends VueComponent
 {
-    protected $id = "6293492c-21f5-489d-b88c-9138edfeaee7";
+    protected string $id = "6293492c-21f5-489d-b88c-9138edfeaee7";
     protected $entityRow;
-    protected $vueType = "compListTable";
-    protected $noMount = true;
+    protected string $vueType = "compListTable";
+    protected string $mountType = "no_mount";
 
     public function __construct(?AppModel $entity = null, ?VueComponentListRow $entityRow = null, ?array $props = [])
     {

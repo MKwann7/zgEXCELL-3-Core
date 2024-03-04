@@ -13,8 +13,14 @@ $arJavaScriptLibraries = [
         "lodash" => array(
             "main/v4.17.11" => ["lodash.min.js"],
         ),
+        "anime" => array(
+            "main/v3.2.1" => ["anime.min.js"],
+        ),
         "modernizr" => array(
             "main/v2.6.2" => ["modernizer.min.js"]
+        ),
+        "slim" => array(
+            "main/v4.5.1" => ["slim.kickstart.min.js"]
         ),
         "vue" => array(
             "main/v2.5.17" => ["vue.min.js"],

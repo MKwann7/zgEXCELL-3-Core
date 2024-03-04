@@ -9,46 +9,46 @@ use Entities\Cards\Classes\Cards;
 use Entities\Cards\Models\CardAddonModel;
 use Entities\Orders\Classes\OrderLines;
 use Entities\Orders\Classes\Orders;
-use Module\Orders\Models\OrderLineModel;
+use Entities\Orders\Models\OrderLineModel;
 
 class UpdateCardPageRelOrderLines extends Command
 {
-    public $name = "Apps.UpdateCardPageRels";
-    public $description = "This is a data migration process to loop through member directory data and create value records that work with the new system.";
+    public string $name = "Apps.UpdateCardPageRels";
+    public string $description = "This is a data migration process to loop through member directory data and create value records that work with the new system.";
 
     /**
      * Executes the command
      */
-    public function Run()
+    public function Run(): void
     {
         ini_set('memory_limit', '-1');
         set_time_limit(3000);
 
         $objCardPageRels = new CardPageRels();
-        $cardPageRelResult = $objCardPageRels->getWhere(["card_addon_id" => ExcellNull]);
+        $cardPageRelResult = $objCardPageRels->getWhere(["card_addon_id" => EXCELL_NULL]);
 
         $objCards = new Cards();
-        $cardResult = $objCards->getWhereIn("card_id", $cardPageRelResult->Data->FieldsToArray(["card_id"]));
+        $cardResult = $objCards->getWhereIn("card_id", $cardPageRelResult->getData()->FieldsToArray(["card_id"]));
 
-        $cardResult->Data->Filter(function($currCard)
+        $cardResult->getData()->Filter(function($currCard)
         {
             if (!empty($currCard->order_line_id)) { return $currCard; }
         });
 
         $objOrderLines = new OrderLines();
-        $orderLineResult = $objOrderLines->getWhereIn("order_line_id", $cardResult->Data->FieldsToArray(["order_line_id"]));
+        $orderLineResult = $objOrderLines->getWhereIn("order_line_id", $cardResult->getData()->FieldsToArray(["order_line_id"]));
 
         $objOrders = new Orders();
-        $orderResult = $objOrders->getWhereIn("order_id", $orderLineResult->Data->FieldsToArray(["order_id"]));
+        $orderResult = $objOrders->getWhereIn("order_id", $orderLineResult->getData()->FieldsToArray(["order_id"]));
 
-        $orderLineAllResult = $objOrderLines->getWhereIn("order_id", $orderResult->Data->FieldsToArray(["order_id"]));
-        $orderLineAllResult->Data->HydrateChildModelData("card", ["order_line_id" => "order_line_id"], $cardResult->Data, true);
+        $orderLineAllResult = $objOrderLines->getWhereIn("order_id", $orderResult->getData()->FieldsToArray(["order_id"]));
+        $orderLineAllResult->getData()->HydrateChildModelData("card", ["order_line_id" => "order_line_id"], $cardResult->data, true);
 
-        $orderResult->Data->HydrateChildModelData("order_lines", ["order_id" => "order_id"], $orderLineAllResult->Data, false);
+        $orderResult->getData()->HydrateChildModelData("order_lines", ["order_id" => "order_id"], $orderLineAllResult->data, false);
 
-        dump("Processing: " . $orderResult->Result->Count);
+        dump("Processing: " . $orderResult->result->Count);
 
-        $orderResult->Data->Foreach(function($currOrder) use (&$cardPageRelResult, $objCardPageRels, $objOrderLines)
+        $orderResult->getData()->Foreach(function($currOrder) use (&$cardPageRelResult, $objCardPageRels, $objOrderLines)
         {
             if (empty($currOrder->order_lines)) { return; }
 
@@ -71,11 +71,11 @@ class UpdateCardPageRelOrderLines extends Command
             {
                 if ($currOrderLine->product_id !== 1002) { return; }
                 $appInstanceResult = $objCardPageRels->getWhere(["order_line_id" => $currOrderLine->order_line_id]);
-                if ($appInstanceResult->Result->Count !== 0) { return; }
+                if ($appInstanceResult->result->Count !== 0) { return; }
                 return $currOrderLine;
             });
 
-            $appInstanceRelsForWidget = $cardPageRelResult->Data->FindMatching(function($currAppInstanceRel) use ($cardId)
+            $appInstanceRelsForWidget = $cardPageRelResult->getData()->FindMatching(function($currAppInstanceRel) use ($cardId)
             {
                 if ($currAppInstanceRel->card_id === $cardId) { return $currAppInstanceRel; }
             });
@@ -101,7 +101,7 @@ class UpdateCardPageRelOrderLines extends Command
                     $orderLineModel->division_id = 0;
                     $orderLineModel->company_id = $companyId;
 
-                    $orderLine = $objOrderLines->createNew($orderLineModel)->Data->First();
+                    $orderLine = $objOrderLines->createNew($orderLineModel)->getData()->first();
 
                     $orderLinesForWidget->Add($orderLine);
                 }
@@ -130,13 +130,13 @@ class UpdateCardPageRelOrderLines extends Command
                         $orderLineModel->division_id = 0;
                         $orderLineModel->company_id = $companyId;
 
-                        $orderLine = $objOrderLines->createNew($orderLineModel)->Data->First();
+                        $orderLine = $objOrderLines->createNew($orderLineModel)->getData()->first();
                     }
 
                     $currAppInstance->order_line_id = $orderLine->order_line_id;
 
                     $objCardAddon = new CardAddon();
-                    $cardAddon = $objCardAddon->getWhere(["order_line_id" => $currAppInstance->order_line_id])->Data->First();
+                    $cardAddon = $objCardAddon->getWhere(["order_line_id" => $currAppInstance->order_line_id])->getData()->first();
 
                     if (empty($cardAddon))
                     {
@@ -151,7 +151,7 @@ class UpdateCardPageRelOrderLines extends Command
                         $cardAddonModal->division_id = 0;
                         $cardAddonModal->company_id = $companyId;
 
-                        $cardAddon = $objCardAddon->createNew($cardAddonModal)->Data->First();
+                        $cardAddon = $objCardAddon->createNew($cardAddonModal)->getData()->first();
                     }
 
                     $currAppInstance->card_addon_id = $cardAddon->card_addon_id;

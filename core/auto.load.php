@@ -1,14 +1,14 @@
 <?php
 
-if (!defined("AppCore"))
+if (!defined("APP_CORE"))
 {
-    define("AppCore", __DIR__ . "/../../");
-    define("PublicData", __DIR__ . "/../../public/");
+    define("APP_CORE", __DIR__ . "/../../");
+    define("PUBLIC_DATA", __DIR__ . "/../../public/");
     define("XT", ".php");
 }
 
 // Load App Class
-require AppCore . "engine/core/definitions" . XT;
+require APP_CORE . "engine/core/definitions" . XT;
 
 /**
  *  Autoloader for the entities zgExcell app
@@ -34,7 +34,7 @@ spl_autoload_register(function ($class) {
     // replace the namespace prefix with the base directory, replace namespace
     // separators with directory separators in the relative class name, append
     // with .php
-    $file = AppLibraries . str_replace('\\', '/', $classPath . "/" . $classFile) . '.php';
+    $file = APP_LIBRARIES . str_replace('\\', '/', $classPath . "/" . $classFile) . '.php';
 
     //dd($file);
 
@@ -55,7 +55,7 @@ spl_autoload_register(function ($class)
     $classArray = array_reverse(array_filter($reversedClass));
     $classPath = strtolower(implode("\\",$classArray));
 
-    $file = AppCore . str_replace('\\', '/', $classPath . "/" . $classFile) . '.php';
+    $file = APP_CORE . str_replace('\\', '/', $classPath . "/" . $classFile) . '.php';
 
     // if the file exists, require it
     if (file_exists($file)) {
@@ -66,7 +66,7 @@ spl_autoload_register(function ($class)
     if (empty($classArray[3])) { return; }
 
     $classModulePath = str_replace([strtolower("\\" . $classArray[1] . "\\")], ["\\" . $classArray[1] . "\\"], $classPath);
-    $fileModule = AppCore . str_replace('\\', '/', $classModulePath . "/" . $classFile) . '.php';
+    $fileModule = APP_CORE . str_replace('\\', '/', $classModulePath . "/" . $classFile) . '.php';
 
 
     // if the file exists, require it
@@ -76,7 +76,7 @@ spl_autoload_register(function ($class)
     }
 
     $classModuleWidgetPath = str_replace([strtolower("\\" . $classArray[1] . "\\"), strtolower("\\" . $classArray[3] . "\\")], ["\\" . $classArray[1] . "\\", "\\" . $classArray[3] . "\\"], $classPath);
-    $fileModuleWidget = AppCore . str_replace('\\', '/', $classModuleWidgetPath . "/" . $classFile) . '.php';
+    $fileModuleWidget = APP_CORE . str_replace('\\', '/', $classModuleWidgetPath . "/" . $classFile) . '.php';
 
     // if the file exists, require it
     if (file_exists($fileModuleWidget)) {
@@ -110,7 +110,7 @@ spl_autoload_register(function ($class) {
     // replace the namespace prefix with the base directory, replace namespace
     // separators with directory separators in the relative class name, append
     // with .php
-    $file = AppVendors . str_replace('\\', '/', $classPath . "/" . $classFile) . '.php';
+    $file = APP_VENDORS . str_replace('\\', '/', $classPath . "/" . $classFile) . '.php';
 
     // if the file exists, require it
     if (file_exists($file)) {
@@ -143,7 +143,7 @@ spl_autoload_register(function ($class) {
     // replace the namespace prefix with the base directory, replace namespace
     // separators with directory separators in the relative class name, append
     // with .php
-    $file = AppLibraries . str_replace('\\', '/', $classPath . "/" . $classFile) . '.php';
+    $file = APP_LIBRARIES . str_replace('\\', '/', $classPath . "/" . $classFile) . '.php';
 
     //dd($file);
 
@@ -177,7 +177,7 @@ spl_autoload_register(function ($class) {
     // replace the namespace prefix with the base directory, replace namespace
     // separators with directory separators in the relative class name, append
     // with .php
-    $file = AppHttpEntities . str_replace('\\', '/', $classPath . "/" . $classFile) . '.php';
+    $file = APP_HTTP_ENTITIES . str_replace('\\', '/', $classPath . "/" . $classFile) . '.php';
 
     //dd($file);
 

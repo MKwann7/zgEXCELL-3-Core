@@ -6,8 +6,8 @@
  * Time: 9:43 AM
  */
 
-$this->CurrentPage->BodyId            = "my-profile-page";
-$this->CurrentPage->BodyClasses       = ["admin-page", "my-profile-page", "no-columns"];
+$this->CurrentPage->BodyId            = "my-profilewidget-page";
+$this->CurrentPage->BodyClasses       = ["admin-page", "my-profilewidget-page", "no-columns"];
 $this->CurrentPage->Meta->Title       = "My Profile | Admin | " . $this->app->objCustomPlatform->getPortalName();
 $this->CurrentPage->Meta->Description = "Welcome to the NEW AMAZING WORLD of EZ Digital Cards, where you can create and manage your own cards!";
 $this->CurrentPage->Meta->Keywords    = "";

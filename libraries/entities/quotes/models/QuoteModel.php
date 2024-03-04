@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class QuoteModel extends AppModel
 {
-    protected $EntityName = "Quotes";
-    protected $ModelName = "Quote";
+    protected string $EntityName = "Quotes";
+    protected string $ModelName = "Quote";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class QuoteModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [];
     }

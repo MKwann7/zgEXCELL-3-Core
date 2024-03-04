@@ -4,7 +4,7 @@ namespace Entities\Cards\Components\Vue\CardWidget;
 
 class ManageCardCustomizableImageWidget extends ManageCardImageWidget
 {
-    protected $id = "0c8d4716-7d40-4f7c-8e15-564515e71324";
+    protected string $id = "0c8d4716-7d40-4f7c-8e15-564515e71324";
     protected $cropperBannerId = "my-cropper-banner-custom";
 
     protected function renderTemplate() : string

@@ -10,7 +10,7 @@ use Entities\Companies\Models\Departments\DepartmentModel;
 
 class Departments extends AppEntity
 {
-    public $strEntityName       = "Companies";
+    public string $strEntityName       = "Companies";
     public $strDatabaseTable    = "company_department";
     public $strMainModelName    = DepartmentModel::class;
     public $strMainModelPrimary = "company_department_id";
@@ -24,12 +24,12 @@ class Departments extends AppEntity
 
         $objWhereClause .= "WHERE dpur.user_id = '".$userId."'";
 
-        $departmentResult = Database::getSimple($objWhereClause, "department_id");
-        $departmentResult->Data->HydrateModelData(DepartmentModel::class, true);
+        $departmentResult = Database::getSimple($objWhereClause, "`company_department_id`");
+        $departmentResult->getData()->HydrateModelData(DepartmentModel::class, true);
 
-        if ($departmentResult->Result->Count !== 1)
+        if ($departmentResult->result->Count === 0)
         {
-            return new ExcellTransaction(false, $departmentResult->Result->Message, ["errors" => [$departmentResult->Result->Message]]);
+            return new ExcellTransaction(false, $departmentResult->result->Message, ["errors" => [$departmentResult->result->Message]]);
         }
 
         return $departmentResult;

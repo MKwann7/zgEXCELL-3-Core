@@ -13,7 +13,7 @@ use Entities\Pages\Models\PageModel;
 
 class Pages extends AppEntity
 {
-    public $strEntityName       = "pages";
+    public string $strEntityName       = "pages";
     public $strDatabaseTable    = "page";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = PageModel::class;
@@ -24,14 +24,14 @@ class Pages extends AppEntity
     {
         $objPageRequest = parent::getById($intEntityRowId);
 
-        if ( $objPageRequest->Result->Success == false || $objPageRequest->Result->Count == 0 )
+        if ( $objPageRequest->result->Success == false || $objPageRequest->result->Count == 0 )
         {
             return $objPageRequest;
         }
 
         $arPageBlockPages = array();
 
-        foreach($objPageRequest->Data as $currKey => $currData)
+        foreach($objPageRequest->data as $currKey => $currData)
         {
             $arPageBlockPages[] = $this->strMainModelPrimary . " = " . $currData->page_id;
         }
@@ -40,27 +40,27 @@ class Pages extends AppEntity
 
         $objPageBlockResult = Database::getComplex($strPageBlockQuery,'block_data','block_data','page_block_id');
 
-        if ( $objPageBlockResult->Result->Success == false || $objPageBlockResult->Result->Count == 0 )
+        if ( $objPageBlockResult->result->Success == false || $objPageBlockResult->result->Count == 0 )
         {
             return $objPageRequest;
         }
 
         $objPageBlocks = array();
 
-        foreach ($objPageBlockResult->Data as $currKey => $currData)
+        foreach ($objPageBlockResult->data as $currKey => $currData)
         {
             // TODO - FIX
             $objPageBlocks["PageBlocks"][] = new PageBlockModel($currData);
         }
 
-        $objPageRequest->Data[0]->ChildEntities = $objPageBlocks;
+        $objPageRequest->data[0]->ChildEntities = $objPageBlocks;
 
         $objTransactionResult = new ExcellTransaction();
 
-        $objTransactionResult->Result->Success = true;
-        $objTransactionResult->Result->Count = $objPageRequest->Data->Count();
-        $objTransactionResult->Result->Message = "This Query Returned " . $objPageRequest->Data->Count() . " Results.";
-        $objTransactionResult->Data =  $objPageRequest->Data;
+        $objTransactionResult->result->Success = true;
+        $objTransactionResult->result->Count = $objPageRequest->getData()->Count();
+        $objTransactionResult->result->Message = "This Query Returned " . $objPageRequest->getData()->Count() . " Results.";
+        $objTransactionResult->data =  $objPageRequest->getData();
 
         return $objTransactionResult;
     }
@@ -75,24 +75,24 @@ class Pages extends AppEntity
 
         $objAllPagesResult = Database::getComplex($strGetAllActivePagesQuery,'page_data','page_data','page_id');
 
-        if ( $objAllPagesResult->Result->Success === false || $objAllPagesResult->Result->Count === 0 )
+        if ( $objAllPagesResult->result->Success === false || $objAllPagesResult->result->Count === 0 )
         {
             return $objAllPagesResult;
         }
 
         $objAllPages = array();
 
-        foreach($objAllPagesResult->Data as $currKey => $currData)
+        foreach($objAllPagesResult->data as $currKey => $currData)
         {
             $objAllPages[] = new PageModel($currData);
         }
 
         $objTransactionResult = new ExcellTransaction();
 
-        $objTransactionResult->Result->Success = true;
-        $objTransactionResult->Result->Count = count($objAllPages);
-        $objTransactionResult->Result->Message = "This Query Returned " . count($objAllPages) . " Results.";
-        $objTransactionResult->Data =  $objAllPages;
+        $objTransactionResult->result->Success = true;
+        $objTransactionResult->result->Count = count($objAllPages);
+        $objTransactionResult->result->Message = "This Query Returned " . count($objAllPages) . " Results.";
+        $objTransactionResult->data =  $objAllPages;
 
         return $objTransactionResult;
     }

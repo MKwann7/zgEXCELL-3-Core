@@ -7,8 +7,8 @@ use Entities\Cards\Models\CardModel;
 
 class ManageCardMainColorWidget extends VueComponent
 {
-    protected $id = "096af019-2555-471c-afda-6a19a4d9d5a8";
-    protected $modalWidth = 520;
+    protected string $id = "096af019-2555-471c-afda-6a19a4d9d5a8";
+    protected string $modalWidth = "520";
 
     public function __construct (array $components = [])
     {
@@ -53,12 +53,7 @@ class ManageCardMainColorWidget extends VueComponent
                 this.mainCardColor = (mainCardColor !== null) ? atob(mainCardColor) : this.mainCardColor;
                 
                 const elPicker = document.getElementById("colorpickerHolder");
-                
-                console.log(elPicker);
-                
                 const elPickerClass = elPicker.getElementsByClassName("colpick_hex");
-                
-                console.log(elPickerClass);
                     
                 $( function() {
                     $("#colorpickerHolder").colpick({

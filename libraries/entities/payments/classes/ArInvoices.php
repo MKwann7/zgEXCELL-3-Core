@@ -8,7 +8,7 @@ use Entities\Payments\Models\ArInvoiceModel;
 
 class ArInvoices extends AppEntity
 {
-    public $strEntityName       = "payments";
+    public string $strEntityName       = "payments";
     public $strDatabaseTable    = "ar_invoice";
     public $strDatabaseName     = "Financial";
     public $strMainModelName    = ArInvoiceModel::class;

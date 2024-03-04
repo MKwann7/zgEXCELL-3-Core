@@ -8,8 +8,8 @@ use Entities\Cards\Components\Vue\CardWidget\ListCardWidget;
 
 class CardMainApp extends VueApp
 {
-    protected $appNamePlural = "Cards";
-    protected $appNameSingular = "Card";
+    protected string $appNamePlural = "Cards";
+    protected string $appNameSingular = "Card";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

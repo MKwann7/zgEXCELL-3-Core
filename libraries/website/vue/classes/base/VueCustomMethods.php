@@ -6,15 +6,25 @@ class VueCustomMethods
 {
     public static function renderSortMethods()
     {
-        return '            
+        return '
+            orderBy: function(list,key,type) {
+                let newList = {};
+                switch(type) {
+                    case "desc":
+                        newList = Object.keys(list).sort((a, b) => a[key] < b[key] ? 1 : -1);
+                    default:
+                        newList = Object.keys(list).sort((a, b) => a[key] > b[key] ? 1 : -1);
+                }
+
+               return newList.reduce((res, key) => (res[key] = list[key], res), {});
+            },
             sortedEntity: function (searchQuery, entity, orderkey, sortByType, pageIndex, pageDisplay, pageTotal, callback, filterFields, filterList)
             {
                 var returnData = {};
-
                 returnData.pageIndex = pageIndex;
-
+                
                 let objOrderedEntity = _.orderBy(entity, orderkey, sortByType ? "asc" : "desc");
-
+                
                 let intStartIndex = ((returnData.pageIndex-1) * pageDisplay);
                 let intIndexOffset = entity.length - intStartIndex;
                 let intEndIndex = intStartIndex + (( pageDisplay <= intIndexOffset ) ? pageDisplay : intIndexOffset);
@@ -31,8 +41,8 @@ class VueCustomMethods
                     if ( typeof callback === "function") {
                         callback(returnData);
                     }
-
-                    return objOrderedEntity.slice(intStartIndex, intEndIndex);
+                    
+                    return objOrderedEntity.slice(intStartIndex, intEndIndex);;
                 }
                 
                 let intShouldSkip = [];

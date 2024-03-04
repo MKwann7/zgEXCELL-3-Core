@@ -3,15 +3,16 @@
 namespace Entities\Tickets\Components\Vue\TicketsWidget;
 
 use App\Website\Constructs\Breadcrumb;
+use App\Website\Vue\Classes\Base\VueComponent;
 use App\Website\Vue\Classes\VueComponentEntityList;
 use Entities\Cards\Components\Vue\CardWidget\ManageCardWidget;
 use Entities\Tickets\Models\TicketModel;
 
 class ListTicketsAdminWidget extends VueComponentEntityList
 {
-    protected $id = "10415a08-5c90-46a1-a88c-bf737c3aa7d3";
-    protected $title = "Tickets";
-    protected $batchLoadEndpoint = "api/v1/tickets/get-ticket-batches";
+    protected string $id = "10415a08-5c90-46a1-a88c-bf737c3aa7d3";
+    protected string $title = "Tickets";
+    protected string $batchLoadEndpoint = "api/v1/tickets/get-ticket-batches";
     protected $queueFilterCacheId = "ticket-queue-filter-id";
 
     public function __construct(array $components = [])
@@ -24,8 +25,6 @@ class ListTicketsAdminWidget extends VueComponentEntityList
 
         parent::__construct($defaultEntity, $components);
 
-        $this->addBreadcrumb(new Breadcrumb("Admin","/account/admin/", "link"));
-
         $editorComponent = new ManageTicketsAdminWidget();
         $editorComponent->addParentId($this->getInstanceId(), ["edit"]);
 
@@ -37,6 +36,12 @@ class ListTicketsAdminWidget extends VueComponentEntityList
         $this->modalTitleForDeleteEntity = "View Tickets";
         $this->modalTitleForRowEntity = "View Tickets";
         $this->setDefaultAction("view");
+    }
+
+    protected function loadBreadCrumbs(): VueComponent
+    {
+        $this->addBreadcrumb(new Breadcrumb("Admin","/account/admin/", "link"));
+        return $this;
     }
 
     protected function buildDisplayColumns(): array
@@ -410,7 +415,7 @@ class ListTicketsAdminWidget extends VueComponentEntityList
                     break;
                 case "card_num":
                 case "card_vanity_url":
-                    $columnList .= '<td><a target="_blank" v-bind:href="\''.$app->objCustomPlatform->getFullPublicDomain().'/\' + mainEntity.' . $currColumn . '">{{ mainEntity.' . $currColumn . ' }}</a></td>';
+                    $columnList .= '<td><a target="_blank" v-bind:href="\''.$app->objCustomPlatform->getFullPublicDomainName().'/\' + mainEntity.' . $currColumn . '">{{ mainEntity.' . $currColumn . ' }}</a></td>';
                     break;
                 case "ticket_opened":
                 case "expected_completion":

@@ -8,7 +8,7 @@ use Entities\Media\Models\MediaModel;
 
 class Media extends AppEntity
 {
-    public $strEntityName       = "Media";
+    public string $strEntityName       = "Media";
     public $strDatabaseTable    = "media";
     public $strDatabaseName     = "Media";
     public $strMainModelName    = MediaModel::class;

@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class UserClassTypeModel extends AppModel
 {
-    protected $EntityName = "Users";
-    protected $ModelName = "UserClassModel";
+    protected string $EntityName = "Users";
+    protected string $ModelName = "UserClassModel";
 
     public function __construct($entityData = null, $force = false)
     {

@@ -12,7 +12,7 @@ class CardVersionings extends AppEntity
         parent::__construct();
     }
 
-    public $strEntityName       = "Cards";
+    public string $strEntityName       = "Cards";
     public $strDatabaseTable    = "card_versioning";
     public $strDatabaseName     = "Versioning";
     public $strMainModelName    = CardVersioningModel::class;

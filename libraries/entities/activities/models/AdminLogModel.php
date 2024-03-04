@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class AdminLogModel extends AppModel
 {
-    protected $EntityName = "Activities";
-    protected $ModelName = "AdminLog";
+    protected string $EntityName = "Activities";
+    protected string $ModelName = "AdminLog";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class AdminLogModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "log_admin_id" => ["type" => "int","length" => 15],

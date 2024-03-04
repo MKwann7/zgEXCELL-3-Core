@@ -11,7 +11,7 @@ use Stripe\Customer;
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require(dirname(__FILE__) . '/../../../engine/process/sessions/includes/check-for-ezcard-login.php');
+require(dirname(__FILE__) . '/../../../engine/process/sessions/includes/check-for-ezcard-loginwidget.php');
 require(dirname(__FILE__) . '/../../../modules/customersold/classes/main.class.php');
 require(dirname(__FILE__) . '/../../../modules/cards/classes/main.class.php');
 require(dirname(__FILE__) . '/../../../modules/users/classes/UsersModule.php');

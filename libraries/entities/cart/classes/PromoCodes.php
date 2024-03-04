@@ -12,7 +12,7 @@ class PromoCodes extends AppEntity
         parent::__construct();
     }
 
-    public $strEntityName       = "Carts";
+    public string $strEntityName       = "Carts";
     public $strDatabaseTable    = "promo_code";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = PromoCodeModel::class;

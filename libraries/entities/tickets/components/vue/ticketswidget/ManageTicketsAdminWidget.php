@@ -11,9 +11,9 @@ use Entities\Users\Components\Vue\UserWidget\ManageCustomerProfileWidget;
 
 class ManageTicketsAdminWidget extends VueComponent
 {
-    protected $id = "66655b89-4536-49f0-8e91-c6d77b30feff";
-    protected $title = "Ticket Dashboard";
-    protected $endpointUriAbstract = "ticket-dashboard/{id}";
+    protected string $id = "66655b89-4536-49f0-8e91-c6d77b30feff";
+    protected string $title = "Ticket Dashboard";
+    protected string $endpointUriAbstract = "ticket-dashboard/{id}";
 
     public function __construct(array $components = [])
     {
@@ -23,7 +23,7 @@ class ManageTicketsAdminWidget extends VueComponent
     protected function renderComponentDataAssignments() : string
     {
         return "
-        dashboardTab: 'profile',
+        dashboardTab: 'profilewidget',
         entityNotFound: false,
         filterEntityId: null,
         ";
@@ -75,9 +75,7 @@ class ManageTicketsAdminWidget extends VueComponent
                         vc.reloadComponents("'.$this->getInstanceId().'");
 
                         self.$forceUpdate();
-                        
-                        ezLog("HERE!!!")
-                                                                   
+                                         
                         if (typeof callback === "function") { callback(result.response.data); }
                     });          
                 },
@@ -90,11 +88,11 @@ class ManageTicketsAdminWidget extends VueComponent
             this.dashboardTab = sessionStorage.getItem(\'ticket.dashboard-tab\');
             
             if (this.dashboardTab === null || (
-                this.dashboardTab !== "profile" &&
+                this.dashboardTab !== "profilewidget" &&
                 this.dashboardTab !== "build" &&
                 this.dashboardTab !== "timeline"
                 )
-            ) { this.dashboardTab = "profile"; sessionStorage.setItem(\'ticket.dashboard-tab\', "profile"); }
+            ) { this.dashboardTab = "profilewidget"; sessionStorage.setItem(\'ticket.dashboard-tab\', "profilewidget"); }
             
             this.component_title = this.component_title_original;
             let self = this;
@@ -132,14 +130,14 @@ class ManageTicketsAdminWidget extends VueComponent
                                 </h3>
                             </td>
                             <td class="mobile-to-table text-right page-count-display dashboard-tab-display" style="vertical-align: middle;">
-                                <div data-block="profile" v-on:click="setDashboardTab(\'profile\')"  class="dashboard-tab fas fa-user-circle" v-bind:class="{active: dashboardTab === \'profile\'}"><span>Profile</span></div>
+                                <div data-block="profilewidget" v-on:click="setDashboardTab(\'profilewidget\')"  class="dashboard-tab fas fa-user-circle" v-bind:class="{active: dashboardTab === \'profilewidget\'}"><span>Profile</span></div>
                                 <div v-show="entity && entity.queue_type_id === 1" data-block="build" v-on:click="setDashboardTab(\'build\')"  class="dashboard-tab fas fa-hammer" v-bind:class="{active: dashboardTab === \'build\'}"><span>Card Build</span></div>
                                 <div data-block="timeline" v-on:click="setDashboardTab(\'journey\')"  class="dashboard-tab fas fa-sticky-note" v-bind:class="{active: dashboardTab === \'journey\'}"><span>Journey</span></div>
                             </td>
                         </tr>
                         </tbody>
                     </table>
-                    <div class="entityTab" data-tab="profile" v-bind:class="{showTab: dashboardTab === \'profile\'}">
+                    <div class="entityTab" data-tab="profilewidget" v-bind:class="{showTab: dashboardTab === \'profilewidget\'}">
                         <div class="width100 entityDetails">
                             <div class="width50">
                                 <div v-if="entity" class="card-tile-50">

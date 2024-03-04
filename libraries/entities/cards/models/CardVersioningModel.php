@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardVersioningModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "Card";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "Card";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CardVersioningModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "card_version_id" => [ "type" => "int", "length" => 15],

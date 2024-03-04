@@ -6,8 +6,8 @@ use App\website\vue\classes\VueComponentListTable;
 
 class ManageUserConnectionsListItemWidget extends VueComponentListTable
 {
-    protected $id = "9664416b-d393-4fc2-b8fb-2576f1381e97";
-    protected $noMount = true;
+    protected string $id = "9664416b-d393-4fc2-b8fb-2576f1381e97";
+    protected string $mountType = "no_mount";
 
     public function __construct(?array $props = [])
     {

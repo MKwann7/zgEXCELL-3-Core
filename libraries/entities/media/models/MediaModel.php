@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class MediaModel extends AppModel
 {
-    protected $EntityName = "Media";
-    protected $ModelName = "Media";
+    protected string $EntityName = "Media";
+    protected string $ModelName = "Media";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class MediaModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [];
     }

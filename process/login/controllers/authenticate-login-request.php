@@ -18,14 +18,14 @@ $objImage->password = $app->objHttpRequest->Data->PostData->password ?? "";
 $objUsers = new Users();
 $objUserAuthentication = $objUsers->AuthenticateUserForLogin($objImage);
 
-if ( $objUserAuthentication->Result->Success === false)
+if ( $objUserAuthentication->result->Success === false)
 {
-    die('{"success":false,"message":"'.$objUserAuthentication->Result->Message.'"}');
+    die('{"success":false,"message":"'.$objUserAuthentication->result->Message.'"}');
 }
 
-$user = $objUserAuthentication->Data->First();
+$user = $objUserAuthentication->getData()->first();
 
-$sessionId = $objUsers->setUserLoginSessionData($user, $app->objHttpRequest->Data->PostData->browserId);
+$sessionId = $objUsers->setUserLoginSessionData($user, $_COOKIE['instance']);
 $objUsers->setUserActiveCookies($sessionId);
 $objUsers->setUserLoginCookies($user);
 
@@ -41,7 +41,11 @@ if (!empty($app->objAppSession["Core"]["Session"]["RedirectAfterLogin"]))
 {
     $strRedirectAfterLogin = $app->objAppSession["Core"]["Session"]["RedirectAfterLogin"];
     unset($app->objAppSession["Core"]["Session"]["RedirectAfterLogin"]);
-    die('{"success":true,"url":"/' . $strRedirectAfterLogin . '","message":"'.$objUserAuthentication->Result->Message.'","data": {"user": "'.$userId.'","instance": "'.$instance.'"} }');
+    die('{"success":true,"url":"/' . $strRedirectAfterLogin . '","message":"'.$objUserAuthentication->result->Message.'","data": {"userId": "'.$userId.'","instance": "'.$instance.'"} }');
 }
 
-die('{"success":true,"url":"/account","message":"'.$objUserAuthentication->Result->Message.'","data": {"user": "'.$userId.'","instance": "'.$instance.'","userNum": '.$userNum.', "userInfo": '.json_encode($user->toArray(["first_name","last_name","user_email","user_phone"])).'} }');
+$userArray = $user->toArray(["first_name","last_name","user_email","user_phone"]);
+$userArray["Roles"] = $user->Roles?->ToPublicArray();
+$userArray["Departments"] = $user->Departments?->ToPublicArray();
+
+die('{"success":true,"url":"/account","message":"'.$objUserAuthentication->result->Message.'","data": {"userId": "'.$userId.'","instance": "'.$instance.'","userNum": '.$userNum.', "user": '.json_encode($userArray).'} }');

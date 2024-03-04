@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardPageModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "CardPage";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "CardPage";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CardPageModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "card_tab_id" => ["type" => "int","length" => 15],
@@ -25,9 +25,10 @@ class CardPageModel extends AppModel
             "card_page_version" => ["type" => "int","length" => 15],
             "card_tab_type_id" => ["type" => "int","length" => 5,"fk" => ["table" => "card_tab_type","key" => "card_tab_type_id","value" => "name"]],
             "title" => ["type" => "varchar","length" => 100],
+            "menu_title" => ["type" => "varchar","length" => 20],
+            "url" => ["type" => "varchar","length" => 1000],
             "content" => ["type" => "string"],
             "order_number" => ["type" => "int","length" => 3],
-            "url" => ["type" => "varchar","length" => 1000],
             "library_tab" => ["type" => "boolean"],
             "visibility" => ["type" => "boolean"],
             "permanent" => ["type" => "boolean"],

@@ -4,6 +4,7 @@ namespace Entities\Modules\Classes;
 
 use App\Core\AppEntity;
 use App\Utilities\Database;
+use App\Utilities\Excell\ExcellCollection;
 use App\Utilities\Http\Http;
 use App\Utilities\Transaction\ExcellTransaction;
 use Entities\Modules\Models\ModuleMainModel;
@@ -13,7 +14,7 @@ use Modules\Ezcard\Widgets\MemberDirectory\Models\EzcardMemberDirectoryModel;
 
 class ModuleApps extends AppEntity
 {
-    public $strEntityName       = "Modules";
+    public string $strEntityName       = "Modules";
     public $strDatabaseTable    = "module_apps";
     public $strDatabaseName     = "Modules";
     public $strMainModelName    = ModuleAppModel::class;
@@ -25,24 +26,24 @@ class ModuleApps extends AppEntity
     {
         $whereClause = "mw1.module_app_id = {$intEntityId}";
 
-        return $this->getLatestModuleWidgets($whereClause);
+        return $this->getLatestModuleApps($whereClause);
     }
 
-    public function getLatestModuleWidgetsByUuid($uuid) : ExcellTransaction
+    public function getLatestModuleAppsByUuid($uuid) : ExcellTransaction
     {
         $whereClause = "mw1.app_uuid = '{$uuid}'";
 
-        return $this->getLatestModuleWidgets($whereClause);
+        return $this->getLatestModuleApps($whereClause);
     }
 
     public function getLatestModuleWidgetsByUuidAndVersion($uuid, $version) : ExcellTransaction
     {
         $whereClause = "mw1.app_uuid = '{$uuid}' && mw1.version = '{$version}'";
 
-        return $this->getLatestModuleWidgets($whereClause);
+        return $this->getLatestModuleApps($whereClause);
     }
 
-    protected function getLatestModuleWidgets($whereClause) : ExcellTransaction
+    protected function getLatestModuleApps($whereClause) : ExcellTransaction
     {
         $strModuleQuery = "SELECT mw1.*, m1.name AS module_name ".
             "FROM excell_modules.module_apps mw1 " .
@@ -53,17 +54,17 @@ class ModuleApps extends AppEntity
 
         $objModuleResult = Database::getSimple($strModuleQuery,"module_app_id");
 
-        if ($objModuleResult->Result->Success === false)
+        if ($objModuleResult->result->Success === false)
         {
             return $objModuleResult;
         }
 
-        $objModuleResult->Data->HydrateModelData(ModuleAppModel::class, true);
+        $objModuleResult->getData()->HydrateModelData(ModuleAppModel::class, true);
 
         $objModuleWidgets = new ModuleAppWidgets();
-        $colModuleComponents = $objModuleWidgets->getWhereIn("module_app_id", $objModuleResult->Data->FieldsToArray(["module_app_id"]))->Data;
+        $colModuleComponents = $objModuleWidgets->getWhereIn("module_app_id", $objModuleResult->getData()->FieldsToArray(["module_app_id"]))->getData();
 
-        $objModuleResult->Data->HydrateChildModelData("widgets", ["module_app_id" => "module_app_id"], $colModuleComponents);
+        $objModuleResult->getData()->HydrateChildModelData("widgets", ["module_app_id" => "module_app_id"], $colModuleComponents);
 
         return $objModuleResult;
     }
@@ -79,48 +80,60 @@ class ModuleApps extends AppEntity
 
         $objModuleResult = Database::getSimple($strModuleQuery,"module_app_id");
 
-        if ($objModuleResult->Result->Success === false)
+        if ($objModuleResult->result->Success === false)
         {
             return $objModuleResult;
         }
 
-        $objModuleResult->Data->HydrateModelData(ModuleAppModel::class, true);
+        $objModuleResult->getData()->HydrateModelData(ModuleAppModel::class, true);
 
         $objModuleComponents = new ModuleAppWidgets();
-        $colModuleComponents = $objModuleComponents->getWhereIn("module_app_id", $objModuleResult->Data->FieldsToArray(["module_app_id"]))->Data;
+        $colModuleComponents = $objModuleComponents->getWhereIn("module_app_id", $objModuleResult->getData()->FieldsToArray(["module_app_id"]))->getData();
 
         $objModuleEndpoints = new ModuleAppEndpoints();
-        $colModuleEndpoints = $objModuleEndpoints->getWhereIn("module_app_id", $objModuleResult->Data->FieldsToArray(["module_app_id"]))->Data;
+        $colModuleEndpoints = $objModuleEndpoints->getWhereIn("module_app_id", $objModuleResult->getData()->FieldsToArray(["module_app_id"]))->getData();
 
-        $objModuleResult->Data->HydrateChildModelData("components", ["module_app_id" => "module_app_id"], $colModuleComponents);
-        $objModuleResult->Data->HydrateChildModelData("endpoints", ["module_app_id" => "module_app_id"], $colModuleEndpoints);
+        $objModuleResult->getData()->HydrateChildModelData("components", ["module_app_id" => "module_app_id"], $colModuleComponents);
+        $objModuleResult->getData()->HydrateChildModelData("endpoints", ["module_app_id" => "module_app_id"], $colModuleEndpoints);
 
         return $objModuleResult;
     }
 
-    public function getLatestConfiguration($objModuleWidget, $configId) : ExcellTransaction
+    public function getLatestConfiguration($objModuleWidget, $configId, $props = null) : ExcellTransaction
     {
         $configurationEndpoint = $objModuleWidget->widgets->FindEntityByValue("widget_class", $configId);
 
-        if ($configurationEndpoint === null)
-        {
+        if ($configurationEndpoint === null) {
             return new ExcellTransaction(false,"Configuration endpoint not found for " . $objModuleWidget->name . "." );
         }
 
-        return $this->makeWidgetEndpointRequest("get", $objModuleWidget->domain, $configurationEndpoint->endpoint, [], ["widget_id" => $objModuleWidget->app_uuid, "instance_id" => "new", "user_id" => ($this->app->getActiveLoggedInUser()->sys_row_id ?? getGuid()), "platform_id" => $this->app->objCustomPlatform->getCompany()->sys_row_id, "platform_url" => $this->app->objCustomPlatform->getFullPublicDomain(), "platform_name" => $this->app->objCustomPlatform->getCompany()->platform_name]);
+        $params = [
+            "widget_id" => $objModuleWidget->app_uuid,
+            "instance_id" => "new",
+            "user_id" => ($this->app->getActiveLoggedInUser()->sys_row_id ?? getGuid()),
+            "platform_id" => $this->app->objCustomPlatform->getCompany()->sys_row_id,
+            "platform_url" => $this->app->objCustomPlatform->getFullPublicDomainName(),
+            "platform_name" => $this->app->objCustomPlatform->getCompany()->platform_name
+        ];
+
+        if (!empty($props->site_id)) {
+            $params = array_merge($params, ["site_id" => $props->site_id]);
+        }
+
+        return $this->makeWidgetEndpointRequest("get", $objModuleWidget->domain, $configurationEndpoint->endpoint, [], $params);
     }
 
     public function getLatestWidgetContentForPage($cardId, $cardPageRel) : ExcellTransaction
     {
-        return $this->makeWidgetEndpointRequest("get", $cardPageRel->__app->app_domain, $cardPageRel->__app->widget_page_endpoint, [], ["widget_id" => $cardPageRel->__app->app_uuid, "instance_id" => $cardPageRel->__app->widget_instance_uuid, "card_id" => $cardId, "user_id" => ($this->app->getActiveLoggedInUser()->sys_row_id ?? getGuid()), "platform_id" => $this->app->objCustomPlatform->getCompany()->sys_row_id, "platform_url" => $this->app->objCustomPlatform->getFullPublicDomain(), "platform_name" => $this->app->objCustomPlatform->getCompany()->platform_name]);
+        return $this->makeWidgetEndpointRequest("get", $cardPageRel->__app->app_domain, $cardPageRel->__app->widget_page_endpoint, [], ["widget_id" => $cardPageRel->__app->app_uuid, "instance_id" => $cardPageRel->__app->instance_uuid, "card_id" => $cardId, "user_id" => ($this->app->getActiveLoggedInUser()->sys_row_id ?? getGuid()), "platform_id" => $this->app->objCustomPlatform->getCompany()->sys_row_id, "platform_url" => $this->app->objCustomPlatform->getFullPublicDomainName(), "platform_name" => $this->app->objCustomPlatform->getCompany()->platform_name]);
     }
 
     public function getLatestWidgetContentForCard($cardId, $cardApp) : ExcellTransaction
     {
-        return $this->makeWidgetEndpointRequest("get", $cardApp->app_domain, $cardApp->widget_page_endpoint, [], ["widget_id" => $cardApp->app_uuid, "instance_id" => $cardApp->widget_instance_uuid, "card_id" => $cardId, "user_id" => ($this->app->getActiveLoggedInUser()->sys_row_id ?? getGuid()), "platform_id" => $this->app->objCustomPlatform->getCompany()->sys_row_id, "platform_url" => $this->app->objCustomPlatform->getFullPublicDomain(), "platform_name" => $this->app->objCustomPlatform->getCompany()->platform_name]);
+        return $this->makeWidgetEndpointRequest("get", $cardApp->app_domain, $cardApp->widget_page_endpoint, [], ["widget_id" => $cardApp->app_uuid, "instance_id" => $cardApp->instance_uuid, "card_id" => $cardId, "user_id" => ($this->app->getActiveLoggedInUser()->sys_row_id ?? getGuid()), "platform_id" => $this->app->objCustomPlatform->getCompany()->sys_row_id, "platform_url" => $this->app->objCustomPlatform->getFullPublicDomainName(), "platform_name" => $this->app->objCustomPlatform->getCompany()->platform_name]);
     }
 
-    protected function makeWidgetEndpointRequest($verb, $domain, $endpoint, $postData = [], $parameters = "") : ExcellTransaction
+    protected function makeWidgetEndpointRequest($verb, $domain, $endpoint, $postData = [], $parameters = []) : ExcellTransaction
     {
         $objHttp = new Http();
         $configurationEndpoint = $domain . "/" . $endpoint . "?" . http_build_query($parameters);
@@ -137,22 +150,29 @@ class ModuleApps extends AppEntity
 
             $objHttpResponse = $objHttpRequest->send();
 
-            if ($objHttpResponse->statusCode !== 200)
-            {
+            if ($objHttpResponse->statusCode !== 200) {
                 return new ExcellTransaction(false,"Received [{$objHttpResponse->statusCode}] status code from module configuration endpoint " . $configurationEndpoint . "." );
             }
 
-            if (empty($objHttpResponse->body))
-            {
-                return new ExcellTransaction(false,"No body returned from module configuration endpoint " . $configurationEndpoint . "." );
+            if (empty($objHttpResponse->body) || str_starts_with(str_replace(PHP_EOL,  "", strip_tags($objHttpResponse->body)), "Fatal error")) {
+                $dataError = new ExcellCollection();
+                $dataError->Add("No body returned from module configuration endpoint " . $configurationEndpoint . ".");
+                return new ExcellTransaction(false, str_replace(PHP_EOL,  "", strip_tags($objHttpResponse->body)), $dataError);
             }
 
-            $objModuleConfigurationResult = json_decode($objHttpResponse->body);
+            $errorCheck = str_replace(["\n","\r","\t"], "", strip_tags($objHttpResponse->body));
+            if (str_starts_with($errorCheck, "Parse error:")) {
+                $objModuleConfigurationResult = $errorCheck;
+            } else {
+                $objModuleConfigurationResult = json_decode($objHttpResponse->body);
+            }
 
-            return new ExcellTransaction(true, "Success", $objModuleConfigurationResult, 1, [], $configurationEndpoint);
+            $dataCollection = new ExcellCollection();
+            $dataCollection->Add($objModuleConfigurationResult);
 
-        } catch(\Exception $ex)
-        {
+            return new ExcellTransaction(true, "Success", $dataCollection, 1, [], $configurationEndpoint);
+
+        } catch(\Exception $ex) {
             return new ExcellTransaction(false,"Exception Throw: " . $ex);
         }
     }
@@ -162,23 +182,29 @@ class ModuleApps extends AppEntity
 
     }
 
-    public function createNewModuleAppInstance($uuid, $moduleUuid) : ExcellTransaction
+    public function createNewModuleAppInstance($uuid, $moduleUuid, $props = []) : ExcellTransaction
     {
-        return $this->createNewInstanceWithModuleApp($uuid, $moduleUuid, self::createPageInstanceEndpoint);
+        return $this->createNewInstanceWithModuleApp($uuid, $moduleUuid, self::createPageInstanceEndpoint, $props);
 
     }
 
-    protected function createNewInstanceWithModuleApp($uuid, $moduleUuid, $endpoint) : ExcellTransaction
+    protected function createNewInstanceWithModuleApp($uuid, $moduleUuid, $endpoint, $props = []) : ExcellTransaction
     {
-        $objModuleWidgetResults = $this->getLatestModuleWidgetsByUuid($moduleUuid);
+        $objModuleWidgetResults = $this->getLatestModuleAppsByUuid($moduleUuid);
 
-        if ($objModuleWidgetResults->Result->Count === 0)
+        if ($objModuleWidgetResults->result->Count === 0)
         {
             return new ExcellTransaction(false,"Module Widget Not Found: " . $moduleUuid);
         }
 
-        $objModuleWidget = $objModuleWidgetResults->Data->First();
+        $objModuleWidget = $objModuleWidgetResults->getData()->first();
 
-        return $this->makeWidgetEndpointRequest("post", $objModuleWidget->domain, $endpoint, ["instance_uuid" => $uuid]);
+        $params = ["instance_uuid" => $uuid];
+
+        if (count($props) > 0) {
+            $params = array_merge(["instance_uuid" => $uuid], $props);
+        }
+
+        return $this->makeWidgetEndpointRequest("post", $objModuleWidget->domain, $endpoint, $params);
     }
 }

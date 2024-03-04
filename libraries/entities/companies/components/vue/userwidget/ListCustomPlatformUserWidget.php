@@ -7,9 +7,9 @@ use Entities\Users\Components\Vue\UserWidget\ListUserWidget;
 
 class ListCustomPlatformUserWidget extends ListUserWidget
 {
-    protected $id = "d164722a-3e0b-40e3-a968-f8953d12a890";
-    protected $title = "Custom Platform Users";
-    protected $batchLoadEndpoint = "users/user-data/get-custom-platform-user-batches";
+    protected string $id = "d164722a-3e0b-40e3-a968-f8953d12a890";
+    protected string $title = "Custom Platform Users";
+    protected string $batchLoadEndpoint = "users/user-data/get-custom-platform-user-batches";
 
     public function __construct(array $components = [])
     {

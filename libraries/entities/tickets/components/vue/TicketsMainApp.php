@@ -8,8 +8,8 @@ use Entities\Tickets\Components\Vue\TicketsWidget\ListTicketsWidget;
 
 class TicketsMainApp extends TicketsAdminApp
 {
-    protected $appNamePlural = "My Queue";
-    protected $appNameSingular = "My Queue";
+    protected string $appNamePlural = "My Queue";
+    protected string $appNameSingular = "My Queue";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

@@ -7,9 +7,9 @@ use Entities\Packages\Models\PackageModel;
 
 class ListPackageWidget extends VueComponentEntityList
 {
-    protected $id = "8919820c-debf-4913-a6b8-73a1a8610ce7";
-    protected $title = "Packages";
-    protected $batchLoadEndpoint = "packages/get-package-batches";
+    protected string $id = "8919820c-debf-4913-a6b8-73a1a8610ce7";
+    protected string $title = "Packages";
+    protected string $batchLoadEndpoint = "packages/get-package-batches";
 
     public function __construct( $defaultEntity = null, array $components = [])
     {
@@ -129,7 +129,7 @@ class ListPackageWidget extends VueComponentEntityList
                     break;
                 case "card_num":
                 case "card_vanity_url":
-                    $columnList .= '<td><a target="_blank" v-bind:href="\''.$app->objCustomPlatform->getFullPortalDomain().'/\' + mainEntity.' . $currColumn . '">{{ mainEntity.' . $currColumn . ' }}</a></td>';
+                    $columnList .= '<td><a target="_blank" v-bind:href="\''.$app->objCustomPlatform->getFullPortalDomainName().'/\' + mainEntity.' . $currColumn . '">{{ mainEntity.' . $currColumn . ' }}</a></td>';
                     break;
                 case "created_on":
                 case "last_updated":

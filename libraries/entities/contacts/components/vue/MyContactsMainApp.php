@@ -7,8 +7,8 @@ use Entities\Contacts\Components\Vue\ContactWidget\MyListContactsWidget;
 
 class MyContactsMainApp extends ContactsMainApp
 {
-    protected $appNamePlural = "My Contacts";
-    protected $appNameSingular = "My Contact";
+    protected string $appNamePlural = "My Contacts";
+    protected string $appNameSingular = "My Contact";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

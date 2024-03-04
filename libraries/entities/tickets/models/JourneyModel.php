@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class JourneyModel extends AppModel
 {
-    protected $EntityName = "Journeys";
-    protected $ModelName = "Journey";
+    protected string $EntityName = "Journeys";
+    protected string $ModelName = "Journey";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class JourneyModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "journey_id" => ["type" => "int","length" => 15],

@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class ArInvoiceModel extends AppModel
 {
-    protected $EntityName = "Payments";
-    protected $ModelName = "ArInvoice";
+    protected string $EntityName = "Payments";
+    protected string $ModelName = "ArInvoice";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class ArInvoiceModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "ar_invoice_id" => ["type" => "int","length" => 15],

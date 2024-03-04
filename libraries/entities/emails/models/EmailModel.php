@@ -6,15 +6,15 @@ use App\Core\AppModel;
 
 class EmailModel extends AppModel
 {
-    protected $EntityName = "Emails";
-    protected $ModelName = "Email";
+    protected string $EntityName = "Emails";
+    protected string $ModelName = "Email";
 
     public function __construct($entityData = null, $force = false)
     {
         $this->Definitions = $this->loadDefinitions();
         parent::__construct($entityData, $force);
     }
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "email_id" => ["type" => "int","length" => 15],

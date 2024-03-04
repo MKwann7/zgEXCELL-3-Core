@@ -36,14 +36,14 @@ if ($app->objCustomPlatform->getCompanyId() === 0)
                             <td style="width:150px;"><a href="/account/cards">My <?php echo $cardTitle; ?></a>:</td>
                             <td><?php
                                 $lstUserCards = (new Cards())->GetByUserId($this->app->intActiveUserId);
-                                echo $lstUserCards->Result->Count;
+                                echo $lstUserCards->result->Count;
                                 ?></td>
                         </tr>
                         <tr>
                             <td>My Visitors:</td>
                             <td><?php
-                                $lstCardsTraffic = (new Visitors())->getWhereIn("card_id", $lstUserCards->Data->FieldsToArray(["card_id"]));
-                                echo number_format($lstCardsTraffic->Result->Count,0,".",",");
+                                $lstCardsTraffic = (new Visitors())->getWhereIn("card_id", $lstUserCards->getData()->FieldsToArray(["card_id"]));
+                                echo number_format($lstCardsTraffic->result->Count,0,".",",");
                                 ?></td>
                         </tr>
                         <tr>

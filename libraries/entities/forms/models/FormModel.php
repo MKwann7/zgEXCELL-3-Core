@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class FormModel extends AppModel
 {
-    protected $EntityName = "Forms";
-    protected $ModelName = "Form";
+    protected string $EntityName = "Forms";
+    protected string $ModelName = "Form";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class FormModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [];
     }

@@ -7,7 +7,7 @@ use Entities\Opportunity\Models\OpportunityModel;
 
 class Opportunity extends AppEntity
 {
-    public $strEntityName       = "Opportunity";
+    public string $strEntityName       = "Opportunity";
     public $strDatabaseTable    = "opportunity";
     public $strDatabaseName     = "Crm";
     public $strMainModelName    = OpportunityModel::class;

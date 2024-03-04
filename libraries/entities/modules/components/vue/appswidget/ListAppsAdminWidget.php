@@ -9,9 +9,9 @@ use Entities\Modules\Models\AppInstanceRelModel;
 
 class ListAppsAdminWidget extends VueComponentEntityList
 {
-    protected $id = "d9463f5f-a145-4b50-8ab5-d19c50b29a02";
-    protected $title = "Modules";
-    protected $batchLoadEndpoint = "api/v1/modules/get-app-batches";
+    protected string $id = "d9463f5f-a145-4b50-8ab5-d19c50b29a02";
+    protected string $title = "Modules";
+    protected string $batchLoadEndpoint = "api/v1/modules/get-app-batches";
 
     public function __construct(array $components = [])
     {

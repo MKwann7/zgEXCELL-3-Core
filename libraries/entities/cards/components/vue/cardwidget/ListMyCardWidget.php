@@ -6,13 +6,12 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class ListMyCardWidget extends ListCardWidget
 {
-    protected $id = "fb2f5673-342a-4cba-a18d-522bff21123a";
-    protected $title = "My Cards";
-    protected $noEntitiesWarning = "There are no cards in your account.";
+    protected string $id = "fb2f5673-342a-4cba-a18d-522bff21123a";
+    protected string $title = "My Cards";
+    protected string $noEntitiesWarning = "There are no cards in your account.";
 
     protected function renderComponentHydrationScript() : string
     {
-        global $app;
         // TODO - THIS NEEDS TO BE FIXED
         return parent::renderComponentHydrationScript() . '
             this.filterEntityId = Cookie.get("userNum")
@@ -30,7 +29,7 @@ class ListMyCardWidget extends ListCardWidget
         return '
             openCartPackageSelection: function()
             {
-                appCart.openPackagesByClass("card", {id: this.filterEntityId, type: "user"}, this.filterEntityId)
+                appCart.openPackagesByClass("card", {id: this.filterEntityId, type: "user"}, this.filterEntityId, this.filterEntityId)
                     .registerEntityListAndManager("' . $this->getId() . '", "' . ManageCardWidget::getStaticId() . '");
             },
         ';

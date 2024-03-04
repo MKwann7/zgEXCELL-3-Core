@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardPageRelModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "CardPageRel";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "CardPageRel";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class CardPageRelModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "card_tab_rel_id" => ["type" => "int","length" => 15],
@@ -26,6 +26,9 @@ class CardPageRelModel extends AppModel
             "order_line_id" => ["type" => "int","length" => 15],
             "rel_sort_order" => ["type" => "int","length" => 5],
             "rel_visibility" => ["type" => "boolean"],
+            "card_tab_rel_title" => ["type" => "varchar","length" => 100],
+            "card_tab_rel_menu_title" => ["type" => "varchar","length" => 20],
+            "card_tab_rel_url" => ["type" => "varchar","length" => 150],
             "card_tab_rel_data" => ["type" => "json","length" => 0],
             "card_tab_rel_type" => ["type" => "varchar","length" => 15],
             "synced_state" => ["type" => "int","length" => 2],

@@ -118,6 +118,5 @@ $objNewUser->first_name = $currCardData["firstName"];
 $objNewUser->last_name = $currCardData["lastName"];
 $objNewUser->display_name = $currCardData["displayName"];
 $objNewUser->last_login = $currCardData["lastLogin"];
-$objNewUser->old_user_id = $intCardOriginalId;
 
 $objCustomerResult = (new Users())->createNew((object) $currUser, ["Customer"]);

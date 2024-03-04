@@ -8,10 +8,11 @@ use App\Utilities\Database;
 use App\Utilities\Transaction\ExcellTransaction;
 use Entities\Cards\Models\CardPageRelModel;
 use Entities\Modules\Classes\AppInstanceRels;
+use Entities\Modules\Classes\AppInstanceRelSettings;
 
 class CardPageRels extends AppEntity
 {
-    public $strEntityName       = "Cards";
+    public string $strEntityName       = "Cards";
     public $strDatabaseTable    = "card_tab_rel";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = CardPageRelModel::class;
@@ -23,18 +24,18 @@ class CardPageRels extends AppEntity
 
         if (empty($intCardId) || !isInteger($intCardId))
         {
-            $objReturnTransaction->Result->Success = false;
-            $objReturnTransaction->Result->Count = 0;
-            $objReturnTransaction->Result->Message = "The Card id must be an integer.";
+            $objReturnTransaction->result->Success = false;
+            $objReturnTransaction->result->Count = 0;
+            $objReturnTransaction->result->Message = "The Card id must be an integer.";
 
             return $objReturnTransaction;
         }
 
         if (empty($intCardPageId) || !isInteger($intCardPageId))
         {
-            $objReturnTransaction->Result->Success = false;
-            $objReturnTransaction->Result->Count = 0;
-            $objReturnTransaction->Result->Message = "The Card Tab id must be an integer.";
+            $objReturnTransaction->result->Success = false;
+            $objReturnTransaction->result->Count = 0;
+            $objReturnTransaction->result->Message = "The Card Tab id must be an integer.";
 
             return $objReturnTransaction;
         }
@@ -51,6 +52,7 @@ class CardPageRels extends AppEntity
                     ctr.user_id, 
                     ct.card_tab_type_id, 
                     ct.title, 
+                    ct.menu_title, 
                     ct.library_tab, 
                     ct.visibility, 
                     ct.permanent, 
@@ -72,12 +74,20 @@ class CardPageRels extends AppEntity
                 WHERE ctr.card_tab_rel_id = " . $intRelId . ";";
 
         $objCardPageRelResult = Database::getSimple($strCardPageRelQuery,"card_tab_rel_id");
-        $objCardPageRelResult->Data->HydrateModelData(CardPageRelModel::class, true);
+        $objCardPageRelResult->getData()->HydrateModelData(CardPageRelModel::class, true);
 
         $objModuleApp = new AppInstanceRels();
-        $objCardWidgets = $objModuleApp->getByPageRelId($intRelId);
+        $objCardWidget = $objModuleApp->getByPageRelId($intRelId);
 
-        $objCardPageRelResult->Data->HydrateChildModelData("__app", ["card_page_rel_id" => "card_tab_rel_id"], $objCardWidgets->Data, true);
+        if ($objCardWidget->getResult()->Count === 0) {
+            return $objCardPageRelResult;
+        }
+
+        $objModuleAppWidgetSettings = new AppInstanceRelSettings();
+        $widgetSettings = $objModuleAppWidgetSettings->getByInstanceRelId($objCardWidget->getData()->first()->app_instance_rel_id);
+
+        $objCardWidget->getData()->HydrateChildModelData("__settings", ["app_instance_rel_id" => "app_instance_rel_id"], $widgetSettings->getData());
+        $objCardPageRelResult->getData()->HydrateChildModelData("__app", ["card_page_rel_id" => "card_tab_rel_id"], $objCardWidget->getData(), true);
 
         return $objCardPageRelResult;
     }

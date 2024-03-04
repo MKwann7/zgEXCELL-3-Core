@@ -6,7 +6,7 @@ use Entities\Mobiniti\Models\MobinitiGroupModel;
 
 class MobinitiGroups extends Mobiniti
 {
-    public $strEntityName       = "Mobiniti";
+    public string $strEntityName       = "Mobiniti";
     public $strDatabaseTable    = "mobiniti_group";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = MobinitiGroupModel::class;

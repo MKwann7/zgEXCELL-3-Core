@@ -10,49 +10,39 @@ use Entities\Users\Models\UserModel;
 
 class CartEmails
 {
-    /** @var ProductProcessor $processor */
-    private $processor;
-    private $app;
-    /** @var UserModel $user */
-    private $user;
-    private $userSponsor;
-    private $customPlatformProductNotificationEmail;
-    private $customPlatformCompanyName;
-    private $customPlatformName;
-    private $companyName;
-    private $stripeAccountType;
-    private $customPlatformAdminUrl;
-    private $customerServiceEmail;
-    private $customerServicePhone;
-    private $customerServiceUserId;
-    /** @var UserModel $customerServiceUser */
-    private $customerServiceUser;
-    private $processorData;
+    private ProductProcessor $processor;
+    private App $app;
+    private ?UserModel $user;
+    private ?UserModel $userSponsor;
+    private string $customPlatformProductNotificationEmail;
+    private string $customPlatformCompanyName;
+    private string $customPlatformName;
+    private string $companyName;
+    private string $stripeAccountType;
+    private string $customPlatformAdminUrl;
+    private string $customerServiceEmail;
+    private string $customerServicePhone;
+    private int $customerServiceUserId;
+    private UserModel $customerServiceUser;
+    private \stdClass $processorData;
+    private string $customPlatformProductNotificationEmailTitle;
 
-    public function __construct (ProductProcessor $processor, App $app)
+    public function __construct ()
     {
-        // ProductProcessor $processor,
-        $this->processor = $processor;
+        global $app;
         $this->app = $app;
+    }
+
+    public function loadProductProcessor(ProductProcessor $productProcessor) : void
+    {
+        $this->processor = $productProcessor;
         $this->user = $this->processor->user;
-
-        $this->customPlatformCompanyName = $this->app->objCustomPlatform->getCompany()->company_name;
-        $this->customPlatformName = $this->app->objCustomPlatform->getCompany()->platform_name;
-        $this->stripeAccountType = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "stripe_account_type")->value ?? "connected";
-
-        $this->customPlatformProductNotificationEmail = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "product_notification_email")->value ?? "noreply@ezdigital.com";
-        $this->customPlatformProductNotificationEmailTitle = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "product_notification_email_title")->value ?? "EZ Digital Product Support";
-        $this->customPlatformAdminUrl = $this->app->objCustomPlatform->getFullPublicDomain();
-        $this->customerServiceEmail = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "customer_support_email")->value;
-        $this->customerServicePhone = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "customer_support_phone")->value;
-        $this->customerServiceUserId = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "customer_support_user_id")->value;
-        $this->customerServiceUser = (new Users())->getFks(["user_phone", "user_email"])->getById($this->customerServiceUserId)->Data->First();
-        $this->userSponsor = (new Users())->getFks(["user_phone", "user_email"])->getById($this->user->sponsor_id)->Data->First();
-
+        $this->customerServiceUser = (new Users())->getFks(["user_phone", "user_email"])->getById($this->customerServiceUserId)->getData()->first();
+        $this->userSponsor = (new Users())->getFks(["user_phone", "user_email"])->getById($this->user->sponsor_id)->getData()->first();
         $this->parsePurchase();
     }
 
-    private function parsePurchase()
+    private function parsePurchase(): void
     {
         $cardTransaction = $this->processor->getCartProcessTransaction();
         $fee = (($cardTransaction->totalCartValue) *  0.0298662) + .3;
@@ -65,8 +55,22 @@ class CartEmails
         $this->processorData->order_total = number_format(($cardTransaction->totalCartValue + $fee), 2);
     }
 
+    private function instantiateCustomPlatformData(): void
+    {
+        $this->customPlatformCompanyName = $this->app->objCustomPlatform->getCompany()->company_name;
+        $this->customPlatformName = $this->app->objCustomPlatform->getCompany()->platform_name;
+        $this->stripeAccountType = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "stripe_account_type")->value ?? "connected";
+        $this->customPlatformProductNotificationEmail = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "product_notification_email")->value ?? "noreply@ezdigital.com";
+        $this->customPlatformProductNotificationEmailTitle = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "product_notification_email_title")->value ?? "EZ Digital Product Support";
+        $this->customPlatformAdminUrl = $this->app->objCustomPlatform->getFullPublicDomainName();
+        $this->customerServiceEmail = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "customer_support_email")?->value ?? "";
+        $this->customerServicePhone = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "customer_support_phone")?->value ?? "";
+        $this->customerServiceUserId = $this->app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "customer_support_user_id")->value ?? $this->app->getActiveLoggedInUser()->user_id;
+    }
+
     public function sendEmails(): void
     {
+        $this->instantiateCustomPlatformData();
         switch($this->stripeAccountType)
         {
             case "customer":
@@ -125,7 +129,7 @@ class CartEmails
                     "text_for_email" => base64_encode($strMessage)
                 ]
             )
-                ->setOption(CURLOPT_USERPWD, 'api:' . $this->strMainGunKey)
+                ->setOption(CURLOPT_USERPWD, 'api:' . "mail_gun_key")
                 ->setOption(CURLOPT_SSL_VERIFYPEER, false);
 
             $objHttpResponse = $objHttpRequest->send();
@@ -153,7 +157,7 @@ class CartEmails
                     "text_for_email" => base64_encode($strMessage)
                 ]
             )
-                ->setOption(CURLOPT_USERPWD, 'api:' . $this->strMainGunKey)
+                ->setOption(CURLOPT_USERPWD, 'api:' . "mail_gun_key")
                 ->setOption(CURLOPT_SSL_VERIFYPEER, false);
 
             $objHttpResponse = $objHttpRequest->send();
@@ -181,7 +185,7 @@ class CartEmails
                     "text_for_email" => base64_encode($strMessage)
                 ]
             )
-                ->setOption(CURLOPT_USERPWD, 'api:' . $this->strMainGunKey)
+                ->setOption(CURLOPT_USERPWD, 'api:' . "mail_gun_key")
                 ->setOption(CURLOPT_SSL_VERIFYPEER, false);
 
             $objHttpResponse = $objHttpRequest->send();
@@ -209,7 +213,7 @@ class CartEmails
                     "text_for_email" => base64_encode($strMessage)
                 ]
             )
-                ->setOption(CURLOPT_USERPWD, 'api:' . $this->strMainGunKey)
+                ->setOption(CURLOPT_USERPWD, 'api:' . "mail_gun_key")
                 ->setOption(CURLOPT_SSL_VERIFYPEER, false);
 
             $objHttpResponse = $objHttpRequest->send();

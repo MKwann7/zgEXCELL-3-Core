@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class PackageLineModel extends AppModel
 {
-    protected $EntityName = "Packages";
-    protected $ModelName = "PackageLine";
+    protected string $EntityName = "Packages";
+    protected string $ModelName = "PackageLine";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,10 +15,11 @@ class PackageLineModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "package_line_id" => ["type" => "int","length" => 15],
+            "package_variation_id" => ["type" => "int","length" => 15],
             "package_id" => ["type" => "int","length" => 15],
             "company_id" => ["type" => "int","length" => 15],
             "division_id" => ["type" => "int","length" => 15],
@@ -28,8 +29,11 @@ class PackageLineModel extends AppModel
             "name" => ["type" => "varchar","length" => 75],
             "description" => ["type" => "varchar","length" => 500],
             "quantity" => ["type" => "int","length" => 5],
-            "regular_price" => ["type" => "decimal","length" => 0],
+            "cycle_type" => ["type" => "int","length" => 3],
             "promo_price" => ["type" => "decimal","length" => 0],
+            "promo_price_duration" => ["type" => "int","length" => 5],
+            "regular_price" => ["type" => "decimal","length" => 0],
+            "regular_price_duration" => ["type" => "int","length" => 5],
             "recurring_price" => ["type" => "decimal","length" => 0],
             "product_price_override" => ["type" => "decimal","length" => 0],
             "product_promo_price_override" => ["type" => "decimal","length" => 0],

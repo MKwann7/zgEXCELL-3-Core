@@ -9,8 +9,8 @@ namespace Entities\Mobiniti\Models;
  */
 class MobinitiOptInModel extends MobinitiModel
 {
-    protected $EntityName = "Mobiniti";
-    protected $ModelName = "MobinitiOptIn";
+    protected string $EntityName = "Mobiniti";
+    protected string $ModelName = "MobinitiOptIn";
 
     public function __construct($entityData = null)
     {
@@ -18,7 +18,7 @@ class MobinitiOptInModel extends MobinitiModel
         parent::__construct($entityData);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "id" =>["type" => "varchar", "length" => "36"],

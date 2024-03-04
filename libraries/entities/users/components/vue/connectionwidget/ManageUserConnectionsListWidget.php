@@ -7,10 +7,11 @@ use Entities\Users\Models\ConnectionModel;
 
 class ManageUserConnectionsListWidget extends VueComponentEntityList
 {
-    protected $id = "14737e0b-16c2-4ccf-ad8f-79d052dd29ba";
-    protected $title = "Connections";
-    protected $modalWidth = 750;
-    protected $noMount = true;
+    protected string $id = "14737e0b-16c2-4ccf-ad8f-79d052dd29ba";
+    protected string $title = "Connections";
+    protected string $modalWidth = "750";
+
+    protected string $mountType = "no_mount";
 
     public function __construct(array $components = [])
     {
@@ -53,7 +54,6 @@ class ManageUserConnectionsListWidget extends VueComponentEntityList
         return '
             reloadComponent: function() 
             {
-                console.log("reloadComponent...");
                 if (typeof this.mainEntity !== "undefined")
                 {
                     this.mainEntityList = this.mainEntity.Connections;

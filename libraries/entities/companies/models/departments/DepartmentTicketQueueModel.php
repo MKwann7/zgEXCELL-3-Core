@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class DepartmentTicketQueueModel extends AppModel
 {
-    protected $EntityName = "Company";
-    protected $ModelName = "CompanyDepartmentTicketQueue";
+    protected string $EntityName = "Company";
+    protected string $ModelName = "CompanyDepartmentTicketQueue";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class DepartmentTicketQueueModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "ticket_queue_id" => ["type" => "int","length" => 15],

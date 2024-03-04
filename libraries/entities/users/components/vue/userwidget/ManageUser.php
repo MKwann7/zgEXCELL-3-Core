@@ -6,7 +6,7 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class ManageUser extends VueComponent
 {
-    protected $id = "b95a2a19-7fc6-4104-8528-728ee0584f92";
+    protected string $id = "b95a2a19-7fc6-4104-8528-728ee0584f92";
 
     public function buildTemplate() : string
     {

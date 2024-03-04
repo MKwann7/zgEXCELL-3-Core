@@ -7,8 +7,8 @@ use Entities\Cards\Models\CardModel;
 
 class ManageCardImageWidget extends VueComponent
 {
-    protected $id = "2ca66ebc-c50f-4c35-8794-8dd6e8eb2942";
-    protected $modalWidth = 500;
+    protected string $id = "2ca66ebc-c50f-4c35-8794-8dd6e8eb2942";
+    protected string $modalWidth = "500";
     protected $cropperBannerId = "my-cropper-banner";
 
     public function __construct (array $components = [])
@@ -56,7 +56,7 @@ class ManageCardImageWidget extends VueComponent
         return '
             setProfileImageUploadUrl: function()
             {
-                this.profileImageUploadUrl = "/process/slim/upload?entity_id=" + this.entity.card_id + "&user_id=" + this.userNum + "&entity_name=card&class=" + this.imageClass;
+                this.profileImageUploadUrl = "/api/v1/media/upload-image?entity_id=" + this.entity.card_id + "&user_id=" + this.userNum + "&entity_name=card&class=" + this.imageClass;
             },
             loadCropperData: function()
             {
@@ -86,7 +86,6 @@ class ManageCardImageWidget extends VueComponent
                 );
                 
                 this.displayImage = true;
-                console.log("we loaded it!");
             },
             renderImageSize: function(size)
             {
@@ -106,7 +105,7 @@ class ManageCardImageWidget extends VueComponent
             },
             removeEntityImage: function()
             {
-                this.entity[this.entityField]  = "'.$app->objCustomPlatform->getFullPublicDomain().'/_ez/images/no-image.jpg";
+                this.entity[this.entityField]  = "'.$app->objCustomPlatform->getFullPublicDomainName().'/_ez/images/no-image.jpg";
             },
             saveMainImage: function()
             {
@@ -140,7 +139,7 @@ class ManageCardImageWidget extends VueComponent
             setImageSizeRatio: function(size)
             {
                 return this.imageSize.replace(",",":");
-            },            
+            },
         ';
     }
 

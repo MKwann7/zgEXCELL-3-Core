@@ -4,12 +4,14 @@ namespace Entities\Users\Components\Vue\UserWidget;
 
 class ManageCustomerProfileWidget extends ManageUserProfileWidget
 {
-    protected $id = "293e2fa8-f6cc-4d28-bd89-bc1f55a0289e";
-    protected $title              = "Create Customer";
-    protected $saveNewButtonTitle = "Save New Customer";
-    protected $updateButtonTitle = "Update Customer";
-    protected $assignUserType = false;
-    protected $assignUserRoles = false;
+    protected string $id = "293e2fa8-f6cc-4d28-bd89-bc1f55a0289e";
+    protected string $title              = "Create Customer";
+    protected string $saveNewButtonTitle = "Save New Customer";
+    protected string $updateButtonTitle = "Update Customer";
+    protected bool $assignUserType = false;
+    protected bool $assignUserRoles = false;
+    protected bool $enableOriginator = false;
+    protected bool $enableAccountEditing = false;
 
     public function __construct(array $components = [])
     {

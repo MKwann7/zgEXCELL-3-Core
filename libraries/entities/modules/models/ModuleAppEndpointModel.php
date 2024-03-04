@@ -6,15 +6,15 @@ use App\Core\AppModel;
 
 class ModuleAppEndpointModel extends AppModel
 {
-    protected $EntityName = "Modules";
-    protected $ModelName = "ModuleAppEndpoint";
+    protected string $EntityName = "Modules";
+    protected string $ModelName = "ModuleAppEndpoint";
 
     public function __construct($entityData = null, $force = false)
     {
         $this->Definitions = $this->loadDefinitions();
         parent::__construct($entityData, $force);
     }
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "module_app_endpoint_id" =>["type" => "int", "length" => "15"],
@@ -27,7 +27,7 @@ class ModuleAppEndpointModel extends AppModel
         ];
     }
 
-    public function ToPublicArray($arProperties = null, $collectionKeys = false)
+    public function ToPublicArray($arProperties = null, $collectionKeys = false): array
     {
         $this->RemoveField("module_widget_endpoint_id");
         $this->RemoveField("module_app_id");

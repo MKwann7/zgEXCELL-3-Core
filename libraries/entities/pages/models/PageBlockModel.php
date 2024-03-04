@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class PageBlockModel extends AppModel
 {
-    protected $EntityName = "Pages";
-    protected $ModelName = "PageBlock";
+    protected string $EntityName = "Pages";
+    protected string $ModelName = "PageBlock";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class PageBlockModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [];
     }

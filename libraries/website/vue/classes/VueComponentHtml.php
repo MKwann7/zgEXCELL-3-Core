@@ -7,8 +7,8 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class VueComponentHtml extends VueComponent
 {
-    protected $name = "compHtml";
-    protected $vueType = "compHtml";
+    protected string $name = "compHtml";
+    protected string $vueType = "compHtml";
     protected $froalaLicense;
     protected $froalaElementId;
 

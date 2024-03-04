@@ -9,7 +9,7 @@ use Entities\Cards\Models\CardConnectionModel;
 
 class CardConnections extends AppEntity
 {
-    public $strEntityName       = "Cards";
+    public string $strEntityName       = "Cards";
     public $strDatabaseTable    = "connection_rel";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = CardConnectionModel::class;
@@ -21,9 +21,9 @@ class CardConnections extends AppEntity
 
         if (empty($intCardId))
         {
-            $objTransaction->Result->Success = false;
-            $objTransaction->Result->Count = 0;
-            $objTransaction->Result->Message = "You must pass in an id to retrieve a " . $this->strMainModelName . " row.";
+            $objTransaction->result->Success = false;
+            $objTransaction->result->Count = 0;
+            $objTransaction->result->Message = "You must pass in an id to retrieve a " . $this->strMainModelName . " row.";
 
             return $objTransaction;
         }
@@ -31,29 +31,29 @@ class CardConnections extends AppEntity
         $objCardModule = new Cards();
         $objCardResult = $objCardModule->getById($intCardId);
 
-        if($objCardResult->Result->Count === 0)
+        if($objCardResult->result->Count === 0)
         {
-            $objTransaction->Result->Success = false;
-            $objTransaction->Result->Count = 0;
-            $objTransaction->Result->Message = "No card was found with id " . $intCardId . ".";
+            $objTransaction->result->Success = false;
+            $objTransaction->result->Count = 0;
+            $objTransaction->result->Message = "No card was found with id " . $intCardId . ".";
 
             return $objTransaction;
         }
 
-        $objCard = $objCardResult->Data->First();
+        $objCard = $objCardResult->getData()->first();
         $objCard->LoadCardTemplate();
-        $intCardConnectionsCount = $objCard->Template->data->connections->count;
+        $intCardConnectionsCount = $objCard->Template->getData()->connections->count;
 
         $lstConnectionResult = new ExcellTransaction();
 
         for($currConnectionCount = 1; $currConnectionCount <= $intCardConnectionsCount; $currConnectionCount++)
         {
             $objConnectionResult = $this->getWhere(["card_id" => $intCardId, "display_order" => $currConnectionCount],"connection_rel_id.DESC",1);
-            $lstConnectionResult->Data->Add($objConnectionResult->Data->First()->connection_rel_id, $objConnectionResult->Data->First());
+            $lstConnectionResult->getData()->Add($objConnectionResult->getData()->first()->connection_rel_id, $objConnectionResult->getData()->first());
         }
 
-        $lstConnectionResult->Result->Success = true;
-        $lstConnectionResult->Result->Count = $lstConnectionResult->Data->Count();
+        $lstConnectionResult->result->Success = true;
+        $lstConnectionResult->result->Count = $lstConnectionResult->getData()->Count();
 
         return  $lstConnectionResult;
     }

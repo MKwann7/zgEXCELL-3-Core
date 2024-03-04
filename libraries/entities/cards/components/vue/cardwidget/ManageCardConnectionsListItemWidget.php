@@ -8,8 +8,8 @@ use Entities\Users\Components\Vue\ConnectionWidget\ManageUserConnectionsWidget;
 
 class ManageCardConnectionsListItemWidget extends VueComponentListTable
 {
-    protected $id = "342ff244-4185-4ddc-9b7f-720783cdcf16";
-    protected $noMount = true;
+    protected string $id = "342ff244-4185-4ddc-9b7f-720783cdcf16";
+    protected string $mountType = "no_mount";
 
     public function __construct(?array $props = [])
     {

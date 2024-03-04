@@ -18,13 +18,13 @@ if ($strViewTitle === "editImage" )
 
     $objImageResult = (new Images())->getWhere(["image_id" => $intImageId],1);
 
-    if ($objImageResult->Result->Success === true && $objImageResult->Result->Count > 0)
+    if ($objImageResult->result->Success === true && $objImageResult->result->Count > 0)
     {
-        $strCardMainImage = $objImageResult->Data->First()->url;
-        $objUser = (new Users())->getById($objImageResult->Data->First()->user_id)->Data->First();
+        $strCardMainImage = $objImageResult->getData()->first()->url;
+        $objUser = (new Users())->getById($objImageResult->getData()->first()->user_id)->getData()->first();
     }
 
-    if($objImageResult->Result->Success === true && $objImageResult->Result->Count > 0) { ?>
+    if($objImageResult->result->Success === true && $objImageResult->result->Count > 0) { ?>
         <div class="mainImage divTable">
             <div class="divRow">
                 <div class="divCell">
@@ -34,7 +34,7 @@ if ($strViewTitle === "editImage" )
                     <h3>Image Details</h3>
                     <form id="updateImageDataForm" autocomplete="off" action="/media/media-data/update-image-data" method="post">
                         <input type="hidden" name="image_id" value="<?php echo $intImageId; ?>" />
-                        <input style="margin:15px 0;" name="title" class="form-control" type="text" placeholder="Image Title..." value="<?php echo $objImageResult->Data->First()->title ?? ''; ?>"/>
+                        <input style="margin:15px 0;" name="title" class="form-control" type="text" placeholder="Image Title..." value="<?php echo $objImageResult->getData()->first()->title ?? ''; ?>"/>
                         <button class="btn btn-primary w-100">Update Image Data</button>
                     </form>
                 </div>

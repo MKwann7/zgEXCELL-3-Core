@@ -12,7 +12,7 @@ use Entities\Tickets\Models\TicketModel;
 
 class Tickets extends AppEntity
 {
-    public $strEntityName       = "Tickets";
+    public string $strEntityName       = "Tickets";
     public $strDatabaseTable    = "ticket";
     public $strDatabaseName     = "Crm";
     public $strMainModelName    = TicketModel::class;
@@ -37,11 +37,11 @@ class Tickets extends AppEntity
         $objWhereClause .= "WHERE tk.sys_row_id = '".$uuid."' LIMIT 1";
 
         $ticketResult = Database::getSimple($objWhereClause, "ticket_id");
-        $ticketResult->Data->HydrateModelData(TicketModel::class, true);
+        $ticketResult->getData()->HydrateModelData(TicketModel::class, true);
 
-        if ($ticketResult->Result->Count !== 1)
+        if ($ticketResult->result->Count !== 1)
         {
-            return new ExcellTransaction(false, $ticketResult->Result->Message, ["errors" => [$ticketResult->Result->Message, $objWhereClause]]);
+            return new ExcellTransaction(false, $ticketResult->result->Message, ["errors" => [$ticketResult->result->Message, $objWhereClause]]);
         }
 
         return $ticketResult;
@@ -75,7 +75,7 @@ class Tickets extends AppEntity
 
         $ticketCreationResult = (new Journeys())->createNew($newTicket);
 
-        if ($ticketCreationResult->Result->Success !== true)
+        if ($ticketCreationResult->result->Success !== true)
         {
             return;
         }
@@ -84,7 +84,7 @@ class Tickets extends AppEntity
         {
             foreach($journey->children as $currChildJourney)
             {
-                $this->recursivelyCreateTicketsFromJourney($currChildJourney, $ticketCreationResult->Data->First());
+                $this->recursivelyCreateTicketsFromJourney($currChildJourney, $ticketCreationResult->getData()->first());
             }
         }
     }

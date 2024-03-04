@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class CardTemplateModel extends AppModel
 {
-    protected $EntityName = "Cards";
-    protected $ModelName = "CardTemplate";
+    protected string $EntityName = "Cards";
+    protected string $ModelName = "CardTemplate";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,11 +15,10 @@ class CardTemplateModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "card_template_id" => ["type" => "int","length" => 15],
-            "connection_id" => ["type" => "int","length" => 15,"fk" => ["table" => "connection","key" => "connection_id","value" => "connection_value"]],
             "company_id" => ["type" => "int","length" => 15,"fk" => ["table" => "company","key" => "company_id","value" => "company_name"]],
             "division_id" => ["type" => "int","length" => 15,"fk" => ["table" => "division","key" => "division_id","value" => "division_name"]],
             "name" => ["type" => "varchar","length" => 0],

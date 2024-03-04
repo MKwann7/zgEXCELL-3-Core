@@ -19,7 +19,7 @@ class EzCard
 
         $objLoggedInUser = $app->getActiveLoggedInUser();
 
-        $strEzCardTemplatePath = PublicData . "_ez/templates/" . $intTemplateFolder . "/index" . XT;
+        $strEzCardTemplatePath = PUBLIC_DATA . "_ez/templates/" . $intTemplateFolder . "/index" . XT;
 
         $intMainColorRed = $objCard->card_data->style->card->color->main_rgb->red;
         $intMainColorRedDark = darkenColorChannel($intMainColorRed, 50);

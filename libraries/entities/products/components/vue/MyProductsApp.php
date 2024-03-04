@@ -7,8 +7,8 @@ use Entities\Products\Components\Vue\ProductsWidget\ListMyProductsWidget;
 
 class MyProductsApp extends VueApp
 {
-    protected $appNamePlural = "My Products";
-    protected $appNameSingular = "My Product";
+    protected string $appNamePlural = "My Products";
+    protected string $appNameSingular = "My Product";
 
     public function __construct($domId, ?VueModal &$modal = null)
     {

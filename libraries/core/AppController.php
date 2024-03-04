@@ -6,17 +6,10 @@ use App\Utilities\Excell\ExcellIterator;
 
 class AppController extends ExcellIterator
 {
-    /**
-     * @var App $app;
-     */
-    protected $app;
+    protected App $app;
+    protected AppEntity $AppEntity;
 
-    /**
-     * @var AppEntity $AppEntity;
-     */
-    protected $AppEntity;
-
-    protected $validationErrors = [];
+    protected array $validationErrors = [];
 
     public function __construct($app)
     {
@@ -79,30 +72,29 @@ class AppController extends ExcellIterator
         die($view);
     }
 
-    protected function renderReturnJson($blnSuccess = false, $objData = null, $strMessage = "", $code = 200, $strDataLabel = "data", $end = null) : void
+    protected function renderReturnJson($blnSuccess = false, $objData = null, $strMessage = "Hello world.", $code = 200, $strDataLabel = "data", $end = null) : bool
     {
         $objTransaction = [
             "success" => $blnSuccess,
             "message" => $strMessage
         ];
 
-        if ($end !== null)
-        {
+        if ($end !== null) {
             $objTransaction["end"] = $end;
         }
 
-        if(!empty($objData))
-        {
+        if (!empty($objData)) {
             $objTransaction[$strDataLabel] = $objData;
         }
 
-        header('Access-Control-Allow-Origin: '.$_SERVER['HTTP_ORIGIN']);
+        header('Access-Control-Allow-Origin: '.$_SERVER['HTTP_HOST']);
         header('Access-Control-Allow-Methods: GET, PUT, POST, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, Authorization, RequestType');
         header('Content-Type: application/json');
 
         echo json_encode($objTransaction);
         die;
+        return false;
     }
 
     protected function renderReturnCachedJson($blnSuccess = false, $objData = null, $strMessage = "", $code = 200, $strDataLabel = "data", $end = null) : void
@@ -122,7 +114,7 @@ class AppController extends ExcellIterator
             $objTransaction[$strDataLabel] = $objData;
         }
 
-        header('Access-Control-Allow-Origin: '.$_SERVER['HTTP_ORIGIN']);
+        header('Access-Control-Allow-Origin: '.$_SERVER['HTTP_HOST']);
         header('Access-Control-Allow-Methods: GET, PUT, POST, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, Authorization, RequestType');
         header('Content-Type: application/json');
@@ -143,8 +135,7 @@ class AppController extends ExcellIterator
         ignore_user_abort(true);
         set_time_limit(0);
         ob_start();
-        $serverProtocole = filter_input(INPUT_SERVER, 'SERVER_PROTOCOL', FILTER_SANITIZE_STRING);
-        header($serverProtocole.' 200 OK');
+        header('HTTP/1.1 200 OK');
         echo '{"success":true, "message":"'.$message.'", "data":'. ($data === null ? "null" : json_encode($data)).'}';
         header('Connection: close');
         header('Content-Length: '.ob_get_length());

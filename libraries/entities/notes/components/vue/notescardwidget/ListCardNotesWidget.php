@@ -9,9 +9,9 @@ use Entities\Notes\Models\NoteModel;
 
 class ListCardNotesWidget extends ListNotesWidget
 {
-    protected $id = "af8986f8-8ec8-40a2-9831-46285e374b84";
-    protected $noEntitiesWarning = "No notes...";
-    protected $batchLoadEndpoint = "api/v1/notes/get-card-note-batches";
+    protected string $id = "af8986f8-8ec8-40a2-9831-46285e374b84";
+    protected string $noEntitiesWarning = "No notes...";
+    protected string $batchLoadEndpoint = "api/v1/notes/get-card-note-batches";
 
     public function __construct(array $components = [])
     {

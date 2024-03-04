@@ -2,23 +2,24 @@
 
 namespace Entities\Cards\Components\Vue\CardWidget;
 
+use App\Core\App;
 use App\Website\Constructs\Breadcrumb;
 use App\Website\Vue\Classes\Base\VueComponent;
 use App\Website\Vue\Classes\VueComponentEntityList;
 use App\Website\Vue\Classes\VueProps;
 use Entities\Cards\Models\CardModel;
+use Entities\Companies\Classes\Companies;
 
 class ListCardWidget extends VueComponentEntityList
 {
-    protected $id = "0a016669-187a-48c2-855b-2f03853210c7";
-    protected $title = "Cards";
-    protected $batchLoadEndpoint = "cards/card-data/get-card-new-batches";
-    protected $noEntitiesWarning = "There are no cards to display.";
+    protected string $id = "0a016669-187a-48c2-855b-2f03853210c7";
+    protected string $title = "Cards";
+    protected string $batchLoadEndpoint = "cards/card-data/get-card-new-batches";
+    protected string $noEntitiesWarning = "There are no cards to display.";
 
     public function __construct($defaultEntity = null, array $components = [])
     {
         $displayColumns = ["banner", "status"];
-
         global $app;
 
         if ($app->userAuthentication() && userCan("manage-platforms"))
@@ -47,7 +48,7 @@ class ListCardWidget extends VueComponentEntityList
         $this->addProp($filterByEntityValue);
         $this->addProp($filterByEntityRefresh);
 
-        $editorComponent = new ManageCardWidget();
+        $editorComponent = $this->getEntityManager();
         $editorComponent->addParentId($this->getInstanceId(), ["edit"]);
 
         $this->addComponentsList($editorComponent->getDynamicComponentsForParent());
@@ -66,6 +67,16 @@ class ListCardWidget extends VueComponentEntityList
         return $this;
     }
 
+    protected function getEntityManager() : ?VueComponent
+    {
+        return new ManageCardWidget();
+    }
+
+    protected function getManageEntityStaticId() : string
+    {
+        return ManageCardWidget::getStaticId();
+    }
+
     protected function renderParentData(): void
     {
         parent::renderParentData();
@@ -80,7 +91,7 @@ class ListCardWidget extends VueComponentEntityList
             {
                 if (typeof this.filterEntityId !== "undefined")
                 {
-                    appCart.openPackagesByClass("card", {id: this.filterEntityId, type: "user"}, this.filterEntityId)
+                    appCart.openPackagesByClass("card", {id: this.filterEntityId, type: "user"}, this.filterEntityId, this.filterEntityId)
                         .registerEntityListAndManager("' . $this->getId() . '", "' . ManageCardWidget::getStaticId() . '");
                     return;
                 }
@@ -88,6 +99,13 @@ class ListCardWidget extends VueComponentEntityList
                 appCart.openPackagesByClass("card")
                     .registerEntityListAndManager("' . $this->getId() . '", "' . ManageCardWidget::getStaticId() . '");
             },
+        ';
+    }
+
+    protected function renderComponentMountedScript(): string
+    {
+        return parent::renderComponentMountedScript() . '
+            dispatch.register("update_card_entityList_with_record", this, "updateCardEntityList");
         ';
     }
 
@@ -100,16 +118,35 @@ class ListCardWidget extends VueComponentEntityList
                 if (typeof this.filterEntity === "undefined")
                 { 
                     modal.EngageFloatShield();
-                    '. $this->activateRegisteredComponentById(ManageCardWidget::getStaticId(), "edit", true, "entity", "this.mainEntityList", ["singleEntity" => "this.singleEntity"], "this", "function() { 
-                    
+                    '. $this->activateRegisteredComponentById($this->getManageEntityStaticId(), "edit", true, "entity", "this.mainEntityList", ["singleEntity" => "this.singleEntity"], "this", "function() { 
+                        modal.CloseFloatShield();
                     }").'
                 }
                 else
                 {
-                    '.$this->activateRegisteredComponentByIdInModal(ManageCardWidget::getStaticId(), "edit", true, "entity", "this.mainEntityList", ["singleEntity" => "this.singleEntity", "filterEntityId" => "this.filterEntityId"], "this", "function() {
+                    '.$this->activateRegisteredComponentByIdInModal($this->getManageEntityStaticId(), "edit", true, "entity", "this.mainEntityList", ["singleEntity" => "this.singleEntity", "filterEntityId" => "this.filterEntityId"], "this", "function() {
                         
                     }").'
                 }    
+            },
+            updateCardEntityList: function(data) {            
+                this.updateMainEntityList(data);
+            },
+            updateMainEntityList: function (data) {
+                let assignedCard = false;
+                
+                for (let currEntityIndex in Array.from(this.mainEntityList)) {
+                    if (this.mainEntityList[currEntityIndex].card_id === data.card.card_id) {
+                        assignedCard = true
+                        this.mainEntityList[currEntityIndex] = null;
+                        this.mainEntityList[currEntityIndex] = data.card;
+                        break;
+                    }
+                }
+                
+                if (!assignedCard) {
+                    this.entities.push(data.card);
+                }
             },
             imageError: function (entity) {
                 entity.banner = "/_ez/images/no-image.jpg";
@@ -129,10 +166,19 @@ class ListCardWidget extends VueComponentEntityList
         ';
     }
 
+    protected function customCss(): string
+    {
+        return '';
+    }
+
     protected function renderTemplate() : string
     {
+        /** @var App $app */
+        global $app;
         return '<div class="formwrapper-control list-cards-main-wrapper">
-                    <v-style type="text/css">
+                    <v-style type="text/css">'.
+                        $this->customCss()
+                        .'
                         .BodyContentBox .list-cards-main-wrapper .form-search-box {
                             top: 0px;
                         }
@@ -185,7 +231,7 @@ class ListCardWidget extends VueComponentEntityList
                         .tableGridLayout .card-list-outer tbody tr td:nth-child(9),
                         .tableGridLayout .card-list-outer tbody tr td:nth-child(10),
                         .tableGridLayout .card-list-outer tbody tr td:nth-child(6) {
-                            display:none;
+                            display:none;getEntityManager
                         }
                         @media (max-width:750px) {
                             .vue-app-body-component .vue-app-body-component .formwrapper-outer .formwrapper-control .vue-modal-wrapper .fformwrapper-header {
@@ -221,13 +267,14 @@ class ListCardWidget extends VueComponentEntityList
                                                     <input id="entity-search-input" v-model="searchMainQuery" class="form-control" type="text" placeholder="Search..."/>
                                                 </td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-primary" v-on:click="openCartPackageSelection()" style="margin-left: 5px;margin-top: -4px;">Purchase New Card</button>
+                                                    ' . ( $app->objCustomPlatform->getApplicationType() === Companies::APP_TYPE_DEFAULT ? '<button class="btn btn-sm btn-primary" v-on:click="openCartPackageSelection()" style="margin-left: 5px;margin-top: -4px;">Purchase New Card</button>' : '') . '
                                                 </td>
                                             </tr>
                                         </table>
                                     </div>
                                 </td>
                                 <td class="text-right page-count-display" style="vertical-align: middle;">
+                                ' . ( $app->objCustomPlatform->getApplicationType() === Companies::APP_TYPE_DEFAULT ? '
                                     <span class="page-count-display-data">
                                         Current: <span>{{ mainEntityPageIndex }}</span>
                                         Pages: <span>{{ totalMainEntityPages }}</span>
@@ -238,6 +285,17 @@ class ListCardWidget extends VueComponentEntityList
                                         <span v-bind:class="{active: listLayoutType === \'grid\'}" v-on:click="toggleLayoutGrid" class="fas fa-th pointer"></span>
                                         <span v-bind:class="{active: listLayoutType === \'list\'}" v-on:click="toggleLayoutList" class="fas fa-list pointer"></span>
                                     </span>
+                                    ' : '
+                                    <button v-on:click="prevMainEntityPage()" class="btn prev-btn" :disabled="mainEntityPageIndex == 1">Prev</button>
+                                    <span class="page-count-display-data">
+                                        <span>{{ mainEntityPageIndex }}</span> / <span>{{ totalMainEntityPages }}</span>
+                                    </span>
+                                    <button v-on:click="nextMainEntityPage()" class="btn" :disabled="mainEntityPageIndex == totalMainEntityPages">Next</button>
+                                    <span>
+                                        <span v-bind:class="{active: listLayoutType === \'grid\'}" v-on:click="toggleLayoutGrid" class="fas fa-th pointer"></span>
+                                        <span v-bind:class="{active: listLayoutType === \'list\'}" v-on:click="toggleLayoutList" class="fas fa-list pointer"></span>
+                                    </span>
+                                    ') . '
                                 </td>
                             </tr>
                             </tbody>
@@ -249,7 +307,7 @@ class ListCardWidget extends VueComponentEntityList
                             <th v-for="mainEntityColumn in mainEntityColumns">
                                 <a v-on:click="orderByColumn(mainEntityColumn)" v-bind:class="{ active : orderKey == mainEntityColumn, sortasc : sortByType == true, sortdesc : sortByType == false }">
                                     {{ mainEntityColumn | ucWords }}
-                                </a>
+                                </a>getEntityManager
                             </th>
                             <th class="text-right">
                                 Actions
@@ -289,7 +347,7 @@ class ListCardWidget extends VueComponentEntityList
                     break;
                 case "card_num":
                 case "card_vanity_url":
-                    $columnList .= '<td><a target="_blank" v-bind:href="\''.$app->objCustomPlatform->getFullPublicDomain().'/\' + mainEntity.' . $currColumn . '">{{ mainEntity.' . $currColumn . ' }}</a></td>';
+                    $columnList .= '<td><a target="_blank" v-bind:href="\''.$app->objCustomPlatform->getFullPublicDomainName().'/\' + mainEntity.' . $currColumn . '">{{ mainEntity.' . $currColumn . ' }}</a></td>';
                     break;
                 case "created_on":
                 case "last_updated":

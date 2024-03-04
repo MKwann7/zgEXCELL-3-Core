@@ -3,15 +3,16 @@
 namespace Entities\Notes\Components\Vue\NotesWidget;
 
 use App\Website\Constructs\Breadcrumb;
+use App\Website\Vue\Classes\Base\VueComponent;
 use App\Website\Vue\Classes\VueComponentEntityList;
 use Entities\Cards\Components\Vue\CardWidget\ManageCardWidget;
 use Entities\Notes\Models\NoteModel;
 
 class ListNotesAdminWidget extends VueComponentEntityList
 {
-    protected $id = "5858f194-630b-45f3-9326-a3f6a58368a2";
-    protected $title = "Notes";
-    protected $batchLoadEndpoint = "api/v1/notes/get-note-batches";
+    protected string $id = "5858f194-630b-45f3-9326-a3f6a58368a2";
+    protected string $title = "Notes";
+    protected string $batchLoadEndpoint = "api/v1/notes/get-note-batches";
 
     public function __construct(array $components = [])
     {
@@ -34,8 +35,6 @@ class ListNotesAdminWidget extends VueComponentEntityList
 
         parent::__construct($defaultEntity, $components);
 
-        $this->addBreadcrumb(new Breadcrumb("Admin","/account/admin/", "link"));
-
         $editorComponent = new ManageNotesAdminWidget();
         $editorComponent->addParentId($this->getInstanceId(), ["edit"]);
 
@@ -47,6 +46,12 @@ class ListNotesAdminWidget extends VueComponentEntityList
         $this->modalTitleForDeleteEntity = "View Cards";
         $this->modalTitleForRowEntity = "View Cards";
         $this->setDefaultAction("view");
+    }
+
+    protected function loadBreadCrumbs(): VueComponent
+    {
+        $this->addBreadcrumb(new Breadcrumb("Admin","/account/admin/", "link"));
+        return $this;
     }
 
     protected function renderComponentMethods() : string

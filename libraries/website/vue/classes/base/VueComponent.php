@@ -2,37 +2,37 @@
 
 namespace App\Website\Vue\Classes\Base;
 
+use App\Core\App;
 use App\Core\AppModel;
 use App\Utilities\Excell\ExcellCollection;
 use App\Website\Constructs\Breadcrumb;
+use App\Website\Constructs\SubPageLinks;
 use App\Website\Vue\Classes\VueModal;
-use App\Website\Vue\Classes\VueProps;
 
 abstract class VueComponent extends VueBase
 {
-    protected $name;
-    protected $id;
-    protected $title = "My Component";
-    protected $entity;
-    protected $modal      = null;
-    protected $vueType     = "comp";
-    protected $breadcrumbs = null;
-    protected $modalTitleForAddEntity;
-    protected $modalTitleForEditEntity;
-    protected $modalTitleForDeleteEntity;
-    protected $modalTitleForRowEntity;
-    protected $mixIns = [];
-    protected $directives = [];
-    protected $rendered = false;
-    protected $noMount = false;
-    protected $noHydrate = false;
-    protected $modalWidth = "auto";
-    protected $userAdminRole = false;
-    protected $userEzDigtalRole = false;
-    protected $userGodMode = false;
-    protected $parentData = [];
+    protected string $name;
+    protected string $id;
+    protected string $title = "My Component";
+    protected ?AppModel $entity;
+    protected ?VueModal $modal      = null;
+    protected string $vueType     = "comp";
+    protected ?ExcellCollection $breadcrumbs = null;
+    protected ?ExcellCollection $subpagelinks = null;
+    protected string $modalTitleForAddEntity = "";
+    protected string $modalTitleForEditEntity = "";
+    protected string $modalTitleForDeleteEntity = "";
+    protected string $modalTitleForRowEntity = "";
+    protected array $mixIns = [];
+    protected array $directives = [];
+    protected bool $rendered = false;
+    protected string $mountType = "default";
+    protected bool $noHydrate = false;
+    protected string $modalWidth = "auto";
+    protected array $parentData = [];
+    protected string $applicationType;
 
-    public $isNotDynamic = false;
+    public bool $isNotDynamic = false;
 
     public function __construct(?AppModel $entity = null)
     {
@@ -40,22 +40,7 @@ abstract class VueComponent extends VueBase
         $this->instanceId = getGuid();
         $this->instanceName = preg_replace("/[^A-Za-z0-9]/", '', $this->instanceId);
 
-        if (userCan("manage-system"))
-        {
-            $this->userAdminRole = true;
-        }
-
-        if (userCan("manage-platform"))
-        {
-            $this->userEzDigtalRole = true;
-        }
-
-        if (userCan("god-mode"))
-        {
-            $this->userGodMode = true;
-        }
-
-        if(!isset($entity)) { return; }
+        if (!isset($entity)) { return; }
 
         $this->modalTitleForAddEntity = "Add " . $entity->getModelName();
         $this->modalTitleForEditEntity = "Edit " . $entity->getModelName();
@@ -63,6 +48,10 @@ abstract class VueComponent extends VueBase
         $this->modalTitleForRowEntity = "View " . $entity->getModelName();
 
         $this->loadBreadCrumbs();
+
+        /** @var App $app */
+        global $app;
+        $this->applicationType = $app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "application_type")->value ?? "default";
     }
 
     protected function renderComponentHydrationScript() : string
@@ -141,6 +130,13 @@ abstract class VueComponent extends VueBase
         return "";
     }
 
+    protected function renderDispatchEvents() : string
+    {
+        return '
+            dispatch.register("user_auth", this, "setUserAuth")
+        ';
+    }
+
     protected function renderReloadComponentMethod() : string
     {
         return "";
@@ -149,7 +145,7 @@ abstract class VueComponent extends VueBase
     protected function renderParentData() : void
     {
         global $app;
-        $this->parentData["loggedInUser"] = "{user_id: '".$app->getActiveLoggedInUser()->user_id."', first_name: '".$app->getActiveLoggedInUser()->first_name."', last_name: '".$app->getActiveLoggedInUser()->last_name."'}";
+        $this->parentData["loggedInUser"] = "{user_id: '".$app->getActiveLoggedInUser()?->user_id."', first_name: '".$app->getActiveLoggedInUser()?->first_name."', last_name: '".$app->getActiveLoggedInUser()?->last_name."'}";
     }
 
     private function renderParentDataString(): string
@@ -180,16 +176,24 @@ abstract class VueComponent extends VueBase
         return $this->rendered;
     }
 
-    public function setNoMount($logical) : void
+    public function setMountType($type) : self
     {
-        $this->noMount = $logical;
+        $this->mountType = $type;
+        return $this;
     }
 
-    public function setComponentsToNoMount($logical) : void
+    public function getMountType() : string
     {
-        foreach ($this->components as $currInstanceId => $currComponent)
-        {
-            $this->components[$currInstanceId]->noMount = $logical;
+        return $this->mountType;
+    }
+
+    public function setComponentsMountType($type) : void
+    {
+        if (!empty($this->components)) {
+            foreach ($this->components as $currInstanceId => $currComponent)
+            {
+                $this->components[$currInstanceId]->mountType = $type;
+            }
         }
     }
 
@@ -200,15 +204,12 @@ abstract class VueComponent extends VueBase
 
     public function setComponentsToNoHydrate($logical) : void
     {
-        foreach ($this->components as $currInstanceId => $currComponent)
-        {
-            $this->components[$currInstanceId]->noHydrate = $logical;
+        if (!empty($this->components)) {
+            foreach ($this->components as $currInstanceId => $currComponent)
+            {
+                $this->components[$currInstanceId]->noHydrate = $logical;
+            }
         }
-    }
-
-    public function isNotMounted() : bool
-    {
-        return $this->noMount;
     }
 
     public function setModal($modal) : self
@@ -270,7 +271,7 @@ abstract class VueComponent extends VueBase
     {
         $instanceTag = "";
 
-        if ($this->noMount === false)
+        if ($this->mountType === "no_mount")
         {
             $instanceTag = ', instance: this.$refs.'.$this->getRef();
         }
@@ -293,9 +294,14 @@ abstract class VueComponent extends VueBase
     public function addBreadcrumb(Breadcrumb $breadcrumb) : self
     {
         if ($this->breadcrumbs === null) { $this->breadcrumbs = new ExcellCollection(); }
-
         $this->breadcrumbs->Add($breadcrumb);
+        return $this;
+    }
 
+    public function addSubPageLink(SubPageLinks $subpagelink) : self
+    {
+        if ($this->subpagelinks === null) { $this->subpagelinks = new ExcellCollection(); }
+        $this->subpagelinks->Add($subpagelink);
         return $this;
     }
 
@@ -315,14 +321,32 @@ abstract class VueComponent extends VueBase
         return $breadcrumb;
     }
 
+    protected function renderSubPageLinksMethod() : string
+    {
+        if ($this->subpagelinks === null) { return ""; }
+
+        $subPageLinks = "";
+
+        foreach ($this->subpagelinks as $currSubPageLinks)
+        {
+            $subPageLinks .= '{';
+            $subPageLinks .= 'linkLabel: "' . $currSubPageLinks->getLabel() . '", linkHref: "' . $currSubPageLinks->getLink() . '", active: "' . $currSubPageLinks->getActive() . '"';
+            $subPageLinks .= '},';
+        }
+
+        return $subPageLinks;
+    }
+
     protected function buildHelpers() : string
     {
         $strHelperList = "";
 
         /** @var VueComponent $currComponent */
-        foreach($this->components as $currComponent)
-        {
-            $strHelperList .= $currComponent->buildTemplate() . PHP_EOL;
+        if (!empty($this->components)) {
+            foreach($this->components as $currComponent)
+            {
+                $strHelperList .= $currComponent->buildTemplate() . PHP_EOL;
+            }
         }
 
         return $strHelperList;
@@ -333,9 +357,10 @@ abstract class VueComponent extends VueBase
         $strHelperList = "";
 
         /** @var VueComponent $currComponent */
-        foreach($this->components as $currComponent)
-        {
-            $strHelperList .= $currComponent->buildComponentObject($currComponent->getInstanceName(), $currComponent->getInstanceId(), $currComponent->getId(), $currComponent->getParentId()) . ",";
+        if (!empty($this->components )) {
+            foreach($this->components as $currComponent) {
+                $strHelperList .= $currComponent->buildComponentObject($currComponent->getInstanceName(), $currComponent->getInstanceId(), $currComponent->getId(), $currComponent->getParentId()) . ",";
+            }
         }
 
         return $strHelperList;
@@ -349,14 +374,12 @@ abstract class VueComponent extends VueBase
     public function renderComponentForAjaxDelivery($props = null) : string
     {
         $this->customProps = $props;
-        $result = 'return {
+        return 'return {
             main: ' . $this->buildComponentObject($this->getInstanceName(), $this->getInstanceId(), $this->getId(), "") . ',
             helpers: [
                 ' . $this->buildHelperObjects() . '
             ]
         }';
-
-        return $result;
     }
 
     public function buildComponentObject($name, $instanceId, $id, $parent = "") : string
@@ -366,19 +389,25 @@ abstract class VueComponent extends VueBase
             id: \'' . $id . '\',
             instanceId: \'' . $instanceId . '\',
             parent: \'' . $parent . '\',
-            uriPath: \'' . $this->uriPath . '\',
+            uriPath: \'' . ($this->uriPath ?? "") . '\',
             uriAbstract: "' . ($this->endpointUriAbstract ?? "null") . '",
             modalWidth: "' . $this->modalWidth . '",
-            noMount: "' . ($this->noMount === true ? "true" : "false"). '",
+            mountType: "' . $this->mountType . '",
             noHydrate: "' . ($this->noHydrate === true ? "true" : "false"). '",
             template: `
                 ' . $this->renderTemplateFromCache() . '
             `,
             mounted() {
+                this.setDispatchEvents();
+                this.hydrateAuth(this.$parent);
+                if (typeof this.isDynamicComponent === "function" && this.isDynamicComponent() === true) {
+                    this.hydrateComponent(this.$parent._props, true);
+                }
+                
                 ' . $this->renderComponentMountedScript() . '       
             },
             props: { ' .
-        (implode(", ", $this->buildPropsJavaScriptObject()))
+                (implode(", ", $this->buildPropsJavaScriptObject()))
         . ' },
             dynamicComponents() {
                 return {
@@ -393,16 +422,18 @@ abstract class VueComponent extends VueBase
                     hasParent: false,
                     isLoggedIn: "inactive",
                     authUserId: null,
+                    user: {},        
                     userId: null,        
-                    userAdminRole: '. ($this->userAdminRole === true ? "true" : "false").',
-                    userEzDigitalRole: '. ($this->userEzDigtalRole === true ? "true" : "false").',
-                    userGodMode: '. ($this->userGodMode === true ? "true" : "false").',
+                    userAdminRole: false,
+                    userSuperAdminRole: false,
+                    userGodMode: false,
                     entity: null,
                     entities: [],
                     action: "view",
-                    dynamicComponentsHydrated: false,
+                    dynamicComponentForReHydration: {},
                     uriPath: \'\',
-                    component_title: "'.$this->title.'",
+                    component_class: "'. static::class .'",
+                    component_title: "' . $this->title . '",
                     component_title_original: "'.$this->title.'",
 ' . $this->renderDynamicPropsFromAjaxRequest() . '
 ' . $this->renderDynamicComponentDataAssignmentDataField() . '
@@ -430,6 +461,9 @@ abstract class VueComponent extends VueBase
                 {
                     this.loadProps(props);
                     this.instantiateDynamicComponents();
+                    if (this.authenticateUser()) {
+                        this.checkAuthRoles()   
+                    }
                     '. $this->renderComponentHydrationScript() . '
                 },
                 loadProps: function(props)
@@ -439,24 +473,44 @@ abstract class VueComponent extends VueBase
                         this[currPropLabel] = props[currPropLabel];
                     }
                 },
-                instantiateDynamicComponents: function()
+                getClass: function() {
+                    return this.component_class;
+                },
+                instantiateDynamicComponents: function(increment)
                 {
-                    if (this.dynamicComponentsHydrated === true) { return; }
-'. $this->renderDynamicComponentHydrationScript() . '
-                    this.dynamicComponentsHydrated = true;
+                    const self = this
+                    let retry = false
+                    
+                    '. $this->renderDynamicComponentHydrationScript() . '
+                    
+                    if (retry === true && (typeof increment === "undefined" || increment < 50)) {
+                        if (typeof increment === "undefined") {
+                            increment = 1
+                        } else {
+                            increment = increment + 1
+                        }
+                        
+                        setTimeout(function() {
+                            self.instantiateDynamicComponents(increment)
+                        }, 20)
+                    }
                 },
                 getModalTitle: function(action)
                 {
                     switch(action) {
-                        case "add": return \'' . $this->modalTitleForAddEntity . '\';
-                        case "edit": return \'' . $this->modalTitleForEditEntity . '\';
-                        case "delete": return \'' . $this->modalTitleForDeleteEntity . '\';
-                        case "read": return \'' . $this->modalTitleForRowEntity . '\';
+                        case "add": return \'' . ($this->modalTitleForAddEntity ?? get_class($this)) . '\';
+                        case "edit": return \'' . ($this->modalTitleForEditEntity ?? get_class($this)) . '\';
+                        case "delete": return \'' . ($this->modalTitleForDeleteEntity ?? get_class($this)) . '\';
+                        case "read": return \'' . ($this->modalTitleForRowEntity ?? get_class($this)) . '\';
                     }
                 },
                 buildBreadCrumb: function()
                 {
                     return ['.$this->renderBreadcrumbMethod().'{linkLabel: this.component_title_original, linkHref: "", linkType: "title"}];
+                },
+                buildSubPageLinks: function()
+                {
+                    return ['.$this->renderSubPageLinksMethod().'];
                 },
                 getParentLinkActions: function() 
                 {
@@ -465,6 +519,10 @@ abstract class VueComponent extends VueBase
                 dismissComponent: function()
                 { 
                     ' . $this->renderComponentDismissalScript() . '
+                },
+                setDispatchEvents: function()
+                { 
+                    ' . $this->renderDispatchEvents() . '
                 },
                 uuidv4: function () {
                     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
@@ -485,18 +543,98 @@ abstract class VueComponent extends VueBase
                     if (typeof vc === "undefined" || vc === null) return;
                     vc.updateComponentAuths(isLoggedIn, authUserId)
                 },
-                inheritAuth: function()
+                authenticateUser: function()
                 {
-                    if (this.$parent.isLoggedIn === "active")
-                    {
-                        this.isLoggedIn = this.$parent.isLoggedIn;
-                        this.authUserId = this.$parent.authUserId;
-  
-                        
-                        if (typeof this.vc !== "undefined") 
-                        {
-                            this.vc.updateComponentAuths(this.isLoggedIn, this.authUserId);
+                    const event = dispatch.get("user_auth")
+                    return this.setUserAuth(event)
+                },
+                setUserAuth: function(data)
+                {
+                    if (data === null || typeof data.isLoggedIn === "undefined" || typeof data.user === "undefined" || data.isLoggedIn === "inactive" || data.user === "visitor") { 
+                        this.isLoggedIn = "inactive";
+                        this.authUserId = null;
+                        this.userId = null;
+                        this.userId = null;
+                        this.userNum = null;
+                        this.user = null;
+                        return false; 
+                    }
+                    
+                    this.isLoggedIn = data.isLoggedIn
+                    this.authUserId = data.authUserId
+                    this.userId = data.userId
+                    this.userNum = data.userNum
+                    
+                    try {
+                        const userData = JSON.parse(data.user)
+                        this.user = {}
+                        this.user.data = userData
+                        this.user.id = data.userNum
+                        this.user.uuid = data.userId
+                        this.user.login = this.isLoggedIn
+                        return true
+                    } catch(e) {
+                        console.log(data);
+                        console.log("something went wrong");
+                        return false
+                    }
+                    this.hydrateAuth(this.$parent);
+                },
+                hydrateAuth: function(parent)
+                {
+                    if (typeof parent.authentication === "undefined" || parent.authentication === null) {
+                        if (typeof parent.$parent === "undefined") {
+                            return;
                         }
+                        return this.hydrateAuth(parent.$parent);
+                    }
+                    
+                    parent.authentication.authenticate();
+                },
+                checkAuthRoles: function()
+                {
+                    if (typeof this.user === "string") this.user = JSON.parse(this.user); 
+                    if (this.user !== null && this.user.data.Roles.length >= 1)
+                    {
+                        let self = this;
+                        
+                        this.user.data.Roles.forEach(el => {
+                            switch(parseInt(el.user_class_type_id__value)) {
+                                case 0: self.userSuperAdminRole = true; self.userAdminRole = true; self.userGodMode = true; self.readOnly = false; return;
+                                case 1: 
+                                case 2: self.userSuperAdminRole = true; self.userAdminRole = true; self.readOnly = false; return;
+                                case 3: self.userSuperAdminRole = true; self.userAdminRole = true; self.readOnly = true; return;
+                                case 4: 
+                                case 5: self.userAdminRole = true; self.readOnly = false; return;
+                                case 6: self.userAdminRole = true; self.readOnly = true; return;
+                            }
+                        });                  
+                    } else {
+                        this.userSuperAdminRole = false;
+                        this.userAdminRole = false;
+                        this.readOnly = false;
+                    }
+                },
+                hydrateDynamicComponents: function(entity, type, increment) {
+                    const self = this
+                    let retry = false
+                    if (!increment) { 
+                        increment = 1
+                    } else {
+                        increment++
+                    }
+                    for (let dynCompRef in this.dynamicComponentForReHydration) {
+                        if (typeof this.$refs[dynCompRef] !== "undefined") {
+                            this.$refs[dynCompRef][type] = entity
+                        } else {
+                            retry = true
+                        }
+                    }
+                    if (retry === true && increment < 20) {
+                        setTimeout(function() {
+                            ezLog(increment)
+                            self.hydrateDynamicComponents(entity,type, increment)
+                        }, 50)
                     }
                 },
                 ' . $this->renderComponentMethods() . '

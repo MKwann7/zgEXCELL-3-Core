@@ -4,8 +4,11 @@
  */
 
 // Custom Escape String
+use App\Core\AppModel;
 use App\Utilities\Database;
+use App\Utilities\Excell\ExcellCollection;
 use App\Utilities\Transaction\ExcellTransaction;
+use App\Utilities\Transaction\ExcellTransactionResult;
 
 if (! function_exists('getFullUrl'))
 {
@@ -39,7 +42,7 @@ if (! function_exists('getFullPublicUrl'))
     function getFullPublicUrl()
     {
         global $app;
-        return $app->objAppSession["Core"]["App"]["Domain"]["WebFull"];
+        return "http". ($app->objAppSession["Core"]["App"]["Domain"]["Web_SSL"] ? "s" : "") . "://" . $app->objAppSession["Core"]["App"]["Domain"]["Web"];
     }
 }
 
@@ -48,7 +51,16 @@ if (! function_exists('getFullPortalUrl'))
     function getFullPortalUrl()
     {
         global $app;
-        return $app->objAppSession["Core"]["App"]["Domain"]["PortalFull"];
+        return "http". ($app->objAppSession["Core"]["App"]["Domain"]["Portal_SSL"] ? "s" : "") . "://" . $app->objAppSession["Core"]["App"]["Domain"]["Portal"];
+    }
+}
+
+if (! function_exists('getFullActiveUrl'))
+{
+    function getFullActiveUrl()
+    {
+        global $app;
+        return $app->getActiveDomain()->getDomainFull();
     }
 }
 
@@ -348,18 +360,18 @@ if (! function_exists('maxValueInArray'))
     }
 }
 
-if (! function_exists('buildUnderscoreLowercaseFromPascalCase'))
+if (! function_exists('buildSnakeCaseFromPascalCase'))
 {
-    function buildUnderscoreLowercaseFromPascalCase($strModelName)
+    function buildSnakeCaseFromPascalCase($strModelName) : string
     {
-        $strModelFileName = preg_split('/(?=[A-Z])/',$strModelName);
-        return strtolower(implode("_",array_filter($strModelFileName)));
+        $strModelFileName = preg_split('/(?=[A-Z])/',$strModelName ?? "");
+        return str_replace(["_ ", " _"], "_",strtolower(implode("_",array_filter($strModelFileName))));
     }
 }
 
 if (! function_exists('buildHyphenLowercaseFromPascalCase'))
 {
-    function buildHyphenLowercaseFromPascalCase($strModelName)
+    function buildHyphenLowercaseFromPascalCase($strModelName) : string
     {
         $strModelFileName = preg_split('/(?=[A-Z])/',$strModelName);
         return strtolower(implode("-",array_filter($strModelFileName)));
@@ -403,7 +415,7 @@ if (! function_exists('buildModelFileFromName'))
 {
     function buildModelFileFromName($strModelName)
     {
-        return buildUnderscoreLowercaseFromPascalCase($strModelName);
+        return buildSnakeCaseFromPascalCase($strModelName);
     }
 }
 
@@ -538,6 +550,36 @@ if (! function_exists('userIsEzDigital'))
     }
 }
 
+if (! function_exists('applicationGroupEnabledElement'))
+{
+    function applicationGroupEnabledElement($appGroupName)
+    {
+        $result = applicationGroupEnabled($appGroupName);
+
+        if ($result !== true) {
+            echo ' style="display:none;"';
+        }
+
+        echo "";
+    }
+}
+
+
+if (! function_exists('applicationGroupEnabled'))
+{
+    function applicationGroupEnabled($appGroupName)
+    {
+        global $app;
+        $groupsEnabled = explode(",",$app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label","application_groups_enabled")->value ?? "");
+
+        if (!in_array($appGroupName, $groupsEnabled)) {
+            return false;
+        }
+
+        return true;
+    }
+}
+
 if (! function_exists('userCanHideElement'))
 {
     function userCanHideElement($strPermission)
@@ -660,8 +702,6 @@ if (! function_exists('buildRecursiveArrayFromQueryString'))
             }
         }
 
-        logText("checkingForPostKey.log", '$arRequestUriKey[0] = ' . json_encode($arParams));
-
         return $arParams;
     }
 }
@@ -697,16 +737,15 @@ if (! function_exists('recursiveAppendArrayListAsChildren'))
     function recursiveAppendArrayListAsChildren($data, $arr, $value)
     {
         $arRecursiveArray = $data;
-        foreach($arr as $key => $field)
-        {
-            if (count($arr) > 1)
-            {
+        foreach($arr as $key => $field) {
+            if (count($arr) > 1 && !empty($arRecursiveArray[substr($field,1,-1)])) {
                 unset($arr[$key]);
                 $arRecursiveArray[substr($field,1,-1)] = recursiveAppendArrayListAsChildren($arRecursiveArray[substr($field,1,-1)], $arr, $value);
                 return $arRecursiveArray;
-            }
-            else
-            {
+            } else {
+                if (is_string($arRecursiveArray)) {
+                    $arRecursiveArray = [];
+                }
                 $arRecursiveArray[substr($field,1,-1)] = $value;
                 return $arRecursiveArray;
             }
@@ -720,8 +759,7 @@ if (! function_exists('darkenColorChannel'))
     {
         $intNewColor = $colorValue - $darkeningValue;
 
-        if ($intNewColor < 0)
-        {
+        if ($intNewColor < 0) {
             $intNewColor = 0;
         }
 
@@ -747,7 +785,9 @@ if (! function_exists('isInteger'))
             is_subclass_of($strInput, \App\Core\AppModel::class) ||
             is_a($strInput, 'stdClass') ||
             is_array($strInput)
-        ) { return false; }
+        ) {
+            return false;
+        }
 
         if (!is_numeric($strInput)) { return false; }
 
@@ -762,35 +802,30 @@ if (! function_exists('isDateTime'))
     function isDateTime($strInput)
     {
         if (
-            is_subclass_of($strInput, \App\Core\AppModel::class) ||
-            is_a($strInput, 'stdClass') ||
-            is_array($strInput)
-        ) { return false; }
+            !is_string($strInput)
+        ) {
+            return false;
+        }
 
         $strInput = trim($strInput);
 
         if (strlen($strInput) < 11) { return false; }
 
-        if (strpos(strtolower($strInput), "t") !== false)
-        {
+        if (strpos(strtolower($strInput), "t") !== false) {
             $strInput = str_replace("t"," ", strtolower($strInput));
         }
 
-        if (strpos($strInput, "+") !== false)
-        {
+        if (strpos($strInput, "+") !== false) {
             $arDateInput = explode("+", $strInput);
             $strInput = $arDateInput[0];
         }
 
-        try
-        {
+        try {
             $strDate = date('Y-m-d H:i:s', strtotime($strInput));
             $strFormatedDate = DateTime::createFromFormat('Y-m-d H:i:s', $strDate);
 
             return strtotime($strInput) && $strFormatedDate && $strFormatedDate->format('Y-m-d H:i:s') === $strDate;
-        }
-        catch(\Exception $ex)
-        {
+        } catch(\Exception $ex) {
             return false;
         }
     }
@@ -805,15 +840,15 @@ if (! function_exists('isDecimal'))
             is_object($strInput) ||
             is_a($strInput, 'stdClass') ||
             is_array($strInput)
-        ) { return false; }
-
-        if(preg_match("/[a-z]/i", $strInput))
-        {
+        ) {
             return false;
         }
 
-        if (isInteger($strInput))
-        {
+        if(preg_match("/[a-z]/i", $strInput ?? "")) {
+            return false;
+        }
+
+        if (isInteger($strInput)) {
             return true;
         }
 
@@ -831,7 +866,9 @@ if (! function_exists('isBoolean'))
             is_subclass_of($strInput, \App\Core\AppModel::class) ||
             is_a($strInput, 'stdClass') ||
             is_array($strInput)
-        ) { return false; }
+        ) {
+            return false;
+        }
 
         return is_bool($strInput);
     }
@@ -854,7 +891,7 @@ if (! function_exists('isUuid'))
 {
     function isUuid( $uuid )
     {
-        if (!is_string($uuid) || (preg_match('/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i', $uuid) !== 1)) {
+        if (!is_string($uuid) || (preg_match('/[a-f0-9]{8}\-[a-f0-9]{4}\-(8|9|a|b)[a-f0-9]{3}\-(8|9|a|b)[a-f0-9]{3}\-[a-f0-9]{12}/', strtolower($uuid)) !== 1)) {
             return false;
         }
 
@@ -891,9 +928,9 @@ if (! function_exists('isJson'))
                 if ( count($objDataValueTest) > 0 )
                 {
                     $objValueTransaction = new ExcellTransaction();
-                    $objValueTransaction->Data = $objDataValueTest;
+                    $objValueTransaction->data = $objDataValueTest;
 
-                    $strJsonString = json_encode(Database::base64Encode($objValueTransaction)->Data);
+                    $strJsonString = json_encode(Database::base64Encode($objValueTransaction)->data);
                 }
                 else
                 {
@@ -906,7 +943,11 @@ if (! function_exists('isJson'))
             }
 
 
-            $result = json_decode($strJsonString);
+            if (!is_string($strJsonString)) {
+                return 'Object submitted for JSON parsing was not a string.';
+            }
+
+            json_decode($strJsonString);
             $error  = "";
 
             switch ( json_last_error() )
@@ -1000,7 +1041,6 @@ if (! function_exists('formatAsPhoneIfApplicable'))
 
 if (function_exists('mb_ereg_replace') && !function_exists("mb_escape"))
 {
-
     function mb_escape(string $string)
     {
         return mb_ereg_replace('[\x00\x0A\x0D\x1A\x22\x25\x27\x5C\x5F]', '\\\0', $string);
@@ -1022,13 +1062,11 @@ if (! function_exists('logText'))
     // This will be moved to engine/libraries soon.
     function logText($strFileName, $strText)
     {
-        $root = AppCore;
+        $root = APP_CORE;
 
-        if ( !is_dir($root . '../logs/') )
-        {
+        if (!is_dir($root . '../logs/')) {
             mkdir($root . 'logs/');
-            if ( !is_dir($root . 'logs/') )
-            {
+            if (!is_dir($root . 'logs/')) {
                 return array(
                     "0" => "zgError",
                     "1" => "Unable to make directory: " . (string)$root . 'logs/'
@@ -1087,6 +1125,7 @@ if (! function_exists('excellErrorHandler'))
 
         if (env("APP_ENV") !== "production")
         {
+            echo $strErrorText;
             logtext(date("Y-m-d") . ".ApplicationJs.Error.log", $strErrorText);
         }
 
@@ -1172,14 +1211,14 @@ if (! function_exists('castValueTypes'))
                 return boolval($objRawValue);
             }
 
-            $objValue = trim($objRawValue);
+            $objValue = is_string($objRawValue) ? trim($objRawValue) : $objRawValue;
 
-            if (strtolower($objValue) == "true")
+            if (strtolower($objValue ?? "") == "true")
             {
                 if ($debug === true) { die("true string"); }
                 return true;
             }
-            elseif (strtolower($objValue) == "false")
+            elseif (strtolower($objValue ?? "") == "false")
             {
                 if ($debug === true) { die("false string"); }
                 return false;
@@ -1224,6 +1263,11 @@ if (! function_exists('env'))
     function env($variableName, $defaultValue = "")
     {
         global $app;
+
+        if ($app === null) {
+            return $defaultValue;
+        }
+
         $objData = $app->getEnv($variableName);
 
         if (empty($objData))

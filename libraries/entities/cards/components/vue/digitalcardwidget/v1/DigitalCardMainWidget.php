@@ -3,24 +3,25 @@
 namespace Entities\Cards\Components\Vue\DigitalCardWidget\V1;
 
 use App\Core\AppModel;
-use App\Website\Vue\Classes\Base\VueComponent;
-use Entities\Cards\Components\Vue\DigitalCardWidget\V3\DigitalCardPageWidget;
+use App\Website\Vue\Classes\VueProps;
+use Entities\Cards\Components\Vue\CardWidget\SwapCardConnectionWidget;
+use Entities\Cards\Components\Vue\DigitalCardWidget\Assets\AbstractDigitalSiteComponent;
+use Entities\Cards\Components\Vue\DigitalCardWidget\Assets\SharedVueSiteMethods;
 
-class DigitalCardMainWidget extends VueComponent
+class DigitalCardMainWidget extends AbstractDigitalSiteComponent
 {
-    protected $id = "74db623b-2abd-41b4-b710-c9e1108ab608";
-    protected $title = "Digital Card";
-    protected $endpointUriAbstract = "{card_num}";
+    protected string $id = "74db623b-2abd-41b4-b710-c9e1108ab608";
+    protected string $cssPrefix = ".app-template-1";
 
     public function __construct (?AppModel $entity = null)
     {
+        $this->cardPage = new DigitalCardPageWidget();
         parent::__construct($entity);
     }
 
     protected function renderComponentDataAssignments() : string
     {
-
-        return "
+        return SharedVueSiteMethods::dataAssignments($this, true) . "
             showSplashImage: true,
             entityFound: false,
             entity: null,
@@ -50,6 +51,7 @@ class DigitalCardMainWidget extends VueComponent
             pageHeight: 55,
             cardModulesByClass: [],
             cardPagePadding: 55,
+            shareTypeList: [],
         ";
     }
 
@@ -76,6 +78,10 @@ class DigitalCardMainWidget extends VueComponent
                 },
                 cardPrimaryColor: function()
                 {
+                    return {
+                        background: "#183470"
+                    }
+                    
                     if (this.mainCardColorRgb === "") return null
                     
                     const red = this.mainCardColorRgb.r;
@@ -90,8 +96,6 @@ class DigitalCardMainWidget extends VueComponent
                         backgroundImage: "linear-gradient(180deg, rgba("+red+","+green+","+blue+",1.00) 0%, rgba("+redDark+","+greenDark+","+blueDark+",1.00) 100%)",
                     }
                     
-                    console.log(backgroundImage);
-                    
                     return backgroundImage;
                 },
                 cardWidthPadding: function()
@@ -103,203 +107,102 @@ class DigitalCardMainWidget extends VueComponent
                 pageTitlePadding: function()
                 {
                     return {
-                        paddingTop: this.cardPagePadding + "px",
-                        paddingBottom: this.cardPagePadding + "px",
+                        paddingTop: (this.cardPagePadding/2) + "px",
+                        paddingBottom: (this.cardPagePadding/2) + "px",
                     };
                 },';
     }
 
-    protected function renderComponentHydrationScript() : string
+    protected function renderComponentHydrationScript(): string
     {
-        return '
-            let cardId = props.cardId;
-            
-            if(typeof this.activeCardId !== "undefined" && this.activeCardId != null)
-            {
-                cardId = this.activeCardId;
-            }
-            
-            this.showSplashImage = true;
-            
-            let self = this;
-            self.checkHanded();
-            self.setAuth();
-            
-            self.loadCardDataById(cardId, function(data) {
-                self.loadCardModules();
-                self.batchLoadPages();
-                self.registerHistory();
-            });
+        return SharedVueSiteMethods::hydration($this) . '
+            if (this.entity) {
+                const websiteView = sessionStorage.getItem(\'active_editor_siteView_\' + this.entity.card_id, "members")
+                this.cardView = websiteView !== "members" ? "public" : "members";
+                this.loadShareTypeList();
+            }    
         ';
     }
 
     protected function renderComponentMethods() : string
     {
         global $app;
-        return 'loadCardDataById: function(id, callback) 
-            {
+        return SharedVueSiteMethods::methods($this) . '
+            loadSiteData: function(siteId) {
+                const self = this
+                if (this.siteIsLoadedInEditor()) {
+                    // Card Is In Editor
+                    self.editor = true
+                    self.entity = self.$parent.$parent.entity
+                    self.hydrateCard()
+                    self.loadCardModules()
+                    self.batchLoadPages(false)
+                    self.registerHistory()
+                } else {
+                    // Card Is Live
+                    self.loadCardDataById(siteId, function(data) {
+                        self.loadCardModules()
+                        self.batchLoadPages(false)
+                        self.registerHistory()
+                    });
+                }
+            }, 
+            openSitePageLive: function(page) {
+                if (this.editor) { return; }
+                this.openSitePage(page);
+            },
+            openSitePageInEditor: function(page,) {
+                if (!this.editor) { return; }
+                this.openSitePage(page);
+            },
+            prePageAssignment: function(page, options, callback) {
+                const dynamicContent = document.getElementById("dynamicPageComponent")
+                slideUp(dynamicContent, 350, function() {
+                    if (typeof callback === "function") callback(page)                
+                })
+            },
+            postPageAssignment: function(page, options, callback) {
+                const dynamicContent = document.getElementById("dynamicPageComponent")
+                slideDown(dynamicContent, 350, function() {
+                    if (typeof callback === "function") callback(page)                
+                })
+            },
+            editConnectionRel: function(entity)
+            {   
                 let self = this;
-                const url = "api/v1/cards/get-card-by-uuid?uuid=" + id + "&pages=true&pageContent=false&addons=modules";
-                ajax.Get(url, null, function(result)
-                {
-                    if (result.success === false || typeof result.response === "undefined") 
-                    { 
-                        return;
-                    }
-                    
-                    self.entityFound = true;                    
-                    self.entity = result.response.data.card;
-                    self.mainCardColor = "#" + getJsonSettingDecoded(self.entity.card_data, "style.card.color.main", "ff0000");
-                    self.mainCardColorRgb = self.hexToRgb(self.mainCardColor);
-                    self.secondaryColor = "#" + getJsonSettingDecoded(self.entity.card_data, "style.card.color.secondary", "ff0000");
-                    self.secondaryColorRgb = self.hexToRgb(self.secondaryColor);
-                    self.cardWidth = getJsonSettingDecoded(self.entity.card_data, "style.card.width", 400);
-                    self.pageHeight = getJsonSettingDecoded(self.entity.card_data, "style.tab.height", 45);
-                    self.cardPagePadding = getJsonSettingDecoded(self.entity.card_data, "style.tab.height") ?? getJsonSettingDecoded(self.entity.Template.data, "style.tab.height") ?? 20;
-                    self.cardPagePadding = (self.cardPagePadding - 25)/2;
-    
-                    let vc = self.findVc(self);
-                    self.$forceUpdate();
-                                                                                                       
-                    if (typeof callback === "function") { callback(result.response.data); }
-                }, "GET");          
-            },
-            loadCardModules: function()
-            {
-                let self = this;
                 
-                if (typeof this.entity.Modules === "undefined" || this.entity.Modules.length === 0) return;
-                
-                setTimeout(function() 
+                this.loadShareTypeList(function() 
                 {
-                    self.loadModuleClasses();
-                    self.loadModules();
-                }
-                , 50);
-            },
-            loadModuleClasses: function()
-            {
-                let modulesByClass = [];
-                this.cardModulesByClass = [];
-                
-                for (let currModule of this.entity.Modules)
-                {
-                    if (typeof modulesByClass[currModule.module_class] === "undefined") { modulesByClass[currModule.module_class] = {module_label: this.ucWords(currModule.module_class), module_tools: []}};
-                    modulesByClass[currModule.module_class].module_tools.push({id:currModule.instance_uuid, logo: currModule.logo});
-                }
-
-                for (let currModuleIndex in modulesByClass)
-                {
-                    this.cardModulesByClass.push(modulesByClass[currModuleIndex]);
-                }
-                
-                this.$forceUpdate();
-            },
-            renderModuleCssClass: function(className)
-            {
-                switch(className)
-                {
-                    case "Communication": return "fas fa-comments";
-                    case "Real Estate": return "fas fa-sign";
-                    case "Construction": return "fas fa-hammer";
-                    case "Insurance": return "fas fa-house-damage";
-                    case "Business": return "fas fa-business-time";
-                }
-            },
-            buildModuleIds: function()
-            {
-                let moduleIds = [];
-                for (let currModule of this.entity.Modules)
-                {
-                    moduleIds.push(currModule.instance_uuid);
-                }
-                
-                return moduleIds.join("|");
-            },
-            loadModules: function(index)
-            {
-                let self = this;
-                const url = "modules/widget/card-widget?id=" + self.entity.card_id + "&modules=" + this.buildModuleIds();
-            
-                ajax.Get(url, null, function(result) 
-                {
-                    for (let currToolIndex in result.response.data)
-                    {
-                        for (let currModuleIndex in self.cardModulesByClass)
-                        {
-                            for (let currModuleToolIndex in self.cardModulesByClass[currModuleIndex].module_tools)
-                            {
-                                if (currToolIndex === self.cardModulesByClass[currModuleIndex].module_tools[currModuleToolIndex].id)
-                                {
-                                    //self.cardModulesByClass[currModuleIndex].module_tools[currModuleToolIndex].
-                                }
-                            }
-                        }
-                    }
-                    // invisibleCardModule
-                    
-                    
-                    self.$forceUpdate();
+                    let cardConnections = self.entity.Connections;
+                    let ownerId = self.entity.owner_id;
+                    let connectionList = self.shareTypeList;
+                    let swapType = "shares";
+                    let createNew = true;
+     
+                    '. $this->activateDynamicComponentByIdInModal(SwapCardConnectionWidget::getStaticId(),"", "edit", "entity", "cardConnections", ["ownerId"=> "ownerId", "connectionList" => "connectionList", "swapType" => "swapType", "functionType" =>"'update'", "createNew" => "createNew"], "self", true,"function(component) {
+                            let modal = self.findModal(self);
+                            modal.vc.setTitle('Swap Share Button Link');
+                    }") . '
                 });
             },
-            batchLoadPages: function()
+            loadShareTypeList: function(callback)
             {
-                let self = this;
-                setTimeout(function() 
-                {
-                    self.loadPage(0);
+                if (this.shareTypeList.length > 0) {
+                    if (typeof callback === "function") callback();
                 }
-                , 50);
-            },
-            loadPage: function(index)
-            {
                 let self = this;
-                let pages = self.entity.Tabs;
-                
-                if (typeof pages[index] === "undefined") return;
-                
-                if (pages[index].hasDataLoaded === true)
+                const url = "/api/v1/users/get-connection-types";
+                ajax.Get(url, null, function(result)
                 {
-                    setTimeout(function() 
-                    {
-                        self.loadPage(index + 1);
-                    }
-                    ,20);
-                    
-                    return;
-                }
-                
-                const url = "cards/card-data/get-card-page-data?card_tab_rel_id=" + pages[index].card_tab_rel_id + "&card_id=" + self.entity.card_id;
-                pages[index].loadingPage = true;
-                
-                ajax.Get(url, null, function(result) 
-                {
-                    pages[index].loadingPage = false;
-                    
-                    try
-                    {
-                        pages[index].content = result.response.data.content;
-                        pages[index].hasDataLoaded = true;
-                    }
-                    catch(err)
-                    {
-                        console.log(err);
-                        console.log(result);
-                        pages[index].content = "Error loading Page: " + err;
-                    }
-        
-                    if ((index + 1 ) < pages.length)
-                    {
-                        setTimeout(function() 
-                        {
-                            self.loadPage(index + 1);
-                        }
-                        ,20);
-                    }
+                    self.shareTypeList = result.response.data.list;
+                    self.$forceUpdate();
+                    if (typeof callback === "function") callback();
                 });
             },
             processConnectionRequest: function(connection)
             {
+                if (this.editor) return;
+                
                 switch(connection.action)
                 {
                     case "sms":
@@ -318,23 +221,16 @@ class DigitalCardMainWidget extends VueComponent
             },
             loadCardIntoContacts: function()
             {
-                window.open("'.$app->objCustomPlatform->getFullPublicDomain().'/api/v1/cards/download-vcard?card_id=" + this.entity.card_num, "_blank");
+                window.open("'.$app->objCustomPlatform->getFullPublicDomainName().'/api/v1/cards/download-vcard?card_id=" + this.entity.card_num, "_blank");
             },
             sendSms: function()
             {
                 const unqiueUrl = (this.entity.card_vanity_url !== "" ? this.entity.card_vanity_url : this.entity.card_num);
-                window.location = "sms:?&body='.$app->objCustomPlatform->getFullPublicDomain().'/" + unqiueUrl + "%20Click%20the%20link%20to%20connect%20with%20" + this.entity.card_owner_name + "!";
+                window.location = "sms:?&body='.$app->objCustomPlatform->getFullPublicDomainName().'/" + unqiueUrl + "%20Click%20the%20link%20to%20connect%20with%20" + this.entity.card_owner_name + "!";
             },
             sendShare: function()
             {
                 window.location = "https://optin.mobiniti.com/" + this.entity.card_num;
-            },
-            openCardPage: function(page)
-            {
-                this.menuOpen = false;
-                '. $this->activateRegisteredComponentById(DigitalCardPageWidget::getStaticId(), "view", true, "this.entity", "[]", ["cardPage" => "page"], "this", "function(result) { 
-                    console.log(result);
-                }").'
             },
             openCardMenu: function()
             {
@@ -444,7 +340,7 @@ class DigitalCardMainWidget extends VueComponent
                 
                 let self = this;
                 this.loginCardUser(
-                    "'.$app->objCustomPlatform->getFullPortalDomain().'/api/v1/users/validate-existing-user-credentials",
+                    "'.$app->objCustomPlatform->getFullPortalDomainName().'/api/v1/users/validate-existing-user-credentials",
                     this.loginUsername, 
                     this.loginPassword, 
                     function(result) 
@@ -538,7 +434,7 @@ class DigitalCardMainWidget extends VueComponent
             {
                 if (typeof this.entity.user_avatar === "undefined")
                 {
-                    return "'.$app->objCustomPlatform->getFullPortalDomain().'/_ez/images/users/no-user.jpg";
+                    return "'.$app->objCustomPlatform->getFullPortalDomainName().'/_ez/images/users/no-user.jpg";
                 }
                 return this.entity.user_avatar;
             },
@@ -615,7 +511,6 @@ class DigitalCardMainWidget extends VueComponent
                 
                 ajax.Post(url, postData, function(result) 
                 {
-                    console.log(result);
                 });
                 
             },
@@ -633,12 +528,16 @@ class DigitalCardMainWidget extends VueComponent
     protected function renderTemplate(): string
     {
         return '
-            <div v-if="entityFound == true" class="app-section app-template-3 app-section-scrollable">
+            <div v-if="entityFound == true" class="app-section app-template-1 app-section-scrollable">
                 <v-style type="text/css">
                     .wrapper {
                         box-shadow:rgba(0,0,0,.3) 0 0 10px;
                     }
                     .mainButtons a li {
+                        position:relative;
+                    }
+                    .mainPages, .mainPages > ul, .mainPages > ul > li, .mainPages > ul > li > div {
+                        width:100%;
                         position:relative;
                     }
                     .app-section-scrollable {
@@ -694,17 +593,29 @@ class DigitalCardMainWidget extends VueComponent
                         margin:0;
                         padding:0;
                     }
-                    .mainButtons li {
-                        background-color: 183470;
-                        width: 21%;
+                    .mainButtons > ul > li:first-child {
+                        margin-left: 3%;
+                    }
+                    .mainButtons > ul > li:last-child {
+                        margin-right: 3%;
+                    }
+                    .mainButtons > ul > li {
+                        background-color: #183470;
+                        width: 21.25%;
                         float: left;
-                        padding: 4% 0;
+                        border-radius: 10px;
+                        margin: 0 1.5%;
+                        padding: 3% 3%;
+                        position:relative;
+                        list-style-type: none;
+                    }
+                    .mainButtons > ul > li > div {
+
                         text-align: center;
                         color: #fff;
                         font-size: 30px;
-                        border-radius: 10px;
-                        margin: 0 2%;
                         list-style-type:none;
+                        position:relative;
                     }
                     .tabs {
                         margin: 1.5% 0 0 0;
@@ -728,7 +639,10 @@ class DigitalCardMainWidget extends VueComponent
                     }
                     .mainImageHandler {
                         height:500px;
-                    } 
+                    }
+                    .app-main-component .mainButtons *:not(span.fas) , .app-main-component .tabTitle *:not(.fas) {
+                        color: #fff !important;
+                    }
                     
                     @media (max-width:600px){
             
@@ -754,33 +668,119 @@ class DigitalCardMainWidget extends VueComponent
                         }
                         .mainImageHandler {
                             height:100vw;
-                        } 
+                        }
+                        
+                    }
+                                        
+                    .tabTitle, .tabTitleText {
+                        position:relative;
+                    }
+                    .text-input-editor {
+                        position: absolute;
+                        font-size:14px;
+                        color:black !important;
+                        cursor:pointer;
+                        background:white;
+                        border-radius:25px;
+                        padding:4px 2px 5px 6px;
+                        box-shadow: 0 0 3px rgba(0,0,0,.4);
+                        z-index:1002;
+                    }
+                    .text-input-editor-inner-center {
+                        top: calc(50% - 15px);
+                        left: calc(50% - 15px);
+                    }
+                    .text-input-editor-left {
+                        top: 3px;
+                        left:-33px;
+                    }
+                    .text-input-editor-inner-top-left {
+                        top: 10px;
+                        left:10px;
+                    }
+                    .text-input-editor-connection {
+                        top: 40%;
+                        left: -7px;
+                    }
+                    .media-hub-850  .text-input-editor-connection {
+                        top: 36%;
+                    } 
+                    .media-hub-400 .text-input-editor-connection {
+                        top: 30%;
+                    } 
+                    .text-input-editor-inner-top-right {
+                        top: 10px;
+                        right:10px;
+                    }
+                    .text-input-editor-navigation {
+                        top: 10px;
+                        left: 10px;
+                    }
+                    .text-input-editor > span { 
+                        position: absolute;
+                        top: 1px;
+                        pointer-events:none;
+                        left: 10px;
+                        opacity: 0;
+                        transition: all .1s ease-in-out;
+                        white-space: nowrap;
+                        padding:3px 5px;
+                        font-size:13px;
+                    }
+                    .text-input-editor:hover > span {
+                        display:block;
+                        color:#000;
+                        left: 30px;
+                        top: 1px;
+                        background:white;
+                        border-radius:3px;
+                        box-shadow: 0 0 3px rgba(0,0,0,.4);
+                        opacity: 1;
                     }
                 </v-style>
                 <div v-if="cardView ===\'public\'" class="app-component app-main-component">
                     <div class="wrapper" v-bind:style="cardWidthPadding">
                         <div class="mainImage">
-                            <div class="mainImageHandler" v-bind:style="{ background: \'url(\' + entity.banner + \') no-repeat center center / auto 100%\'}"></div>
+                            <div class="mainImageHandler" v-bind:style="renderBackgroundMedia(\'header-banner\')">
+                                <span v-if="editor === true" class="fas fa-edit text-input-editor text-input-editor-inner-top-left" v-on:click="editImage(\'header-banner\')"><span>Edit Header Background</span></span>
+                            </div>
                         </div>
                         <div class="mainButtons">
                             <ul>
-                                <li v-for="currConnection in cardConnections" v-on:click="processConnectionRequest(currConnection)" v-bind:style="cardPrimaryColor">
-                                    <i v-bind:class="displayFontAwesome(currConnection)"></i>
+                                <li v-for="currConnection in cardConnections"v-bind:style="cardPrimaryColor">
+                                    <span v-if="editor === true" class="fas fa-edit text-input-editor text-input-editor-connection" v-on:click="editConnectionRel(currConnection)"><span>Edit Connection</span></span>
+                                    <div v-on:click="processConnectionRequest(currConnection)">
+                                        <i v-bind:class="displayFontAwesome(currConnection)"></i>
+                                    </div>
                                 </li>
                             </ul>
                             <div class="clearfix"></div>
                         </div>
-                        <div class="tabs">
+                        <div class="mainPages tabs app-main-comp-body">
+                            <li v-if="editor === true">
+                                <span v-if="editor === true" class="fas fa-edit text-input-editor text-input-editor-navigation" v-on:click="editPages()"><span>Edit Pages</span></span>
+                            </li>
                             <ul>
-                                <li v-for="currPage in cardPages" v-on:click="openCardPage(currPage)">
-                                    <div class="tabTitle" v-bind:style="[cardPrimaryColor, pageTitlePadding]" v-bind:id="\'tab\' + currPage.card_tab_rel_id">
-                                        {{ currPage.title }}
+                                <li v-for="currPage in cardPages" v-if="currPage.rel_visibility == true">
+                                    <div class="tabTitle" v-on:click="event.preventDefault(); openSitePageLive(currPage)" v-bind:style="[cardPrimaryColor, pageTitlePadding]" v-bind:id="\'tab\' + currPage.card_tab_rel_id">
+                                        <span class="tabTitleText"><span v-if="editor === true" class="fas fa-edit text-input-editor text-input-editor-left" v-on:click="editPage(currPage)"></span><span v-on:click="event.preventDefault(); openSitePageInEditor(currPage)">{{ renderMenuTitle(currPage) }}</span></span>
                                     </div>
-                                    <div class="tabContent" v-bind:id="\'content\' + currPage.card_tab_rel_id">
-                    
+                                    <div class="tabContent" v-bind:id="\'content_\' + currPage.card_tab_rel_id">
                                     </div>
                                 </li>
                             </ul>
+                            <div id="dynamicPageHolder" style="display:none;">
+                                <div id="dynamicPageComponent">
+                                ' . $this->registerAndRenderDynamicComponent(
+                                    $this->cardPage,
+                                    "view",
+                                    [
+                                        new VueProps("activeEntity", "object", "entity"),
+                                        new VueProps("noTitle", "boolean", "true")
+                                    ]
+                                ) . '
+                                </div>
+                            </div>
                         </div>
                         <div class="footer" style="display:none;">
                             <div class="footerLeft" style="font-size: 11px; padding-top: 3px;">
@@ -897,7 +897,7 @@ class DigitalCardMainWidget extends VueComponent
                                                 <span class="field-validation-valid" data-valmsg-for="Password" data-valmsg-replace="true"></span>
                                             </div>
                                         </div>
-                                        <div class="login-field-row">
+                                        <div class="loginwidget-field-row">
                                             <div class="editor-label">
                                             </div>
                                             <div class="editor-field">

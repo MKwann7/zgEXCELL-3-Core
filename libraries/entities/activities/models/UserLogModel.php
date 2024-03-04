@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class UserLogModel extends AppModel
 {
-    protected $EntityName = "Activities";
-    protected $ModelName = "UserLog";
+    protected string $EntityName = "Activities";
+    protected string $ModelName = "UserLog";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class UserLogModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "log_user_id" => ["type" => "int","length" => 15],

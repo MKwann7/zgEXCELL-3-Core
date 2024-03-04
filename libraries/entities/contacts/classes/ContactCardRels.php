@@ -8,7 +8,7 @@ use Entities\Contacts\Models\ContactCardRelModel;
 
 class ContactCardRels extends AppEntity
 {
-    public $strEntityName       = "Contacts";
+    public string $strEntityName       = "Contacts";
     public $strDatabaseTable    = "contact_card_rel";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = ContactCardRelModel::class;

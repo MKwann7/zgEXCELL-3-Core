@@ -10,7 +10,7 @@ use App\Utilities\Database;
 
 $this->CurrentPage->BodyId            = "view-my-cards-page";
 $this->CurrentPage->BodyClasses       = ["admin-page", "view-my-cards-page", "two-columns", "left-side-column"];
-$this->CurrentPage->Meta->Title       = "List My Cards | " . $this->app->objCustomPlatform->getPortalDomain();
+$this->CurrentPage->Meta->Title       = "List My Cards | " . $this->app->objCustomPlatform->getPortalDomainName();
 $this->CurrentPage->Meta->Description = "Welcome to the NEW AMAZING WORLD of EZ Digital Cards, where you can create and manage your own cards!";
 $this->CurrentPage->Meta->Keywords    = "";
 $this->CurrentPage->SnipIt->Title     = "List My Cards";
@@ -2312,7 +2312,7 @@ $this->LoadVendorForPageStyles($this->CurrentPage->BodyId, ["jquery"=>"input-pic
             cardAffiliateIndex: 1,
             transIndex: 1,
 
-            cards: <?php echo $objActiveCards->Data->ConvertToJavaScriptArray([
+            cards: <?php echo $objActiveCards->getData()->ConvertToJavaScriptArray([
                     "card_id",
                     "card_num",
                     "card_name",

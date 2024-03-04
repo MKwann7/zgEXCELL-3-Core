@@ -9,10 +9,10 @@ use Entities\Users\Models\UserModel;
 
 class ListUserWidget extends VueComponentEntityList
 {
-    protected $id = "03374f26-1780-4c1c-b6fe-db8a69de4576";
-    protected $title = "Users";
+    protected string $id = "03374f26-1780-4c1c-b6fe-db8a69de4576";
+    protected string $title = "Users";
     protected $singleEntityName = "User";
-    protected $batchLoadEndpoint = "users/user-data/get-user-new-batches";
+    protected string $batchLoadEndpoint = "users/user-data/get-user-new-batches";
     protected $showCards = false;
 
     public function __construct($defaultEntity = null, array $components = [])

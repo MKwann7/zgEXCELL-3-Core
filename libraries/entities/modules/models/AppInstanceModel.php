@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class AppInstanceModel extends AppModel
 {
-    protected $EntityName = "Modules";
-    protected $ModelName = "AppInstance";
+    protected string $EntityName = "Modules";
+    protected string $ModelName = "AppInstance";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,16 +15,13 @@ class AppInstanceModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "app_instance_id" => ["type" => "int","length" => 15],
             "owner_id" => ["type" => "int","length" => 15],
-            "card_id" => ["type" => "int","length" => 15],
-            "card_tab_id" => ["type" => "int","length" => 15],
-            "card_addon_id" => ["type" => "int","length" => 15],
             "module_app_id" => ["type" => "int","length" => 15],
-            "module_app_widget_id" => ["type" => "int","length" => 15],
+            "order_line_id" => ["type" => "int","length" => 15],
             "instance_uuid" => ["type" => "uuid"],
             "product_id" => ["type" => "int","length" => 15],
             "created_on" => ["type" => "datetime"],

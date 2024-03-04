@@ -6,8 +6,8 @@ use App\Core\AppModel;
 
 class ContactGroupModel extends AppModel
 {
-    protected $EntityName = "Contacts";
-    protected $ModelName = "ContactGroup";
+    protected string $EntityName = "Contacts";
+    protected string $ModelName = "ContactGroup";
 
     public function __construct($entityData = null, $force = false)
     {
@@ -15,7 +15,7 @@ class ContactGroupModel extends AppModel
         parent::__construct($entityData, $force);
     }
 
-    private function loadDefinitions()
+    private function loadDefinitions(): array
     {
         return [
             "contact_group_id" =>["type" => "int", "length" => "15"],

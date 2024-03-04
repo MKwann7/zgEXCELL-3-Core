@@ -10,7 +10,7 @@ use Entities\Products\Models\ProductModel;
 
 class Products extends AppEntity
 {
-    public $strEntityName       = "products";
+    public string $strEntityName       = "products";
     public $strDatabaseTable    = "product";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = ProductModel::class;
@@ -31,7 +31,7 @@ class Products extends AppEntity
             WHERE ps.package_id IN (" . implode(",", $arPackageIds) . ")";
 
         $objProducts = Database::getSimple($whereClause,"product_id");
-        $objProducts->Data->HydrateModelData(ProductModel::class, true);
+        $objProducts->getData()->HydrateModelData(ProductModel::class, true);
 
         return $objProducts;
     }

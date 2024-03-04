@@ -12,7 +12,7 @@ class Carts extends AppEntity
         parent::__construct();
     }
 
-    public $strEntityName       = "Carts";
+    public string $strEntityName       = "Carts";
     public $strDatabaseTable    = "cart";
     public $strDatabaseName     = "Main";
     public $strMainModelName    = CartModel::class;

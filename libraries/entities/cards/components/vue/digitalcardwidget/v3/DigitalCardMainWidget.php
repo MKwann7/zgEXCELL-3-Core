@@ -7,10 +7,10 @@ use App\Website\Vue\Classes\Base\VueComponent;
 
 class DigitalCardMainWidget extends VueComponent
 {
-    protected $id = "e32a5bfb-4ae8-49fc-afb6-c7c6dfa8b74b";
-    protected $title = "Digital Card";
-    protected $endpointUriAbstract = "{card_num}";
-    protected $noMount = false;
+    protected string $id = "e32a5bfb-4ae8-49fc-afb6-c7c6dfa8b74b";
+    protected string $title = "Digital Card";
+    protected string $endpointUriAbstract = "{card_num}";
+    protected string $mountType = "no_mount";
 
     public function __construct (?AppModel $entity = null)
     {
@@ -187,25 +187,21 @@ class DigitalCardMainWidget extends VueComponent
             {
                 let self = this;
                 const url = "modules/widget/card-widget?id=" + self.entity.card_id + "&modules=" + this.buildModuleIds();
+                
+                return;
             
-                ajax.Get(url, null, function(result) 
-                {
-                    for (let currToolIndex in result.response.data)
-                    {
-                        for (let currModuleIndex in self.cardModulesByClass)
-                        {
-                            for (let currModuleToolIndex in self.cardModulesByClass[currModuleIndex].module_tools)
-                            {
-                                if (currToolIndex === self.cardModulesByClass[currModuleIndex].module_tools[currModuleToolIndex].id)
-                                {
+                ajax.Get(url, null, function(result) {
+                    for (let currToolIndex in result.response.data) {
+                        for (let currModuleIndex in self.cardModulesByClass) {
+                            for (let currModuleToolIndex in self.cardModulesByClass[currModuleIndex].module_tools) {
+                                if (currToolIndex === self.cardModulesByClass[currModuleIndex].module_tools[currModuleToolIndex].id) {
                                     //self.cardModulesByClass[currModuleIndex].module_tools[currModuleToolIndex].
                                 }
                             }
                         }
                     }
                     // invisibleCardModule
-                    
-                    
+
                     self.$forceUpdate();
                 });
             },
@@ -285,12 +281,12 @@ class DigitalCardMainWidget extends VueComponent
             },
             loadCardIntoContacts: function()
             {
-                window.open("'.$app->objCustomPlatform->getFullPublicDomain().'/api/v1/cards/download-vcard?card_id=" + this.entity.card_num, "_blank");
+                window.open("'.$app->objCustomPlatform->getFullPublicDomainName().'/api/v1/cards/download-vcard?card_id=" + this.entity.card_num, "_blank");
             },
             sendSms: function()
             {
                 const unqiueUrl = (this.entity.card_vanity_url !== "" ? this.entity.card_vanity_url : this.entity.card_num);
-                window.location = "sms:?&body='.$app->objCustomPlatform->getFullPublicDomain().'/" + unqiueUrl + "%20Click%20the%20link%20to%20connect%20with%20" + this.entity.card_owner_name + "!";
+                window.location = "sms:?&body='.$app->objCustomPlatform->getFullPublicDomainName().'/" + unqiueUrl + "%20Click%20the%20link%20to%20connect%20with%20" + this.entity.card_owner_name + "!";
             },
             sendShare: function()
             {
@@ -411,7 +407,7 @@ class DigitalCardMainWidget extends VueComponent
                 
                 let self = this;
                 this.loginCardUser(
-                    "'.$app->objCustomPlatform->getFullPortalDomain().'/api/v1/users/validate-existing-user-credentials",
+                    "'.$app->objCustomPlatform->getFullPortalDomainName().'/api/v1/users/validate-existing-user-credentials",
                     this.loginUsername, 
                     this.loginPassword, 
                     function(result) 
@@ -505,7 +501,7 @@ class DigitalCardMainWidget extends VueComponent
             {
                 if (typeof this.entity.user_avatar === "undefined")
                 {
-                    return "'.$app->objCustomPlatform->getFullPortalDomain().'/_ez/images/users/no-user.jpg";
+                    return "'.$app->objCustomPlatform->getFullPortalDomainName().'/_ez/images/users/no-user.jpg";
                 }
                 return this.entity.user_avatar;
             },
@@ -582,7 +578,6 @@ class DigitalCardMainWidget extends VueComponent
                 
                 ajax.Post(url, postData, function(result) 
                 {
-                    console.log(result);
                 });
                 
             },
