@@ -104,16 +104,16 @@ class AppController extends ExcellIterator
             "message" => $strMessage
         ];
 
-        if ($end !== null)
-        {
+        if ($end !== null) {
             $objTransaction["end"] = $end;
         }
 
-        if(!empty($objData))
-        {
+        if(!empty($objData)) {
             $objTransaction[$strDataLabel] = $objData;
         }
+
         $ssl = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on';
+
         if ($ssl) {
             header('Access-Control-Allow-Origin: https://'. $_SERVER['HTTP_HOST']);
         } else {
