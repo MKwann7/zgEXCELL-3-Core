@@ -174,6 +174,9 @@ class CartProcess
 
     private function processOptionalWidgetsForPurchase(ExcellCollection &$packages, CartProcessOptions $cartProcessOptions): void
     {
+        if (empty($cartProcessOptions->widgets_for_purchase)) {
+            return;
+        }
         $products = new Products();
         $cartProcessOptions->widgets_for_purchase->Foreach(function(PackageLineModel $packageLineModel) use (&$packages, $products) {
             $packageLineModel->AddUnvalidatedValue("product", $products->getById($packageLineModel->product_entity_id)->getData()->first());
