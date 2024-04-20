@@ -95,8 +95,7 @@ class ImportUsersAndCardsCommand extends Command
                             }
                         }
 
-                        $cardModel->AddUnvalid
-                        atedValue("Connections", $userConnections);
+                        $cardModel->AddUnvalidatedValue("Connections", $userConnections);
                     } else {
 
                     }

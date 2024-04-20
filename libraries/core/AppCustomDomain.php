@@ -30,6 +30,9 @@ class AppCustomDomain
 
     public function getDomainFull() : string
     {
+        if ($this->getSsl()) {
+            return $this->getDomainFullWithSsl();
+        }
         return $this->domainFull;
     }
 

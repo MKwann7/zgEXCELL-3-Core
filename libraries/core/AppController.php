@@ -113,8 +113,13 @@ class AppController extends ExcellIterator
         {
             $objTransaction[$strDataLabel] = $objData;
         }
+        $ssl = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on';
+        if ($ssl) {
+            header('Access-Control-Allow-Origin: https://'. $_SERVER['HTTP_HOST']);
+        } else {
+            header('Access-Control-Allow-Origin: '. $_SERVER['HTTP_HOST']);
+        }
 
-        header('Access-Control-Allow-Origin: '.$_SERVER['HTTP_HOST']);
         header('Access-Control-Allow-Methods: GET, PUT, POST, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, Authorization, RequestType');
         header('Content-Type: application/json');
