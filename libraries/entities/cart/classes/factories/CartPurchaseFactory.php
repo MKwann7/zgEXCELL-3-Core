@@ -13,6 +13,7 @@ use Entities\Products\Classes\ProductProcessor;
 
 class CartPurchaseFactory extends AbstractFactory
 {
+    const VARIATION_ID_FIELD = "var_id";
     private App $app;
     private ProductProcessor $productProcessor;
     private CartProcess $cartProcess;

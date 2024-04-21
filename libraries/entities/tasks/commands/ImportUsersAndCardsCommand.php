@@ -264,7 +264,7 @@ class ImportUsersAndCardsCommand extends Command
 
         // 4 is the EZcard Package Variation
         $cardPackage = [
-            ["var_id" => 4, "quantity" => 1]
+            [CartPurchaseFactory::VARIATION_ID_FIELD => 4, "quantity" => 1]
         ];
 
         $purchaseResult = $cartPurchaseFactory->processShoppingCart($cardPackage, 0, $userId, 0, $newCartOptions);

@@ -342,7 +342,7 @@ class ProductProcessor
         global $app;
         $siteType = $this->renderProductType((int) $product->product_id);
         $siteTypeName = !empty($app->objCustomPlatform) ? ($app->objCustomPlatform->getCompanySettings()->FindEntityByValue("label", "application_type")->value ==="default" ? "Card" : "Site") : "Site";
-        $siteTemplate = $this->productLineAttributes->FindEntityByValues(["package_line_id" => $packageLine->package_line_id, "label" => "default_site_template_id"]);
+        $siteTemplate = $this->productLineAttributes->FindEntityByValues(["package_line_id" => $packageLine->package_line_id, "label" => "default_template_id"]);
         $siteTemplateId = ($siteTemplate !== null) ? $siteTemplate->value : 1;
 
         $objCardCreate = new CardModel();

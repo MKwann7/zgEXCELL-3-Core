@@ -2,7 +2,6 @@
 
 namespace Entities\Users\Classes\Factories;
 
-use App\cart\classes\factories\CartProcessOptions;
 use App\Core\Abstracts\AbstractFactory;
 use App\Core\App;
 use App\Utilities\Excell\ExcellCollection;
@@ -10,6 +9,7 @@ use App\Utilities\Transaction\ExcellTransaction;
 use Entities\Cards\Classes\Cards;
 use Entities\Cards\Models\CardModel;
 use Entities\Cart\Classes\CartProductCapsule;
+use Entities\Cart\Classes\Factories\CartProcessOptions;
 use Entities\Cart\Classes\Factories\CartPurchaseFactory;
 use Entities\Users\Classes\Users;
 
@@ -34,8 +34,8 @@ class PersonaFactory extends AbstractFactory
     public function processFreePersonaPurchase($userId, CartPurchaseFactory $purchaseFactory) : ExcellTransaction
     {
         $personaPackage = [];
-        $defaultPersonaPackageId = $this->app->getCustomPlatform()->getCompanySettings()->FindEntityByValue("label","default_persona_package_id")->value ?? 28;
-        $personaPackage[] = ["id" =>$defaultPersonaPackageId, "quantity" => 1];
+        $defaultPersonaPackageId = $this->app->getCustomPlatform()->getCompanySettings()->FindEntityByValue("label","default_persona_package_id")->value ?? 14;
+        $personaPackage[] = [CartPurchaseFactory::VARIATION_ID_FIELD => $defaultPersonaPackageId, "quantity" => 1];
 
         $newCartOptions = new CartProcessOptions();
         $newCartOptions->parent_entity_type = "account";

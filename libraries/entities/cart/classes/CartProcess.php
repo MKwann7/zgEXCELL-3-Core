@@ -6,6 +6,7 @@ use App\Core\App;
 use App\entities\packages\models\PackageVariationModel;
 use App\Utilities\Excell\ExcellCollection;
 use Entities\Cart\Classes\Factories\CartProcessOptions;
+use Entities\Cart\Classes\Factories\CartPurchaseFactory;
 use Entities\Cart\Classes\Helpers\CartMinimumValue;
 use Entities\Cart\Classes\Helpers\CartStripeCheckout;
 use Entities\Cart\Classes\Helpers\PackageSearch;
@@ -143,8 +144,8 @@ class CartProcess
         $packageQuantities = [];
 
         foreach($packageIds as $currPackage) {
-            $arPackageIds[] = $currPackage["var_id"];
-            $packageQuantities[$currPackage["var_id"]] = (float) $currPackage["quantity"];
+            $arPackageIds[] = $currPackage[CartPurchaseFactory::VARIATION_ID_FIELD];
+            $packageQuantities[$currPackage[CartPurchaseFactory::VARIATION_ID_FIELD]] = (float) $currPackage["quantity"];
         }
 
         // TODO - Change this to be a dependency so it can be unit tested.
@@ -438,7 +439,7 @@ class CartProcess
         $this->grossProductsValue = $totalProductsValue;
 
         if ($this->stripeAccountType === "connected") {
-            $this->netToGrossPercentage = !empty($this->grossProductsValue) ? ($this->grossProductsValue / $this->grossCartValue) : 0;
+            $this->netToGrossPercentage = (!empty($this->grossProductsValue) && !empty($this->grossCartValue)) ? ($this->grossProductsValue / $this->grossCartValue) : 0;
         }
     }
 

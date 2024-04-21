@@ -30,9 +30,9 @@ class CardSettingsFactory extends AbstractFactory
             if ($currData instanceof \stdClass) {
                 $currData = json_encode($currData);
             }
-            if (empty($currSetting->card_setting_id)) {
+            if (empty($currSetting) || empty($currSetting->card_setting_id)) {
                 $newSetting = new CardSettingModel(["label" => $currKey, "value" => $this->setValue($currData), "tags" => "card", "card_id" => $card->card_id]);
-                $this->settings->createNew($newSetting);
+                $result = $this->settings->createNew($newSetting);
             } else {
                 try {
                     $currSetting->value = $this->setValue($currData);

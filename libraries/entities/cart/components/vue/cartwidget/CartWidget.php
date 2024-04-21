@@ -1996,11 +1996,13 @@ class CartWidget extends VueComponent
                 }
                 .appCartWrapper .cart-display-box {
                     display:block;
-                    margin: 0 25px;
+                    margin: 0;
+                    padding: 0 25px;
                     overflow-y:auto;
                 }
                 .appCartWrapper .cart-display-box-inner {
-                   
+                   padding-bottom:2kill-app.sh5px;
+                   height:auto;
                 }
                 .appCartWrapper .cart-display-box .cartPackageItem {
                     display:flex;

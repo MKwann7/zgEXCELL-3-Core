@@ -431,7 +431,7 @@ class ManageCardProfileWidget extends VueComponent
                         <tr v-if="userAdminRole">
                                     <td style="width:125px;vertical-align: middle;">Template</td>
                                     <td>
-                                        <select v-model="entityClone.template_id" class="form-control">
+                                        <select v-model="entityClone.template_id" class="form-control site-template-select">
                                             <option value="">--Select Template--</option>
                                             <option v-for="currTemplate in templateList" v-bind:value="currTemplate.card_template_id" selected="">{{ currTemplate.name }}</option>
                                         </select>

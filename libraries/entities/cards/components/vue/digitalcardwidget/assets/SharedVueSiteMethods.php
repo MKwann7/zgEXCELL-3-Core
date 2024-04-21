@@ -382,9 +382,9 @@ class SharedVueSiteMethods
                     }
                 } else {
                     let activeEditorPageId = sessionStorage.getItem(\'active_editor_page_\' + this.entity.card_id);
-                    ezLog(\'active_editor_page_\' + this.entity.card_id,"CardID");
-                    ezLog(activeEditorPageId, "activeEditorPageId");
-                    activeEditorPageId = activeEditorPageId ? activeEditorPageId : self.entity.Tabs[0].card_tab_id;
+                    if (self.entity.Tabs) {
+                        activeEditorPageId = activeEditorPageId ? activeEditorPageId : self.entity.Tabs[0].card_tab_id;
+                    }
                     for (currPageIndex in self.entity.Tabs) {
                         if (pages[currPageIndex].card_tab_id == activeEditorPageId) {
 
