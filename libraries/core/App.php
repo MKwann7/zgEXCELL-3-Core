@@ -1414,7 +1414,7 @@ class App
         }
 
         foreach($arEnvContents as $currEnvLine) {
-            if (strpos($currEnvLine, "=") === false) {
+            if (!str_contains($currEnvLine, "=")) {
                 continue;
             }
 
